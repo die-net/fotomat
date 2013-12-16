@@ -42,9 +42,9 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 }
 
 func (result *Result) Resize(width, height uint) error {
-        // Only use Lanczos if we are shrinking by more than 2.5%
-	maxw := result.Width - result.Width / 40
-	maxh := result.Height - result.Height / 40
+	// Only use Lanczos if we are shrinking by more than 2.5%
+	maxw := result.Width - result.Width/40
+	maxh := result.Height - result.Height/40
 
 	if width < maxw && height < maxh {
 		return result.wand.ResizeImage(width, height, imagick.FILTER_LANCZOS, 0.8)
