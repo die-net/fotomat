@@ -34,6 +34,18 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
+	// Don't bother to send 16 or 32 bits per channel.
+        if err := result.wand.SetImageDepth(8); err != nil {
+		result.Close()
+		return nil, err
+	}
+
+	// Don't bother to preserve transparency.
+        if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_OPAQUE); err != nil {
+		result.Close()
+		return nil, err
+	}
+
 	// These may be smaller than img.Width and img.Height if JPEG decoder pre-scaled image.
 	result.Width = result.wand.GetImageWidth()
 	result.Height = result.wand.GetImageHeight()
@@ -61,7 +73,7 @@ func (result *Result) Resize(width, height uint) error {
 func (result *Result) Get() ([]byte, error) {
 	// Remove extraneous metadata.  Photoshop in particular adds a huge
 	// XML blob.
-	if err := result.wand.StripImage(); err != nil {
+	if err := stripProfilesAndComments(result.wand); err != nil {
 		return nil, err
 	}
 
