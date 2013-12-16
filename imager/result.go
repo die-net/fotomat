@@ -35,13 +35,13 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	}
 
 	// Don't bother to send 16 or 32 bits per channel.
-        if err := result.wand.SetImageDepth(8); err != nil {
+	if err := result.wand.SetImageDepth(8); err != nil {
 		result.Close()
 		return nil, err
 	}
 
 	// Don't bother to preserve transparency.
-        if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_OPAQUE); err != nil {
+	if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_OPAQUE); err != nil {
 		result.Close()
 		return nil, err
 	}

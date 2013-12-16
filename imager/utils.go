@@ -39,7 +39,7 @@ func stripProfilesAndComments(wand *imagick.MagickWand) error {
 		}
 	}
 
-        // Remove unnecessary comments.
+	// Remove unnecessary comments.
 	return wand.DeleteImageProperty("comment")
 }
 
