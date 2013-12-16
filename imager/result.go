@@ -47,9 +47,12 @@ func (result *Result) Resize(width, height uint) error {
 	maxh := result.Height - result.Height/40
 
 	if width < maxw && height < maxh {
-		return result.wand.ResizeImage(width, height, imagick.FILTER_LANCZOS, 0.8)
+		if err := result.wand.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1); err != nil {
+			return err
+		}
+		return result.wand.UnsharpMaskImage(0, 1, 0.5, 0)
 	} else {
-		return result.wand.ResizeImage(width, height, imagick.FILTER_TRIANGLE, 0.0)
+		return result.wand.ResizeImage(width, height, imagick.FILTER_TRIANGLE, 1)
 	}
 }
 
