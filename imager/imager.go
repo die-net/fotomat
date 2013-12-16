@@ -9,17 +9,23 @@ var (
 	TooBig        = errors.New("Image is too wide or tall")
 )
 
+const (
+	minDimension = 2             // Avoid off-by-one divide-by-zero errors.
+	maxDimension = (2 << 14) - 2 // Avoid signed int16 overflows.
+)
+
 type Imager struct {
 	blob         []byte
 	Width        uint
 	Height       uint
 	InputFormat  string
 	OutputFormat string
-	Quality      uint
+	JpegQuality  uint
 }
 
 func New(blob []byte) (*Imager, error) {
-	// Security: Guess at formats.  Limit formats we pass to ImageMagick to just JPEG, PNG, GIF.
+	// Security: Guess at formats.  Limit formats we pass to ImageMagick
+	// to just JPEG, PNG, GIF.
 	inputFormat, outputFormat := detectFormats(blob)
 	if inputFormat == "" {
 		return nil, UnknownFormat
@@ -31,11 +37,13 @@ func New(blob []byte) (*Imager, error) {
 		return nil, UnknownFormat
 	}
 
-	// Security: Confirm that detectFormat() and imageMagick agreed on format and that
-	// image sizes are not likely to wrap shorts (limited to 2<<14-2 intentionally).
-	if format != inputFormat || width < 1 || height < 1 {
+	// Security: Confirm that detectFormat() and imageMagick agreed on
+	// format and that image sizes are sane.
+	if format != inputFormat {
 		return nil, UnknownFormat
-	} else if width > 16382 || height > 16382 {
+	} else if width < minDimension || height < minDimension {
+		return nil, UnknownFormat
+	} else if width > maxDimension || height > maxDimension {
 		return nil, TooBig
 	}
 
@@ -45,7 +53,7 @@ func New(blob []byte) (*Imager, error) {
 		Height:       height,
 		InputFormat:  inputFormat,
 		OutputFormat: outputFormat,
-		Quality:      85,
+		JpegQuality:  85,
 	}
 
 	return img, nil

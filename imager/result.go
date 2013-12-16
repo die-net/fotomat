@@ -59,7 +59,8 @@ func (result *Result) Resize(width, height uint) error {
 ///     if err = img.wand.CropImage(w, h, x, y); err != nil {
 
 func (result *Result) Get() ([]byte, error) {
-	// Remove extraneous metadata.  Photoshop in particular adds a huge XML blob.
+	// Remove extraneous metadata.  Photoshop in particular adds a huge
+	// XML blob.
 	if err := result.wand.StripImage(); err != nil {
 		return nil, err
 	}
@@ -69,13 +70,20 @@ func (result *Result) Get() ([]byte, error) {
 		return nil, err
 	}
 
-	if result.img.OutputFormat == "JPEG" {
-		if err := result.wand.SetImageCompressionQuality(result.img.Quality); err != nil {
+	switch result.img.OutputFormat {
+	case "JPEG":
+		if err := result.wand.SetImageCompressionQuality(result.img.JpegQuality); err != nil {
 			return nil, err
 		}
 
-		// This creates "Progressive JPEGs", which are smaller.  Don't use for non-JPEG.
+		// This creates "Progressive JPEGs", which are smaller.
+		// Don't use for non-JPEG.
 		if err := result.wand.SetInterlaceScheme(imagick.INTERLACE_LINE); err != nil {
+			return nil, err
+		}
+	case "PNG":
+		// PNG quality: 95 = Gzip level=9, adaptive strategy=5
+		if err := result.wand.SetImageCompressionQuality(95); err != nil {
 			return nil, err
 		}
 	}
@@ -85,9 +93,8 @@ func (result *Result) Get() ([]byte, error) {
 }
 
 func (result *Result) Close() {
-	// imagick.MagicWand will otherwise leak unless we Destroy.
+	// imagick.MagicWand will otherwise leak unless we wand.Destroy().
 	result.wand.Destroy()
 
-	result.wand = nil
-	result.img = nil
+	*result = Result{}
 }
