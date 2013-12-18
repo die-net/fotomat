@@ -21,6 +21,7 @@ type Imager struct {
 	InputFormat  string
 	OutputFormat string
 	JpegQuality  uint
+	Sharpen      bool
 }
 
 func New(blob []byte) (*Imager, error) {
@@ -54,6 +55,7 @@ func New(blob []byte) (*Imager, error) {
 		InputFormat:  inputFormat,
 		OutputFormat: outputFormat,
 		JpegQuality:  85,
+		Sharpen:      true,
 	}
 
 	return img, nil

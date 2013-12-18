@@ -10,6 +10,7 @@ type Result struct {
 	img    *Imager
 	Width  uint
 	Height uint
+	shrank bool
 }
 
 func (img *Imager) NewResult(width, height uint) (*Result, error) {
@@ -50,29 +51,45 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	result.Width = result.wand.GetImageWidth()
 	result.Height = result.wand.GetImageHeight()
 
+	if result.Width < img.Width && result.Height < img.Height {
+		result.shrank = true
+	}
+
 	return result, nil
 }
 
 func (result *Result) Resize(width, height uint) error {
-	// Only use Lanczos if we are shrinking by more than 2.5%
-	maxw := result.Width - result.Width/40
-	maxh := result.Height - result.Height/40
-
-	if width < maxw && height < maxh {
-		if err := result.wand.ResizeImage(width, height, imagick.FILTER_LANCZOS, 1); err != nil {
-			return err
-		}
-		return result.wand.UnsharpMaskImage(0, 1, 0.5, 0)
-	} else {
-		return result.wand.ResizeImage(width, height, imagick.FILTER_TRIANGLE, 1)
+	// Only use Lanczos if we are shrinking by more than 2.5%.
+	filter := imagick.FILTER_TRIANGLE
+	if width < result.Width-result.Width/40 && height < result.Height-result.Height/40 {
+		filter = imagick.FILTER_LANCZOS
 	}
+
+	if err := result.wand.ResizeImage(width, height, filter, 1); err != nil {
+		return err
+	}
+
+	// Only change dimensions and/or set shrank flag on success.
+	result.Width = width
+	result.Height = height
+	if filter == imagick.FILTER_LANCZOS {
+		result.shrank = true
+	}
+
+	return nil
 }
 
 ///     if err = img.wand.CropImage(w, h, x, y); err != nil {
 
 func (result *Result) Get() ([]byte, error) {
-	// Remove extraneous metadata.  Photoshop in particular adds a huge
-	// XML blob.
+	// If the image shrunk, apply a light sharpening pass
+	if result.shrank && result.img.Sharpen {
+		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0); err != nil {
+			return nil, err
+		}
+	}
+
+	// Remove extraneous metadata.
 	if err := stripProfilesAndComments(result.wand); err != nil {
 		return nil, err
 	}
