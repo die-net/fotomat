@@ -24,7 +24,7 @@ type Imager struct {
 	Sharpen      bool
 }
 
-func New(blob []byte) (*Imager, error) {
+func New(blob []byte, maxBufferDimension uint) (*Imager, error) {
 	// Security: Guess at formats.  Limit formats we pass to ImageMagick
 	// to just JPEG, PNG, GIF.
 	inputFormat, outputFormat := detectFormats(blob)
@@ -38,13 +38,21 @@ func New(blob []byte) (*Imager, error) {
 		return nil, UnknownFormat
 	}
 
+	// Assume JPEG decoder can pre-scale to 1/8 original size.
+	if format == "JPEG" {
+		maxBufferDimension *= 8
+	}
+	if maxBufferDimension > maxDimension {
+		maxBufferDimension = maxDimension
+	}
+
 	// Security: Confirm that detectFormat() and imageMagick agreed on
 	// format and that image sizes are sane.
 	if format != inputFormat {
 		return nil, UnknownFormat
 	} else if width < minDimension || height < minDimension {
 		return nil, UnknownFormat
-	} else if width > maxDimension || height > maxDimension {
+	} else if width > maxBufferDimension || height > maxBufferDimension {
 		return nil, TooBig
 	}
 
@@ -72,6 +80,40 @@ func (img *Imager) Thumbnail(width, height uint, within bool) ([]byte, error) {
 
 	if result.Width > width || result.Height > height {
 		if err := result.Resize(width, height); err != nil {
+			return nil, err
+		}
+	}
+
+	return result.Get()
+}
+
+func (img *Imager) Crop(width, height uint) ([]byte, error) {
+        // If requested width or height are larger than original, scale
+        // request down to fit within original dimensions.
+        if (width > img.Width || height > img.Height) {
+		width, height = scaleAspect(width, height, img.Width, img.Height, true)
+        }
+
+        // Figure out the intermediate size the original image would have to
+        // be scaled to be cropped to requested size.
+        iw, ih := scaleAspect(img.Width, img.Height, width, height, false)
+
+	result, err := img.NewResult(iw, ih)
+	if err != nil {
+		return nil, err
+	}
+	defer result.Close()
+
+        // If necessary, scale down to appropriate intermediate size.
+	if result.Width > iw || result.Height > ih {
+		if err := result.Resize(iw, ih); err != nil {
+			return nil, err
+		}
+	}
+
+        // If necessary, crop to fit exact size.
+	if result.Width > width || result.Height > height {
+		if err := result.Crop(width, height); err != nil {
 			return nil, err
 		}
 	}

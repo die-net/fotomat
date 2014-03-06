@@ -79,7 +79,27 @@ func (result *Result) Resize(width, height uint) error {
 	return nil
 }
 
-///     if err = img.wand.CropImage(w, h, x, y); err != nil {
+
+func (result *Result) Crop(width, height uint) error {
+        if width > result.Width || height > result.Height {
+             return TooBig
+        }
+
+        // Center horizontally
+        x := (int(result.Width) - int(width) + 1) / 2
+        // Assume faces are higher up vertically
+        y := (int(result.Height) - int(height) + 1) / 4
+
+	if err := result.wand.CropImage(width, height, x, y); err != nil {
+		return err
+        }
+
+        result.Width = width
+        result.Height = height
+
+	return nil
+}
+
 
 func (result *Result) Get() ([]byte, error) {
 	// If the image shrunk, apply a light sharpening pass
