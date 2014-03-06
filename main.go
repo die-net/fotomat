@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	listenAddr = flag.String("listen", "127.0.0.1:8000", "[IP]:port to listen for incoming connections.")
+	listenAddr = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for incoming connections.")
 	maxThreads = flag.Int("max_threads", runtime.NumCPU(), "Maximum number of OS threads to create.")
 )
 
