@@ -41,8 +41,8 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
-	// Don't bother to preserve transparency.
-	if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_OPAQUE); err != nil {
+	// Don't preserve data for fully-transparent pixels.
+	if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_BACKGROUND); err != nil {
 		result.Close()
 		return nil, err
 	}
