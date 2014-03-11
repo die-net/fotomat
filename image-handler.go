@@ -37,7 +37,7 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orig, err, status := fetchUrl(r.FormValue("image_url"))
-	if err != nil {
+	if err != nil || status != http.StatusOK {
 		sendError(w, err, status)
 		return
 	}
