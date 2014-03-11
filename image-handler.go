@@ -84,7 +84,7 @@ func fetchUrl(url string) ([]byte, error, int) {
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK, http.StatusNoContent, http.StatusNotFound:
+	case http.StatusOK, http.StatusNoContent, http.StatusForbidden, http.StatusNotFound:
 		return body, nil, resp.StatusCode
 	default:
 		err := fmt.Errorf("Proxy received %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
