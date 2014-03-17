@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-        "github.com/die-net/fotomat/imager"
+	"github.com/die-net/fotomat/imager"
 	"io/ioutil"
 	"net/http"
 	"regexp"
@@ -84,7 +84,10 @@ func fetchUrl(url string) ([]byte, error, int) {
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK, http.StatusNoContent, http.StatusForbidden, http.StatusNotFound:
+	case http.StatusOK, http.StatusNoContent, http.StatusBadRequest,
+		http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound,
+		http.StatusRequestTimeout, http.StatusGone:
+
 		return body, nil, resp.StatusCode
 	default:
 		err := fmt.Errorf("Proxy received %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
@@ -113,9 +116,9 @@ func sendError(w http.ResponseWriter, err error, status int) {
 	if status == 0 {
 		switch err {
 		case imager.UnknownFormat:
-			status = http.StatusNotFound
+			status = http.StatusUnsupportedMediaType
 		case imager.TooBig:
-			status = http.StatusForbidden
+			status = http.StatusRequestEntityTooLarge
 		default:
 			status = http.StatusInternalServerError
 		}

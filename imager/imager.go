@@ -88,15 +88,15 @@ func (img *Imager) Thumbnail(width, height uint, within bool) ([]byte, error) {
 }
 
 func (img *Imager) Crop(width, height uint) ([]byte, error) {
-        // If requested width or height are larger than original, scale
-        // request down to fit within original dimensions.
-        if (width > img.Width || height > img.Height) {
+	// If requested width or height are larger than original, scale
+	// request down to fit within original dimensions.
+	if width > img.Width || height > img.Height {
 		width, height = scaleAspect(width, height, img.Width, img.Height, true)
-        }
+	}
 
-        // Figure out the intermediate size the original image would have to
-        // be scaled to be cropped to requested size.
-        iw, ih := scaleAspect(img.Width, img.Height, width, height, false)
+	// Figure out the intermediate size the original image would have to
+	// be scaled to be cropped to requested size.
+	iw, ih := scaleAspect(img.Width, img.Height, width, height, false)
 
 	result, err := img.NewResult(iw, ih)
 	if err != nil {
@@ -104,14 +104,14 @@ func (img *Imager) Crop(width, height uint) ([]byte, error) {
 	}
 	defer result.Close()
 
-        // If necessary, scale down to appropriate intermediate size.
+	// If necessary, scale down to appropriate intermediate size.
 	if result.Width > iw || result.Height > ih {
 		if err := result.Resize(iw, ih); err != nil {
 			return nil, err
 		}
 	}
 
-        // If necessary, crop to fit exact size.
+	// If necessary, crop to fit exact size.
 	if result.Width > width || result.Height > height {
 		if err := result.Crop(width, height); err != nil {
 			return nil, err

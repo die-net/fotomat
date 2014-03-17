@@ -1,7 +1,7 @@
 package imager
 
 import (
-        "github.com/gographics/imagick/imagick"    
+	"github.com/gographics/imagick/imagick"
 )
 
 func init() {
