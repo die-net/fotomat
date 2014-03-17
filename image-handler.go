@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 var maxBufferDimension = flag.Uint("max_buffer_dimension", 2048, "Maximum width or height of an image buffer to allocate.")
+var maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
 
 func init() {
 	http.HandleFunc("/albums/crop", imageCropHandler)
@@ -30,15 +32,11 @@ const maxDimension = 2048
 func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
 		sendError(w, nil, http.StatusMethodNotAllowed)
+		return
 	}
 
 	if err := r.ParseForm(); err != nil {
 		sendError(w, err, 0)
-	}
-
-	orig, err, status := fetchUrl(r.FormValue("image_url"))
-	if err != nil || status != http.StatusOK {
-		sendError(w, err, status)
 		return
 	}
 
@@ -48,26 +46,38 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	img, err := imager.New(orig, *maxBufferDimension)
-	if err != nil {
-		sendError(w, err, 0)
+	url := r.FormValue("image_url")
+	orig, err, status := fetchUrl(url)
+	if err != nil || status != http.StatusOK {
+		sendError(w, err, status)
 		return
 	}
 
-	defer img.Close()
-
-	var thumb []byte
-	if crop {
-		thumb, err = img.Crop(width, height)
-	} else {
-		thumb, err = img.Thumbnail(width, height, true)
-	}
+	thumb, err := processImage(url, orig, width, height, crop)
+	orig = nil // Free up image memory ASAP.
 	if err != nil {
 		sendError(w, err, 0)
 		return
 	}
 
 	w.Write(thumb)
+}
+
+func parseGeometry(geometry string) (uint, uint, bool, bool) {
+	g := matchGeometry.FindStringSubmatch(geometry)
+	if len(g) != 4 {
+		return 0, 0, false, false
+	}
+	width, err := strconv.Atoi(g[1])
+	if err != nil || width <= 0 || width >= maxDimension {
+		return 0, 0, false, false
+	}
+	height, err := strconv.Atoi(g[2])
+	if err != nil || height <= 0 || height >= maxDimension {
+		return 0, 0, false, false
+	}
+	crop := (g[3] == "#")
+	return uint(width), uint(height), crop, true
 }
 
 func fetchUrl(url string) ([]byte, error, int) {
@@ -95,21 +105,28 @@ func fetchUrl(url string) ([]byte, error, int) {
 	}
 }
 
-func parseGeometry(geometry string) (uint, uint, bool, bool) {
-	g := matchGeometry.FindStringSubmatch(geometry)
-	if len(g) != 4 {
-		return 0, 0, false, false
+func processImage(url string, orig []byte, width, height uint, crop bool) ([]byte, error) {
+	if *maxProcessingDuration > 0 {
+		timer := time.AfterFunc(*maxProcessingDuration, func() {
+			panic(fmt.Sprintf("Processing %v longer than %v", url, *maxProcessingDuration))
+		})
+		defer timer.Stop()
 	}
-	width, err := strconv.Atoi(g[1])
-	if err != nil || width <= 0 || width >= maxDimension {
-		return 0, 0, false, false
+
+	img, err := imager.New(orig, *maxBufferDimension)
+	if err != nil {
+		return nil, err
 	}
-	height, err := strconv.Atoi(g[2])
-	if err != nil || height <= 0 || height >= maxDimension {
-		return 0, 0, false, false
+
+	defer img.Close()
+
+	var thumb []byte
+	if crop {
+		thumb, err = img.Crop(width, height)
+	} else {
+		thumb, err = img.Thumbnail(width, height, true)
 	}
-	crop := (g[3] == "#")
-	return uint(width), uint(height), crop, true
+	return thumb, err
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
