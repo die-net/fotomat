@@ -2,7 +2,7 @@ package imager
 
 import (
 	"fmt"
-	"github.com/die-net/fotomat/imager/imagick"
+	"github.com/gographics/imagick/imagick"
 )
 
 type Result struct {

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/die-net/fotomat/imager"
+        "github.com/die-net/fotomat/imager"
 	"io/ioutil"
 	"net/http"
 	"regexp"

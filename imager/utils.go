@@ -1,7 +1,7 @@
 package imager
 
 import (
-        "github.com/die-net/fotomat/imager/imagick"
+        "github.com/gographics/imagick/imagick"    
 	"net/http"
 )
 
