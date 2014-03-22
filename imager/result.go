@@ -35,14 +35,32 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
-	// Don't bother to send 16 or 32 bits per channel.
-	if err := result.wand.SetImageDepth(8); err != nil {
-		result.Close()
-		return nil, err
+	icc := result.wand.GetImageProfile("icc")
+	if icc != "" {
+		// Apply sRGB IEC 61966 2.1 to this image, if currently has
+		// a different profile.
+		if icc != sRGB_IEC61966_2_1_black_scaled {
+			if err := result.wand.ProfileImage("icc", []byte(sRGB_IEC61966_2_1_black_scaled)); err != nil {
+				result.Close()
+				return nil, err
+			}
+		}
+
+		// Make sure ImageMagick is aware that this is now sRGB.
+		if err := result.wand.SetColorspace(imagick.COLORSPACE_SRGB); err != nil {
+			result.Close()
+			return nil, err
+		}
+	} else if result.wand.GetImageColorspace() != imagick.COLORSPACE_SRGB {
+		// Switch to sRGB colorspace, the default for the web.
+		if err := result.wand.TransformImageColorspace(imagick.COLORSPACE_SRGB); err != nil {
+			result.Close()
+			return nil, err
+		}
 	}
 
-	// Don't preserve data for fully-transparent pixels.
-	if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_BACKGROUND); err != nil {
+	// Remove extraneous metadata and color profiles.
+	if err := result.wand.StripImage(); err != nil {
 		result.Close()
 		return nil, err
 	}
@@ -62,7 +80,7 @@ func (result *Result) Resize(width, height uint) error {
 	// Only use Lanczos if we are shrinking by more than 2.5%.
 	filter := imagick.FILTER_TRIANGLE
 	if width < result.Width-result.Width/40 && height < result.Height-result.Height/40 {
-		filter = imagick.FILTER_LANCZOS
+		filter = imagick.FILTER_LANCZOS2_SHARP
 	}
 
 	if err := result.wand.ResizeImage(width, height, filter, 1); err != nil {
@@ -72,7 +90,7 @@ func (result *Result) Resize(width, height uint) error {
 	// Only change dimensions and/or set shrank flag on success.
 	result.Width = width
 	result.Height = height
-	if filter == imagick.FILTER_LANCZOS {
+	if filter == imagick.FILTER_LANCZOS2_SHARP {
 		result.shrank = true
 	}
 
@@ -102,13 +120,13 @@ func (result *Result) Crop(width, height uint) error {
 func (result *Result) Get() ([]byte, error) {
 	// If the image shrunk, apply a light sharpening pass
 	if result.shrank && result.img.Sharpen {
-		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0); err != nil {
+		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
 			return nil, err
 		}
 	}
 
-	// Remove extraneous metadata.
-	if err := stripProfilesAndComments(result.wand); err != nil {
+	// Only save at 8 bits per channel.
+	if err := result.wand.SetImageDepth(8); err != nil {
 		return nil, err
 	}
 
@@ -129,6 +147,11 @@ func (result *Result) Get() ([]byte, error) {
 			return nil, err
 		}
 	case "PNG":
+		// Don't preserve data for fully-transparent pixels.
+		if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_BACKGROUND); err != nil {
+			return nil, err
+		}
+
 		// PNG quality: 95 = Gzip level=9, adaptive strategy=5
 		if err := result.wand.SetImageCompressionQuality(95); err != nil {
 			return nil, err

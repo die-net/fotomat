@@ -31,18 +31,6 @@ func imageMetaData(blob []byte) (uint, uint, string, error) {
 	return wand.GetImageWidth(), wand.GetImageHeight(), wand.GetImageFormat(), nil
 }
 
-func stripProfilesAndComments(wand *imagick.MagickWand) error {
-	for _, name := range wand.GetImageProfiles("*") {
-		// Remove everything except important color profiles.
-		if name != "icc" && name != "icm" {
-			wand.RemoveImageProfile(name)
-		}
-	}
-
-	// Remove unnecessary comments.
-	return wand.DeleteImageProperty("comment")
-}
-
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.
 // If within=true, fit completely within result, leaving empty space if necessary.
 func scaleAspect(ow, oh, rw, rh uint, within bool) (uint, uint) {
