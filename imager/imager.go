@@ -15,7 +15,7 @@ var (
 
 const (
 	minDimension = 2             // Avoid off-by-one divide-by-zero errors.
-	maxDimension = (2 << 14) - 2 // Avoid signed int16 overflows.
+	maxDimension = (2 << 15) - 2 // Avoid signed int16 overflows.
 )
 
 type Imager struct {
@@ -28,7 +28,7 @@ type Imager struct {
 	Sharpen      bool
 }
 
-func New(blob []byte, maxBufferDimension uint) (*Imager, error) {
+func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 	// Security: Guess at formats.  Limit formats we pass to ImageMagick
 	// to just JPEG, PNG, GIF.
 	inputFormat, outputFormat := detectFormats(blob)
@@ -44,10 +44,7 @@ func New(blob []byte, maxBufferDimension uint) (*Imager, error) {
 
 	// Assume JPEG decoder can pre-scale to 1/8 original size.
 	if format == "JPEG" {
-		maxBufferDimension *= 8
-	}
-	if maxBufferDimension > maxDimension {
-		maxBufferDimension = maxDimension
+		maxBufferPixels *= 8
 	}
 
 	// Security: Confirm that detectFormat() and imageMagick agreed on
@@ -56,7 +53,9 @@ func New(blob []byte, maxBufferDimension uint) (*Imager, error) {
 		return nil, UnknownFormat
 	} else if width < minDimension || height < minDimension {
 		return nil, UnknownFormat
-	} else if width > maxBufferDimension || height > maxBufferDimension {
+	} else if width > maxDimension || height > maxDimension {
+		return nil, TooBig
+	} else if width * height > maxBufferPixels {
 		return nil, TooBig
 	}
 

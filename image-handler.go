@@ -15,7 +15,8 @@ import (
 	"time"
 )
 
-var maxBufferDimension = flag.Uint("max_buffer_dimension", 2048, "Maximum width or height of an image buffer to allocate.")
+var maxOutputDimension = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
+var maxBufferPixels = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 var maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
 
 func init() {
@@ -30,8 +31,6 @@ func init() {
 var (
 	matchGeometry = regexp.MustCompile(`^(\d{1,5})x(\d{1,5})([>#])?$`)
 )
-
-const maxDimension = 2048
 
 func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
@@ -73,11 +72,11 @@ func parseGeometry(geometry string) (uint, uint, bool, bool) {
 		return 0, 0, false, false
 	}
 	width, err := strconv.Atoi(g[1])
-	if err != nil || width <= 0 || width >= maxDimension {
+	if err != nil || width <= 0 || width >= *maxOutputDimension {
 		return 0, 0, false, false
 	}
 	height, err := strconv.Atoi(g[2])
-	if err != nil || height <= 0 || height >= maxDimension {
+	if err != nil || height <= 0 || height >= *maxOutputDimension {
 		return 0, 0, false, false
 	}
 	crop := (g[3] == "#")
@@ -117,7 +116,7 @@ func processImage(url string, orig []byte, width, height uint, crop bool) ([]byt
 		defer timer.Stop()
 	}
 
-	img, err := imager.New(orig, *maxBufferDimension)
+	img, err := imager.New(orig, *maxBufferPixels)
 	if err != nil {
 		return nil, err
 	}
