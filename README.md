@@ -1,14 +1,29 @@
 fotomat
 =======
 
-Golang-based image thumbnailing and cropping server.
-
-WARNING: This project is incomplete!  It might not do anything useful yet.
+Golang-based image thumbnailing and cropping proxy, using many of the size,
+speed, and quality optimizations available in ImageMagick via the [Fotomat
+imager](https://github.com/die-net/fotomat/tree/master/imager) library.
 
 Building:
 --------
 
-Install [Go](http://golang.org/doc/install), git, and ImageMagick, then:
+Install [Go](http://golang.org/doc/install), git, and ImageMagick 6.7+ with
+Color Management support.
+
+On OSX, this is:
+
+        brew update && brew install imagemagick --with-little-cms
+
+On RHEL 6.4, I rebuilt a [Fedora Rawhide source
+RPM](http://mirror.pnl.gov/fedora/linux/development/rawhide/source/SRPMS/i/),
+and commented out a couple of dependencies that aren't available on RHEL 6.
+
+On Debian or Ubuntu, this should just be:
+
+	apt-get update && apt-get install imagemagick imagemagick-devel
+
+Then for all OSes:
 
 	git clone https://github.com/die-net/fotomat.git
 	cd fotomat

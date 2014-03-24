@@ -1,3 +1,7 @@
+// Copyright 2013-2014 Aaron Hopkins. All rights reserved.
+// Use of this source code is governed by the GPL v2 license
+// license that can be found in the LICENSE file.
+
 package main
 
 import (
