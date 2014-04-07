@@ -39,17 +39,7 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
-	icc := result.wand.GetImageProfile("icc")
-	if icc != "" {
-		// Apply sRGB IEC 61966 2.1 to this image, if currently has
-		// a different profile.
-		if icc != sRGB_IEC61966_2_1_black_scaled {
-			if err := result.wand.ProfileImage("icc", []byte(sRGB_IEC61966_2_1_black_scaled)); err != nil {
-				result.Close()
-				return nil, err
-			}
-		}
-
+	if result.applyColorProfile() {
 		// Make sure ImageMagick is aware that this is now sRGB.
 		if err := result.wand.SetColorspace(imagick.COLORSPACE_SRGB); err != nil {
 			result.Close()
@@ -78,6 +68,21 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	}
 
 	return result, nil
+}
+
+func (result *Result) applyColorProfile() bool {
+	icc := result.wand.GetImageProfile("icc")
+	if icc == "" {
+		return false // no color profile
+	}
+
+	if icc == sRGB_IEC61966_2_1_black_scaled {
+		return true // already applied
+	}
+
+	// Apply sRGB IEC 61966 2.1 to this image.
+	err := result.wand.ProfileImage("icc", []byte(sRGB_IEC61966_2_1_black_scaled))
+	return err == nil // did we successfully apply?
 }
 
 func (result *Result) Resize(width, height uint) error {
