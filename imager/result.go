@@ -53,6 +53,13 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		}
 	}
 
+	// Fix orientation.
+	// TODO: It would be faster to do this after Resize/Crop operation.
+	if err := result.autoOrient(); err != nil {
+		result.Close()
+		return nil, err
+	}
+
 	// Remove extraneous metadata and color profiles.
 	if err := result.wand.StripImage(); err != nil {
 		result.Close()
@@ -83,6 +90,34 @@ func (result *Result) applyColorProfile() bool {
 	// Apply sRGB IEC 61966 2.1 to this image.
 	err := result.wand.ProfileImage("icc", []byte(sRGB_IEC61966_2_1_black_scaled))
 	return err == nil // did we successfully apply?
+}
+
+func (result *Result) autoOrient() error {
+	var err error
+
+	switch result.img.Orientation {
+	default:
+		// Do nothing.
+	case imagick.ORIENTATION_TOP_RIGHT:
+		err = result.wand.FlopImage()
+	case imagick.ORIENTATION_BOTTOM_RIGHT:
+		err = result.wand.RotateImage(white, 180.0)
+	case imagick.ORIENTATION_BOTTOM_LEFT:
+		err = result.wand.FlipImage()
+	case imagick.ORIENTATION_LEFT_TOP:
+		err = result.wand.TransposeImage()
+	case imagick.ORIENTATION_RIGHT_TOP:
+		err = result.wand.RotateImage(white, 90.0)
+	case imagick.ORIENTATION_RIGHT_BOTTOM:
+		err = result.wand.TransverseImage()
+	case imagick.ORIENTATION_LEFT_BOTTOM:
+		err = result.wand.RotateImage(white, 270.0)
+	}
+
+	if err == nil {
+		err = result.wand.SetImageOrientation(imagick.ORIENTATION_TOP_LEFT)
+	}
+	return err
 }
 
 func (result *Result) Resize(width, height uint) error {

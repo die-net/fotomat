@@ -15,9 +15,11 @@ import (
 	"time"
 )
 
-var maxOutputDimension = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
-var maxBufferPixels = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
-var maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+var (
+	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
+	maxBufferPixels       = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
+	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+)
 
 func init() {
 	http.HandleFunc("/albums/crop", imageCropHandler)

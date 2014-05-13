@@ -6,6 +6,7 @@ package imager
 
 import (
 	"errors"
+	"github.com/gographics/imagick/imagick"
 )
 
 var (
@@ -22,6 +23,7 @@ type Imager struct {
 	blob         []byte
 	Width        uint
 	Height       uint
+	Orientation  imagick.OrientationType
 	InputFormat  string
 	OutputFormat string
 	JpegQuality  uint
@@ -37,7 +39,7 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 	}
 
 	// Ask ImageMagick to parse metadata.
-	width, height, format, err := imageMetaData(blob)
+	width, height, orientation, format, err := imageMetaData(blob)
 	if err != nil {
 		return nil, UnknownFormat
 	}
@@ -55,7 +57,7 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 		return nil, UnknownFormat
 	} else if width > maxDimension || height > maxDimension {
 		return nil, TooBig
-	} else if width * height > maxBufferPixels {
+	} else if width*height > maxBufferPixels {
 		return nil, TooBig
 	}
 
@@ -63,6 +65,7 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 		blob:         blob,
 		Width:        width,
 		Height:       height,
+		Orientation:  orientation,
 		InputFormat:  inputFormat,
 		OutputFormat: outputFormat,
 		JpegQuality:  85,

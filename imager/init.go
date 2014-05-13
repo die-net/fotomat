@@ -8,7 +8,12 @@ import (
 	"github.com/gographics/imagick/imagick"
 )
 
+var white *imagick.PixelWand
+
 func init() {
 	imagick.Initialize()
 	// imagick.Terminate() is never called. We leak at exit.
+
+	white = imagick.NewPixelWand()
+	white.SetColor("white")
 }
