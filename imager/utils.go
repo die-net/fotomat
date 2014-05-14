@@ -22,37 +22,20 @@ func detectFormats(blob []byte) (string, string) {
 	}
 }
 
-func imageMetaData(blob []byte) (uint, uint, imagick.OrientationType, string, error) {
+func imageMetaData(blob []byte) (uint, uint, *Orientation, string, error) {
 	// Allocate a temporary wand.
 	wand := imagick.NewMagickWand()
 	defer wand.Destroy()
 
 	// Get just metadata about the image, don't decode.
 	if err := wand.PingImageBlob(blob); err != nil {
-		return 0, 0, imagick.ORIENTATION_UNDEFINED, "", err
+		return 0, 0, nil, "", err
 	}
 
-	width := wand.GetImageWidth()
-	height := wand.GetImageHeight()
-	orientation := wand.GetImageOrientation()
-
-	if orientationSwapsDimensions(orientation) {
-		width, height = height, width
-	}
+	orientation := NewOrientation(wand.GetImageOrientation())
+	width, height := orientation.Dimensions(wand.GetImageWidth(), wand.GetImageHeight())
 
 	return width, height, orientation, wand.GetImageFormat(), nil
-}
-
-func orientationSwapsDimensions(orientation imagick.OrientationType) bool {
-	switch orientation {
-	case imagick.ORIENTATION_LEFT_TOP,
-		imagick.ORIENTATION_RIGHT_TOP,
-		imagick.ORIENTATION_RIGHT_BOTTOM,
-		imagick.ORIENTATION_LEFT_BOTTOM:
-		return true
-	default:
-		return false
-	}
 }
 
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.

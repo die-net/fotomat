@@ -6,7 +6,6 @@ package imager
 
 import (
 	"errors"
-	"github.com/gographics/imagick/imagick"
 )
 
 var (
@@ -23,7 +22,7 @@ type Imager struct {
 	blob         []byte
 	Width        uint
 	Height       uint
-	Orientation  imagick.OrientationType
+	Orientation  *Orientation
 	InputFormat  string
 	OutputFormat string
 	JpegQuality  uint

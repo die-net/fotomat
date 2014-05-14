@@ -10,23 +10,26 @@ import (
 )
 
 type Result struct {
-	wand   *imagick.MagickWand
-	img    *Imager
-	Width  uint
-	Height uint
-	shrank bool
+	wand        *imagick.MagickWand
+	img         *Imager
+	Width       uint
+	Height      uint
+	Orientation Orientation
+	shrank      bool
 }
 
 func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	result := &Result{
-		img:  img,
-		wand: imagick.NewMagickWand(),
+		Orientation: *img.Orientation,
+		img:         img,
+		wand:        imagick.NewMagickWand(),
 	}
 
 	if width > 0 && height > 0 {
 		// Ask the jpeg decoder to pre-scale for us, down to something at least
 		// as big as this.  This is often a huge performance gain.
-		s := fmt.Sprintf("%dx%d", width, height)
+		ow, oh := result.Orientation.Dimensions(width, height)
+		s := fmt.Sprintf("%dx%d", ow, oh)
 		if err := result.wand.SetOption("jpeg:size", s); err != nil {
 			result.Close()
 			return nil, err
@@ -53,22 +56,8 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		}
 	}
 
-	// Fix orientation.
-	// TODO: It would be faster to do this after Resize/Crop operation.
-	if err := result.autoOrient(); err != nil {
-		result.Close()
-		return nil, err
-	}
-
-	// Remove extraneous metadata and color profiles.
-	if err := result.wand.StripImage(); err != nil {
-		result.Close()
-		return nil, err
-	}
-
 	// These may be smaller than img.Width and img.Height if JPEG decoder pre-scaled image.
-	result.Width = result.wand.GetImageWidth()
-	result.Height = result.wand.GetImageHeight()
+	result.Width, result.Height = result.Orientation.Dimensions(result.wand.GetImageWidth(), result.wand.GetImageHeight())
 
 	if result.Width < img.Width && result.Height < img.Height {
 		result.shrank = true
@@ -92,34 +81,6 @@ func (result *Result) applyColorProfile() bool {
 	return err == nil // did we successfully apply?
 }
 
-func (result *Result) autoOrient() error {
-	var err error
-
-	switch result.img.Orientation {
-	default:
-		// Do nothing.
-	case imagick.ORIENTATION_TOP_RIGHT:
-		err = result.wand.FlopImage()
-	case imagick.ORIENTATION_BOTTOM_RIGHT:
-		err = result.wand.RotateImage(white, 180.0)
-	case imagick.ORIENTATION_BOTTOM_LEFT:
-		err = result.wand.FlipImage()
-	case imagick.ORIENTATION_LEFT_TOP:
-		err = result.wand.TransposeImage()
-	case imagick.ORIENTATION_RIGHT_TOP:
-		err = result.wand.RotateImage(white, 90.0)
-	case imagick.ORIENTATION_RIGHT_BOTTOM:
-		err = result.wand.TransverseImage()
-	case imagick.ORIENTATION_LEFT_BOTTOM:
-		err = result.wand.RotateImage(white, 270.0)
-	}
-
-	if err == nil {
-		err = result.wand.SetImageOrientation(imagick.ORIENTATION_TOP_LEFT)
-	}
-	return err
-}
-
 func (result *Result) Resize(width, height uint) error {
 	// Only use Lanczos if we are shrinking by more than 2.5%.
 	filter := imagick.FILTER_TRIANGLE
@@ -127,7 +88,8 @@ func (result *Result) Resize(width, height uint) error {
 		filter = imagick.FILTER_LANCZOS2_SHARP
 	}
 
-	if err := result.wand.ResizeImage(width, height, filter, 1); err != nil {
+	ow, oh := result.Orientation.Dimensions(width, height)
+	if err := result.wand.ResizeImage(ow, oh, filter, 1); err != nil {
 		return err
 	}
 
@@ -151,7 +113,8 @@ func (result *Result) Crop(width, height uint) error {
 	// Assume faces are higher up vertically
 	y := (int(result.Height) - int(height) + 1) / 4
 
-	if err := result.wand.CropImage(width, height, x, y); err != nil {
+	ow, oh, ox, oy := result.Orientation.Crop(width, height, x, y, result.Width, result.Height)
+	if err := result.wand.CropImage(ow, oh, ox, oy); err != nil {
 		return err
 	}
 
@@ -171,6 +134,17 @@ func (result *Result) Get() ([]byte, error) {
 
 	// Only save at 8 bits per channel.
 	if err := result.wand.SetImageDepth(8); err != nil {
+		return nil, err
+	}
+
+	// Fix orientation.
+	if err := result.Orientation.Fix(result.wand); err != nil {
+		return nil, err
+	}
+
+	// Remove extraneous metadata and color profiles.
+	if err := result.wand.StripImage(); err != nil {
+		result.Close()
 		return nil, err
 	}
 
