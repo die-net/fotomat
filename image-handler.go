@@ -19,10 +19,18 @@ var (
 	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
 	maxBufferPixels       = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+	pool                  chan bool
 )
 
 func init() {
 	http.HandleFunc("/albums/crop", imageCropHandler)
+}
+
+func poolInit(limit int) {
+	pool = make(chan bool, limit)
+	for i := 0; i < limit; i++ {
+		pool <- true
+	}
 }
 
 /*
@@ -35,6 +43,8 @@ var (
 )
 
 func imageCropHandler(w http.ResponseWriter, r *http.Request) {
+	aborted := w.(http.CloseNotifier).CloseNotify()
+
 	if r.Method != "GET" && r.Method != "HEAD" {
 		sendError(w, nil, http.StatusMethodNotAllowed)
 		return
@@ -58,8 +68,23 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Wait for an image thread to be available.
+	<-pool
+
+	// Has client closed connection while we were waiting?
+	select {
+	case <-aborted:
+		pool <- true // Free up image thread ASAP.
+		sendError(w, nil, http.StatusRequestTimeout)
+		return
+	default:
+	}
+
 	thumb, err := processImage(url, orig, width, height, crop)
 	orig = nil // Free up image memory ASAP.
+
+	pool <- true // Free up image thread ASAP.
+
 	if err != nil {
 		sendError(w, err, 0)
 		return
@@ -99,10 +124,14 @@ func fetchUrl(url string) ([]byte, error, int) {
 	}
 
 	switch resp.StatusCode {
-	case http.StatusOK, http.StatusNoContent, http.StatusBadRequest,
-		http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound,
-		http.StatusRequestTimeout, http.StatusGone:
-
+	case http.StatusOK,
+		http.StatusNoContent,
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusForbidden,
+		http.StatusNotFound,
+		http.StatusRequestTimeout,
+		http.StatusGone:
 		return body, nil, resp.StatusCode
 	default:
 		err := fmt.Errorf("Proxy received %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))

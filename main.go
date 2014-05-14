@@ -13,14 +13,18 @@ import (
 )
 
 var (
-	listenAddr = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for incoming connections.")
-	maxThreads = flag.Int("max_threads", runtime.NumCPU(), "Maximum number of OS threads to create.")
+	listenAddr      = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for incoming connections.")
+	maxImageThreads = flag.Int("max_image_threads", runtime.NumCPU(), "Maximum number of threads simultaneously processing images.")
 )
 
 func main() {
 	flag.Parse()
 
-	runtime.GOMAXPROCS(*maxThreads)
+	// Up to max_threads will be allowed to be blocked in ImageMagick.
+	poolInit(*maxImageThreads)
+
+	// Allow more threads than that for networking, etc.
+	runtime.GOMAXPROCS(*maxImageThreads * 2)
 
 	log.Fatal(http.ListenAndServe(*listenAddr, nil))
 }
