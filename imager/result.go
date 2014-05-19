@@ -42,6 +42,12 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
+	// Reset virtual canvas and position.
+	if err := result.wand.ResetImagePage(""); err != nil {
+		result.Close()
+		return nil, err
+	}
+
 	if result.applyColorProfile() {
 		// Make sure ImageMagick is aware that this is now sRGB.
 		if err := result.wand.SetColorspace(imagick.COLORSPACE_SRGB); err != nil {
