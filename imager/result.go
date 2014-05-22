@@ -148,6 +148,13 @@ func (result *Result) Get() ([]byte, error) {
 		return nil, err
 	}
 
+	// Stretch contrast if AutoContrast flag set.
+	if result.img.AutoContrast {
+		if err := result.wand.NormalizeImage(); err != nil {
+			return nil, err
+		}
+	}
+
 	// Remove extraneous metadata and color profiles.
 	if err := result.wand.StripImage(); err != nil {
 		result.Close()

@@ -27,6 +27,7 @@ type Imager struct {
 	OutputFormat string
 	JpegQuality  uint
 	Sharpen      bool
+	AutoContrast bool
 }
 
 func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
@@ -69,6 +70,7 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 		OutputFormat: outputFormat,
 		JpegQuality:  85,
 		Sharpen:      true,
+		AutoContrast: false,
 	}
 
 	return img, nil
