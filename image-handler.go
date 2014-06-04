@@ -127,11 +127,13 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, crop bool, width, h
 	pool <- true // Free up image thread ASAP.
 
 	if err != nil {
+		thumb = nil // Free up image memory ASAP.
 		sendError(w, err, 0)
 		return
 	}
 
 	w.Write(thumb)
+	thumb = nil // Free up image memory ASAP.
 }
 
 func parseGeometry(geometry string) (bool, uint, uint, bool) {
