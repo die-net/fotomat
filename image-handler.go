@@ -10,6 +10,7 @@ import (
 	"github.com/die-net/fotomat/imager"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"time"
@@ -23,7 +24,46 @@ var (
 )
 
 func init() {
-	http.HandleFunc("/albums/crop", imageCropHandler)
+	http.HandleFunc("/", imageProxyHandler)
+	http.HandleFunc("/albums/crop", albumsCropHandler)
+}
+
+func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" && r.Method != "HEAD" {
+		sendError(w, nil, http.StatusMethodNotAllowed)
+		return
+	}
+
+	path, crop, width, height, ok := parsePath(r.URL.Path)
+	if !ok {
+		sendError(w, nil, 400)
+		return
+	}
+
+	u := &url.URL{Scheme: "http", Host: r.Host, Path: path}
+
+	fetchAndProcessImage(w, u.String(), crop, width, height)
+}
+
+var matchPath = regexp.MustCompile(`^(/.*)=([sc])(\d{1,5})x(\d{1,5})$`)
+
+func parsePath(path string) (string, bool, uint, uint, bool) {
+	g := matchPath.FindStringSubmatch(path)
+	if len(g) != 5 {
+		return "", false, 0, 0, false
+	}
+
+	width, err := strconv.Atoi(g[3])
+	if err != nil || width <= 0 || width >= *maxOutputDimension {
+		return "", false, 0, 0, false
+	}
+
+	height, err := strconv.Atoi(g[4])
+	if err != nil || height <= 0 || height >= *maxOutputDimension {
+		return "", false, 0, 0, false
+	}
+
+	return g[1], (g[2] == "c"), uint(width), uint(height), true
 }
 
 func poolInit(limit int) {
@@ -38,13 +78,9 @@ func poolInit(limit int) {
 	WxH#        - scale down so the shorter edge fits within this bounding box, crop to new aspect ratio
 	WxH or WxH> - scale down so the longer edge fits within this bounding box, no crop
 */
-var (
-	matchGeometry = regexp.MustCompile(`^(\d{1,5})x(\d{1,5})([>#])?$`)
-)
+var matchGeometry = regexp.MustCompile(`^(\d{1,5})x(\d{1,5})([>#])?$`)
 
-func imageCropHandler(w http.ResponseWriter, r *http.Request) {
-	aborted := w.(http.CloseNotifier).CloseNotify()
-
+func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
 		sendError(w, nil, http.StatusMethodNotAllowed)
 		return
@@ -55,13 +91,18 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	width, height, crop, ok := parseGeometry(r.FormValue("geometry"))
+	crop, width, height, ok := parseGeometry(r.FormValue("geometry"))
 	if !ok {
 		sendError(w, nil, 400)
 		return
 	}
 
-	url := r.FormValue("image_url")
+	fetchAndProcessImage(w, r.FormValue("image_url"), crop, width, height)
+}
+
+func fetchAndProcessImage(w http.ResponseWriter, url string, crop bool, width, height uint) {
+	aborted := w.(http.CloseNotifier).CloseNotify()
+
 	orig, err, status := fetchUrl(url)
 	if err != nil || status != http.StatusOK {
 		sendError(w, err, status)
@@ -80,7 +121,7 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 	}
 
-	thumb, err := processImage(url, orig, width, height, crop)
+	thumb, err := processImage(url, orig, crop, width, height)
 	orig = nil // Free up image memory ASAP.
 
 	pool <- true // Free up image thread ASAP.
@@ -93,21 +134,21 @@ func imageCropHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(thumb)
 }
 
-func parseGeometry(geometry string) (uint, uint, bool, bool) {
+func parseGeometry(geometry string) (bool, uint, uint, bool) {
 	g := matchGeometry.FindStringSubmatch(geometry)
 	if len(g) != 4 {
-		return 0, 0, false, false
+		return false, 0, 0, false
 	}
 	width, err := strconv.Atoi(g[1])
 	if err != nil || width <= 0 || width >= *maxOutputDimension {
-		return 0, 0, false, false
+		return false, 0, 0, false
 	}
 	height, err := strconv.Atoi(g[2])
 	if err != nil || height <= 0 || height >= *maxOutputDimension {
-		return 0, 0, false, false
+		return false, 0, 0, false
 	}
 	crop := (g[3] == "#")
-	return uint(width), uint(height), crop, true
+	return crop, uint(width), uint(height), true
 }
 
 func fetchUrl(url string) ([]byte, error, int) {
@@ -139,7 +180,7 @@ func fetchUrl(url string) ([]byte, error, int) {
 	}
 }
 
-func processImage(url string, orig []byte, width, height uint, crop bool) ([]byte, error) {
+func processImage(url string, orig []byte, crop bool, width, height uint) ([]byte, error) {
 	if *maxProcessingDuration > 0 {
 		timer := time.AfterFunc(*maxProcessingDuration, func() {
 			panic(fmt.Sprintf("Processing %v longer than %v", url, *maxProcessingDuration))
