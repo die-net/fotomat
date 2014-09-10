@@ -27,6 +27,7 @@ Then for all OSes:
 
 	git clone https://github.com/die-net/fotomat.git
 	cd fotomat
+	export GOPATH=$(pwd)
 	go get
 	go build
 
