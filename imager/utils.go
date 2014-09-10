@@ -32,6 +32,9 @@ func imageMetaData(blob []byte) (uint, uint, *Orientation, string, error) {
 		return 0, 0, nil, "", err
 	}
 
+	// Make sure we are using the first frame of an animation.
+	wand.ResetIterator()
+
 	orientation := NewOrientation(wand.GetImageOrientation())
 	width, height := orientation.Dimensions(wand.GetImageWidth(), wand.GetImageHeight())
 

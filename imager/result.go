@@ -42,6 +42,9 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		return nil, err
 	}
 
+	// Make sure that we are using the first frame of an animation.
+	result.wand.ResetIterator()
+
 	// Reset virtual canvas and position.
 	if err := result.wand.ResetImagePage(""); err != nil {
 		result.Close()
