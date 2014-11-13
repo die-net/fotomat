@@ -21,6 +21,8 @@ var (
 	maxBufferPixels       = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
 	pool                  chan bool
+	transport             http.RoundTripper = &http.Transport{Proxy: http.ProxyFromEnvironment}
+	client                                  = http.Client{Transport: transport}
 )
 
 func init() {
@@ -154,7 +156,7 @@ func parseGeometry(geometry string) (bool, uint, uint, bool) {
 }
 
 func fetchUrl(url string) ([]byte, error, int) {
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err, 0
 	}
