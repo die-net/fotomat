@@ -56,12 +56,12 @@ func parsePath(path string) (string, bool, uint, uint, bool) {
 	}
 
 	width, err := strconv.Atoi(g[3])
-	if err != nil || width <= 0 || width >= *maxOutputDimension {
+	if err != nil || width <= 0 || width > *maxOutputDimension {
 		return "", false, 0, 0, false
 	}
 
 	height, err := strconv.Atoi(g[4])
-	if err != nil || height <= 0 || height >= *maxOutputDimension {
+	if err != nil || height <= 0 || height > *maxOutputDimension {
 		return "", false, 0, 0, false
 	}
 
@@ -144,11 +144,11 @@ func parseGeometry(geometry string) (bool, uint, uint, bool) {
 		return false, 0, 0, false
 	}
 	width, err := strconv.Atoi(g[1])
-	if err != nil || width <= 0 || width >= *maxOutputDimension {
+	if err != nil || width <= 0 || width > *maxOutputDimension {
 		return false, 0, 0, false
 	}
 	height, err := strconv.Atoi(g[2])
-	if err != nil || height <= 0 || height >= *maxOutputDimension {
+	if err != nil || height <= 0 || height > *maxOutputDimension {
 		return false, 0, 0, false
 	}
 	crop := (g[3] == "#")
