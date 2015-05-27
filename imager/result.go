@@ -164,32 +164,33 @@ func (result *Result) Get() ([]byte, error) {
 		return nil, err
 	}
 
-	// Output image format may differ from input format.
-	if err := result.wand.SetImageFormat(result.img.OutputFormat); err != nil {
-		return nil, err
-	}
-
-	switch result.img.OutputFormat {
-	case "JPEG":
-		if err := result.wand.SetImageCompressionQuality(result.img.JpegQuality); err != nil {
-			return nil, err
-		}
-
-		// This creates "Progressive JPEGs", which are smaller.
-		// Don't use for non-JPEG.
-		if err := result.wand.SetInterlaceScheme(imagick.INTERLACE_LINE); err != nil {
-			return nil, err
-		}
-	case "PNG":
+	if result.img.OutputFormat == "PNG" {
 		// Don't preserve data for fully-transparent pixels.
 		if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_BACKGROUND); err != nil {
 			return nil, err
 		}
 
-		// PNG quality: 95 = Gzip level=9, adaptive strategy=5
-		if err := result.wand.SetImageCompressionQuality(95); err != nil {
-			return nil, err
+		blob, err := result.compress("PNG", 95, imagick.INTERLACE_NO)
+		if err != nil || uint(len(blob))*8 <= result.Width*result.Height*result.img.PngMaxBitsPerPixel {
+			return blob, err
 		}
+	}
+
+	return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_LINE)
+}
+
+func (result *Result) compress(format string, quality uint, interlace imagick.InterlaceType) ([]byte, error) {
+	// Output image format may differ from input format.
+	if err := result.wand.SetImageFormat(format); err != nil {
+		return nil, err
+	}
+
+	if err := result.wand.SetImageCompressionQuality(quality); err != nil {
+		return nil, err
+	}
+
+	if err := result.wand.SetInterlaceScheme(interlace); err != nil {
+		return nil, err
 	}
 
 	// Run the format-specific compressor, return the byte slice.

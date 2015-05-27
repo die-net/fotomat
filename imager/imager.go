@@ -19,15 +19,16 @@ const (
 )
 
 type Imager struct {
-	blob         []byte
-	Width        uint
-	Height       uint
-	Orientation  *Orientation
-	InputFormat  string
-	OutputFormat string
-	JpegQuality  uint
-	Sharpen      bool
-	AutoContrast bool
+	blob               []byte
+	Width              uint
+	Height             uint
+	Orientation        *Orientation
+	InputFormat        string
+	OutputFormat       string
+	JpegQuality        uint
+	PngMaxBitsPerPixel uint
+	Sharpen            bool
+	AutoContrast       bool
 }
 
 func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
@@ -62,15 +63,16 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 	}
 
 	img := &Imager{
-		blob:         blob,
-		Width:        width,
-		Height:       height,
-		Orientation:  orientation,
-		InputFormat:  inputFormat,
-		OutputFormat: outputFormat,
-		JpegQuality:  85,
-		Sharpen:      true,
-		AutoContrast: false,
+		blob:               blob,
+		Width:              width,
+		Height:             height,
+		Orientation:        orientation,
+		InputFormat:        inputFormat,
+		OutputFormat:       outputFormat,
+		JpegQuality:        85,
+		PngMaxBitsPerPixel: 4,
+		Sharpen:            true,
+		AutoContrast:       false,
 	}
 
 	return img, nil
