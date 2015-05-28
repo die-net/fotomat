@@ -164,14 +164,17 @@ func (result *Result) Get() ([]byte, error) {
 		return nil, err
 	}
 
-	if result.img.OutputFormat == "PNG" {
+	hasAlpha := result.wand.GetImageAlphaChannel()
+	if hasAlpha {
 		// Don't preserve data for fully-transparent pixels.
 		if err := result.wand.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_BACKGROUND); err != nil {
 			return nil, err
 		}
+	}
 
+	if result.img.OutputFormat == "PNG" {
 		blob, err := result.compress("PNG", 95, imagick.INTERLACE_NO)
-		if err != nil || uint(len(blob))*8 <= result.Width*result.Height*result.img.PngMaxBitsPerPixel {
+		if err != nil || hasAlpha || uint(len(blob))*8 <= result.Width*result.Height*result.img.PngMaxBitsPerPixel {
 			return blob, err
 		}
 	}
