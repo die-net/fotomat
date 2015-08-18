@@ -90,11 +90,25 @@ func (result *Result) applyColorProfile() bool {
 	return err == nil // did we successfully apply?
 }
 
+func (result *Result) applyBlur(radius float64) error {
+	if result.img.BlurFactor > 0 {
+		return result.wand.GaussianBlurImage(0, result.img.BlurFactor*radius)
+	}
+	return nil
+}
+
 func (result *Result) Resize(width, height uint) error {
 	// Only use Lanczos if we are shrinking by more than 2.5%.
+	shrinking := false
 	filter := imagick.FILTER_TRIANGLE
 	if width < result.Width-result.Width/40 && height < result.Height-result.Height/40 {
+		shrinking = true
 		filter = imagick.FILTER_LANCZOS2_SHARP
+
+		// If we are shrinking, apply blur before.
+		if err := result.applyBlur(float64(result.Width) / float64(width)); err != nil {
+			return err
+		}
 	}
 
 	ow, oh := result.Orientation.Dimensions(width, height)
@@ -105,8 +119,11 @@ func (result *Result) Resize(width, height uint) error {
 	// Only change dimensions and/or set shrank flag on success.
 	result.Width = width
 	result.Height = height
-	if filter == imagick.FILTER_LANCZOS2_SHARP {
-		result.shrank = true
+	result.shrank = shrinking
+
+	// If we are not shrinking, apply blur after.
+	if !shrinking {
+		return result.applyBlur(float64(width) / float64(result.Width))
 	}
 
 	return nil
@@ -137,10 +154,6 @@ func (result *Result) Get() ([]byte, error) {
 	// If the image shrunk, apply a light sharpening pass
 	if result.shrank && result.img.Sharpen {
 		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
-			return nil, err
-		}
-	} else if result.img.BlurSigma > 0 {
-		if err := result.wand.GaussianBlurImage(0, result.img.BlurSigma); err != nil {
 			return nil, err
 		}
 	}
@@ -183,11 +196,11 @@ func (result *Result) Get() ([]byte, error) {
 		}
 	}
 
-        // Interlace saves 2-3%, but incurs a few hundred bytes of overhead.
-        // This isn't usually beneficial on small images.
-        if result.Width*result.Height < 200*200 {
+	// Interlace saves 2-3%, but incurs a few hundred bytes of overhead.
+	// This isn't usually beneficial on small images.
+	if result.Width*result.Height < 200*200 {
 		return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_NO)
-        }
+	}
 
 	return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_LINE)
 }
