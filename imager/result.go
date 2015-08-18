@@ -139,6 +139,10 @@ func (result *Result) Get() ([]byte, error) {
 		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
 			return nil, err
 		}
+	} else if result.img.BlurSigma > 0 {
+		if err := result.wand.GaussianBlurImage(0, result.img.BlurSigma); err != nil {
+			return nil, err
+		}
 	}
 
 	// Only save at 8 bits per channel.
@@ -178,6 +182,12 @@ func (result *Result) Get() ([]byte, error) {
 			return blob, err
 		}
 	}
+
+        // Interlace saves 2-3%, but incurs a few hundred bytes of overhead.
+        // This isn't usually beneficial on small images.
+        if result.Width*result.Height < 200*200 {
+		return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_NO)
+        }
 
 	return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_LINE)
 }

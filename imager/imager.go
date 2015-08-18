@@ -28,6 +28,7 @@ type Imager struct {
 	JpegQuality        uint
 	PngMaxBitsPerPixel uint
 	Sharpen            bool
+	BlurSigma          float64
 	AutoContrast       bool
 }
 
@@ -72,6 +73,7 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 		JpegQuality:        85,
 		PngMaxBitsPerPixel: 4,
 		Sharpen:            true,
+		BlurSigma:          0.0,
 		AutoContrast:       false,
 	}
 
