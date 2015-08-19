@@ -72,6 +72,15 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		result.shrank = true
 	}
 
+        // If the image has shrunk or will shrink, apply requested blur.
+	if img.BlurFactor > 0 && width < img.Width && height < img.Height {
+                // Radius is ratio of current dimension to output dimension.
+		radius := float64(result.Width) / float64(width)
+		if err := result.wand.GaussianBlurImage(0, result.img.BlurFactor*radius); err != nil {
+			return nil, err
+		}
+	}
+
 	return result, nil
 }
 
@@ -90,25 +99,13 @@ func (result *Result) applyColorProfile() bool {
 	return err == nil // did we successfully apply?
 }
 
-func (result *Result) applyBlur(radius float64) error {
-	if result.img.BlurFactor > 0 {
-		return result.wand.GaussianBlurImage(0, result.img.BlurFactor*radius)
-	}
-	return nil
-}
-
 func (result *Result) Resize(width, height uint) error {
 	// Only use Lanczos if we are shrinking by more than 2.5%.
-	shrinking := false
 	filter := imagick.FILTER_TRIANGLE
+	shrinking := false
 	if width < result.Width-result.Width/40 && height < result.Height-result.Height/40 {
+		filter = imagick.FILTER_LANCZOS
 		shrinking = true
-		filter = imagick.FILTER_LANCZOS2_SHARP
-
-		// If we are shrinking, apply blur before.
-		if err := result.applyBlur(float64(result.Width) / float64(width)); err != nil {
-			return err
-		}
 	}
 
 	ow, oh := result.Orientation.Dimensions(width, height)
@@ -120,11 +117,6 @@ func (result *Result) Resize(width, height uint) error {
 	result.Width = width
 	result.Height = height
 	result.shrank = shrinking
-
-	// If we are not shrinking, apply blur after.
-	if !shrinking {
-		return result.applyBlur(float64(width) / float64(result.Width))
-	}
 
 	return nil
 }

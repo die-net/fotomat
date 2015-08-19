@@ -204,7 +204,7 @@ func processImage(url string, orig []byte, preview, crop bool, width, height uin
 		img.Sharpen = false
 		img.BlurFactor = 1.0
 		img.OutputFormat = "JPEG"
-		img.JpegQuality = 50
+		img.JpegQuality = 40
 	}
 
 	var thumb []byte
