@@ -25,11 +25,14 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		wand:        imagick.NewMagickWand(),
 	}
 
-	if width > 0 && height > 0 {
-		// Ask the jpeg decoder to pre-scale for us, down to something at least
-		// as big as this.  This is often a huge performance gain.
-		ow, oh := result.Orientation.Dimensions(width, height)
-		s := fmt.Sprintf("%dx%d", ow, oh)
+	// Swap width and height if orientation will be corrected later.
+	width, height = result.Orientation.Dimensions(width, height)
+
+	// If we're scaling down, ask the jpeg decoder to pre-scale for us,
+	// down to something at least as big as this.  This is often a huge
+	// performance gain.
+	if width > 0 && height > 0 && img.Width > width && img.Height > height {
+		s := fmt.Sprintf("%dx%d", width, height)
 		if err := result.wand.SetOption("jpeg:size", s); err != nil {
 			result.Close()
 			return nil, err
@@ -72,9 +75,9 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		result.shrank = true
 	}
 
-        // If the image has shrunk or will shrink, apply requested blur.
-	if img.BlurFactor > 0 && width < img.Width && height < img.Height {
-                // Radius is ratio of current dimension to output dimension.
+	// If the image has shrunk or will shrink, apply requested blur.
+	if img.BlurFactor > 0 && width > 0 && img.Width > width && height > 0 && img.Height > height {
+		// Radius is ratio of current dimension to output dimension.
 		radius := float64(result.Width) / float64(width)
 		if err := result.wand.GaussianBlurImage(0, result.img.BlurFactor*radius); err != nil {
 			return nil, err
