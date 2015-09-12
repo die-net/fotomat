@@ -15,7 +15,7 @@ var (
 
 const (
 	minDimension = 2             // Avoid off-by-one divide-by-zero errors.
-	maxDimension = (2 << 15) - 2 // Avoid signed int16 overflows.
+	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
 )
 
 type Imager struct {
