@@ -186,7 +186,7 @@ func (result *Result) Get() ([]byte, error) {
 
 	if result.img.OutputFormat == "PNG" {
 		blob, err := result.compress("PNG", 95, imagick.INTERLACE_NO)
-		if err != nil || hasAlpha || uint(len(blob))*8 <= result.Width*result.Height*result.img.PngMaxBitsPerPixel {
+		if err != nil || hasAlpha || (len(blob)-256)*8 <= int(result.Width*result.Height*result.img.PngMaxBitsPerPixel) {
 			return blob, err
 		}
 	}
