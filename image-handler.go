@@ -20,9 +20,10 @@ var (
 	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
 	maxBufferPixels       = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
 	pool                  chan bool
-	transport             http.RoundTripper = &http.Transport{Proxy: http.ProxyFromEnvironment}
-	client                                  = http.Client{Transport: transport}
+	transport             http.Transport = http.Transport{Proxy: http.ProxyFromEnvironment}
+	client                               = http.Client{Transport: http.RoundTripper(&transport)}
 )
 
 func init() {
@@ -42,7 +43,12 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := &url.URL{Scheme: "http", Host: r.Host, Path: path}
+	var u *url.URL
+	if *localImageDirectory == "" {
+		u = &url.URL{Scheme: "http", Host: r.Host, Path: path}
+	} else {
+		u = &url.URL{Scheme: "file", Host: "localhost", Path: path}
+	}
 
 	fetchAndProcessImage(w, u.String(), preview, crop, width, height)
 }
@@ -74,6 +80,10 @@ func parsePath(path string) (string, bool, bool, uint, uint, bool) {
 }
 
 func poolInit(limit int) {
+	if *localImageDirectory != "" {
+		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(*localImageDirectory)))
+	}
+
 	pool = make(chan bool, limit)
 	for i := 0; i < limit; i++ {
 		pool <- true
