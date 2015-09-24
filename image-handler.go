@@ -55,6 +55,11 @@ func parsePath(path string) (string, bool, bool, uint, uint, bool) {
 		return "", false, false, 0, 0, false
 	}
 
+	// Disallow repeated scaling parameters.
+	if matchPath.MatchString(g[1]) {
+		return "", false, false, 0, 0, false
+	}
+
 	width, err := strconv.Atoi(g[4])
 	if err != nil || width <= 0 || width > *maxOutputDimension {
 		return "", false, false, 0, 0, false
