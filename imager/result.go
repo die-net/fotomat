@@ -75,15 +75,6 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		result.shrank = true
 	}
 
-	// If the image has shrunk or will shrink, apply requested blur.
-	if img.BlurFactor > 0 && width > 0 && img.Width > width && height > 0 && img.Height > height {
-		// Radius is ratio of current dimension to output dimension.
-		radius := float64(result.Width) / float64(width)
-		if err := result.wand.GaussianBlurImage(0, result.img.BlurFactor*radius); err != nil {
-			return nil, err
-		}
-	}
-
 	return result, nil
 }
 
@@ -146,10 +137,16 @@ func (result *Result) Crop(width, height uint) error {
 }
 
 func (result *Result) Get() ([]byte, error) {
-	// If the image shrunk, apply a light sharpening pass
-	if result.shrank && result.img.Sharpen {
-		if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
-			return nil, err
+	// If the image shrunk, apply sharpen or blur as requested
+	if result.shrank {
+		if result.img.Sharpen {
+			if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
+				return nil, err
+			}
+		} else if result.img.BlurSigma > 0 {
+			if err := result.wand.GaussianBlurImage(0, result.img.BlurSigma); err != nil {
+				return nil, err
+			}
 		}
 	}
 

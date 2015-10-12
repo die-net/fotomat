@@ -217,7 +217,7 @@ func processImage(url string, orig []byte, preview, crop bool, width, height uin
 	// Preview images are tiny, blurry JPEGs.
 	if preview {
 		img.Sharpen = false
-		img.BlurFactor = 1.0
+		img.BlurSigma = 0.8
 		img.OutputFormat = "JPEG"
 		img.JpegQuality = 40
 	}
