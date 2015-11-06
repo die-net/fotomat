@@ -46,9 +46,9 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 		return nil, UnknownFormat
 	}
 
-	// Assume JPEG decoder can pre-scale to 1/8 original size.
+	// Assume JPEG decoder can pre-scale to 1/8 original width and height.
 	if format == "JPEG" {
-		maxBufferPixels *= 8
+		maxBufferPixels *= 64
 	}
 
 	// Security: Confirm that detectFormat() and imageMagick agreed on

@@ -25,11 +25,14 @@ func TestImageValidation(t *testing.T) {
 	// Load a 2x2 pixel image.
 	assert.Nil(t, tryNew("2px.png", 1000000))
 
-	// Return TooBig on a 34000x16 image.
+	// Return TooBig on a 34000x16 PNG image.
 	assert.Equal(t, tryNew("34000px.png", 10000000), TooBig)
 
-	// Refuse to load a 213328 pixel image.
-	assert.Equal(t, tryNew("watermelon.jpg", 10000), TooBig)
+	// Refuse to load a 213328 pixel JPEG image into 1000 pixel buffer.
+	assert.Equal(t, tryNew("watermelon.jpg", 1000), TooBig)
+
+	// Succeed in loading a 213328 pixel JPEG image into 10000 pixel buffer.
+	assert.Nil(t, tryNew("watermelon.jpg", 10000))
 
 	// Load the image when given a larger limit.
 	assert.Nil(t, tryNew("watermelon.jpg", 100000))
