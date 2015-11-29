@@ -126,16 +126,13 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool,
 		return
 	}
 
-	// Wait for an image thread to be available.
-	<-pool
-
-	// Has client closed connection while we were waiting?
+	// Wait for an image thread or for the client to
+	// abort the connection.
 	select {
+	case <-pool:
 	case <-aborted:
-		pool <- true // Free up image thread ASAP.
 		sendError(w, nil, http.StatusRequestTimeout)
 		return
-	default:
 	}
 
 	thumb, err := processImage(url, orig, preview, crop, width, height)
