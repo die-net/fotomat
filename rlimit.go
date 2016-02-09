@@ -17,13 +17,11 @@ var (
 func getRlimitMax(resource int) int {
 	var rlimit syscall.Rlimit
 
-	err := syscall.Getrlimit(resource, &rlimit)
-
-	if err == nil {
+	if err := syscall.Getrlimit(resource, &rlimit); err == nil {
 		return int(rlimit.Max)
-	} else {
-		return 0
 	}
+
+	return 0
 }
 
 func setRlimit(resource int, value int) {

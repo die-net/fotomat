@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	UnknownFormat = errors.New("Unknown image format")
-	TooBig        = errors.New("Image is too wide or tall")
+	ErrUnknownFormat = errors.New("Unknown image format")
+	ErrTooBig        = errors.New("Image is too wide or tall")
 )
 
 const (
@@ -37,13 +37,13 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 	// to just JPEG, PNG, GIF.
 	inputFormat, outputFormat := detectFormats(blob)
 	if inputFormat == "" {
-		return nil, UnknownFormat
+		return nil, ErrUnknownFormat
 	}
 
 	// Ask ImageMagick to parse metadata.
 	width, height, orientation, format, err := imageMetaData(blob)
 	if err != nil {
-		return nil, UnknownFormat
+		return nil, ErrUnknownFormat
 	}
 
 	// Assume JPEG decoder can pre-scale to 1/8 original width and height.
@@ -54,13 +54,13 @@ func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
 	// Security: Confirm that detectFormat() and imageMagick agreed on
 	// format and that image sizes are sane.
 	if format != inputFormat {
-		return nil, UnknownFormat
+		return nil, ErrUnknownFormat
 	} else if width < minDimension || height < minDimension {
-		return nil, UnknownFormat
+		return nil, ErrUnknownFormat
 	} else if width > maxDimension || height > maxDimension {
-		return nil, TooBig
+		return nil, ErrTooBig
 	} else if width*height > maxBufferPixels {
-		return nil, TooBig
+		return nil, ErrTooBig
 	}
 
 	img := &Imager{

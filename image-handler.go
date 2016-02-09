@@ -22,8 +22,8 @@ var (
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
 	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
 	pool                  chan bool
-	transport             http.Transport = http.Transport{Proxy: http.ProxyFromEnvironment}
-	client                               = http.Client{Transport: http.RoundTripper(&transport)}
+	transport             = http.Transport{Proxy: http.ProxyFromEnvironment}
+	client                = http.Client{Transport: http.RoundTripper(&transport)}
 )
 
 func init() {
@@ -120,7 +120,7 @@ func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool, width, height uint) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
-	orig, err, status := fetchUrl(url)
+	orig, status, err := fetchURL(url)
 	if err != nil || status != http.StatusOK {
 		sendError(w, err, status)
 		return
@@ -149,6 +149,8 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool,
 		return
 	}
 
+	w.Header().Set("Server", "Fotomat")
+	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
 	w.Write(thumb)
 	thumb = nil // Free up image memory ASAP.
 }
@@ -170,17 +172,17 @@ func parseGeometry(geometry string) (bool, uint, uint, bool) {
 	return crop, uint(width), uint(height), true
 }
 
-func fetchUrl(url string) ([]byte, error, int) {
+func fetchURL(url string) ([]byte, int, error) {
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, err, 0
+		return nil, 0, err
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err, 0
+		return nil, 0, err
 	}
 
 	switch resp.StatusCode {
@@ -192,10 +194,10 @@ func fetchUrl(url string) ([]byte, error, int) {
 		http.StatusNotFound,
 		http.StatusRequestTimeout,
 		http.StatusGone:
-		return body, nil, resp.StatusCode
+		return body, resp.StatusCode, nil
 	default:
 		err := fmt.Errorf("Proxy received %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		return nil, err, http.StatusBadGateway
+		return nil, http.StatusBadGateway, err
 	}
 }
 
@@ -234,9 +236,9 @@ func processImage(url string, orig []byte, preview, crop bool, width, height uin
 func sendError(w http.ResponseWriter, err error, status int) {
 	if status == 0 {
 		switch err {
-		case imager.UnknownFormat:
+		case imager.ErrUnknownFormat:
 			status = http.StatusUnsupportedMediaType
-		case imager.TooBig:
+		case imager.ErrTooBig:
 			status = http.StatusRequestEntityTooLarge
 		default:
 			status = http.StatusInternalServerError

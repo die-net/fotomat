@@ -13,23 +13,23 @@ import (
 )
 
 func TestImageValidation(t *testing.T) {
-	// Return UnknownFormat on a text file.
-	assert.Equal(t, tryNew("notimage.txt", 1000000), UnknownFormat)
+	// Return ErrUnknownFormat on a text file.
+	assert.Equal(t, tryNew("notimage.txt", 1000000), ErrUnknownFormat)
 
-	// Return UnknownFormat on a truncated image.
-	assert.Equal(t, tryNew("bad.jpg", 1000000), UnknownFormat)
+	// Return ErrUnknownFormat on a truncated image.
+	assert.Equal(t, tryNew("bad.jpg", 1000000), ErrUnknownFormat)
 
 	// Refuse to load a 1x1 pixel image.
-	assert.Equal(t, tryNew("1px.png", 1000000), UnknownFormat)
+	assert.Equal(t, tryNew("1px.png", 1000000), ErrUnknownFormat)
 
 	// Load a 2x2 pixel image.
 	assert.Nil(t, tryNew("2px.png", 1000000))
 
-	// Return TooBig on a 34000x16 PNG image.
-	assert.Equal(t, tryNew("34000px.png", 10000000), TooBig)
+	// Return ErrTooBig on a 34000x16 PNG image.
+	assert.Equal(t, tryNew("34000px.png", 10000000), ErrTooBig)
 
 	// Refuse to load a 213328 pixel JPEG image into 1000 pixel buffer.
-	assert.Equal(t, tryNew("watermelon.jpg", 1000), TooBig)
+	assert.Equal(t, tryNew("watermelon.jpg", 1000), ErrTooBig)
 
 	// Succeed in loading a 213328 pixel JPEG image into 10000 pixel buffer.
 	assert.Nil(t, tryNew("watermelon.jpg", 10000))

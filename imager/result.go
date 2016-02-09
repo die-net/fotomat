@@ -117,7 +117,7 @@ func (result *Result) Resize(width, height uint) error {
 
 func (result *Result) Crop(width, height uint) error {
 	if width > result.Width || height > result.Height {
-		return TooBig
+		return ErrTooBig
 	}
 
 	// Center horizontally
