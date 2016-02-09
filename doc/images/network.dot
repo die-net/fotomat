@@ -1,0 +1,47 @@
+# Run: dot -Tpng network.dot > network.png
+
+digraph network {
+  edge [color=darkgreen,fontsize=10,fontcolor=darkgreen];
+  node [fontsize=14,height=0.1,width=0.1,fontcolor=black,color=black,shape=ellipse];
+  rankdir=LR;
+
+  subgraph cluster_outside {
+    style=invisible;
+    node [color=blue, fontcolor=blue];
+
+    cdn1 [label="CDN"];
+    user1 [label="User"];
+    user2 [label="User"];
+    user1 -> cdn1;
+    user2 -> cdn1;
+
+    cdn2 [label="CDN"];
+    user3 [label="User"];
+    user4 [label="User"];
+    user3 -> cdn2;
+    user4 -> cdn2;
+  }
+
+  subgraph cluster_east {
+    label="EC2 us-east-1";
+
+    elb_east [label="ELB"];
+
+    nginx_east [label="NginX"];
+
+    elb_east -> nginx_east;
+
+    fotomat_east [label="Fotomat"];
+
+    s3_east [label="S3"];
+
+    nginx_east -> fotomat_east [label="1) thumbnail"];
+
+    nginx_east -> s3_east [label="3) original"];
+
+    fotomat_east -> nginx_east [label="2) original"];
+  }
+
+  cdn1 -> elb_east;
+  cdn2 -> elb_east;
+}
