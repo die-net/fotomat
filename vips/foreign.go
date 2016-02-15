@@ -34,6 +34,12 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 	return buf, vipsError(e)
 }
 
+func MagickloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_magickload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	return imageError(out, e)
+}
+
 func PngloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_pngload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)

@@ -6,13 +6,13 @@ int
 cgo_vips_jpegload_buffer(void *buf, size_t len, VipsImage **out)
 {
     return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
-};
+}
 
 int
 cgo_vips_jpegload_buffer_shrink(void *buf, size_t len, VipsImage **out, int shrink)
 {
     return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, "shrink", shrink, NULL);
-};
+}
 
 int
 cgo_vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int q, int optimize_coding, int interlace)
@@ -21,11 +21,16 @@ cgo_vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int 
 }
 
 int
+cgo_vips_magickload_buffer(void *buf, size_t len, VipsImage **out)
+{
+    return vips_magickload_buffer(buf, len, out, NULL);
+}
+
+int
 cgo_vips_pngload_buffer(void *buf, size_t len, VipsImage **out)
 {
     return vips_pngload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
-};
-
+}
 
 int
 cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int compression, int interlace)
@@ -37,7 +42,7 @@ int
 cgo_vips_webpload_buffer(void *buf, size_t len, VipsImage **out)
 {
     return vips_webpload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
-};
+}
 
 int
 cgo_vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, int q, int lossless)
