@@ -30,8 +30,15 @@ const (
 	InterpretationHSV       = C.VIPS_INTERPRETATION_HSV
 )
 
+// Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.
 func (in VipsImage) Colourspace(space Interpretation) (VipsImage, error) {
 	out := VipsImage{}
 	err := vipsError(C.cgo_vips_colourspace(in.image, &out.image, C.VipsInterpretation(space)))
+	return out, err
+}
+
+func (in VipsImage) IccImport() (VipsImage, error) {
+	out := VipsImage{}
+	err := vipsError(C.cgo_vips_icc_import(in.image, &out.image))
 	return out, err
 }
