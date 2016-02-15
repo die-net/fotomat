@@ -58,11 +58,11 @@ func WebploadBuffer(buf []byte) (*Image, error) {
 	return imageError(out, e)
 }
 
-func (in *Image) WebpsaveBuffer(q int) ([]byte, error) {
+func (in *Image) WebpsaveBuffer(q int, lossless bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
 
-	e := C.cgo_vips_webpsave_buffer(in.vi, &ptr, &length, C.int(q))
+	e := C.cgo_vips_webpsave_buffer(in.vi, &ptr, &length, C.int(q), C.int(btoi(lossless)))
 
 	buf := C.GoBytes(ptr, C.int(length))
 	C.g_free(C.gpointer(ptr))

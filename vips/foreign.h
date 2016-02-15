@@ -40,7 +40,7 @@ cgo_vips_webpload_buffer(void *buf, size_t len, VipsImage **out)
 };
 
 int
-cgo_vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, int q)
+cgo_vips_webpsave_buffer(VipsImage *in, void **buf, size_t *len, int q, int lossless)
 {
-    return vips_webpsave_buffer(in, buf, len, "Q", q, NULL);
+    return vips_webpsave_buffer(in, buf, len, "Q", q, "lossless", lossless, NULL);
 }
