@@ -17,6 +17,22 @@ const (
 	ExtendBackground = C.VIPS_EXTEND_BACKGROUND
 )
 
+type Angle int
+
+const (
+	AngleD0   = C.VIPS_ANGLE_D0
+	AngleD90  = C.VIPS_ANGLE_D90
+	AngleD180 = C.VIPS_ANGLE_D180
+	AngleD270 = C.VIPS_ANGLE_D270
+)
+
+type Direction int
+
+const (
+	DirectionHorizontal = C.VIPS_DIRECTION_HORIZONTAL
+	DirectionVertical   = C.VIPS_DIRECTION_VERTICAL
+)
+
 func (in Image) Copy() (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_copy(in.vi, &out)
@@ -32,5 +48,17 @@ func (in Image) Embed(left, top, width, height int, extend Extend) (*Image, erro
 func (in Image) ExtractArea(left, top, width, height int) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_extract_area(in.vi, &out, C.int(left), C.int(top), C.int(width), C.int(height))
+	return imageError(out, e)
+}
+
+func (in Image) Flip(direction Direction) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_flip(in.vi, &out, C.VipsDirection(direction))
+	return imageError(out, e)
+}
+
+func (in Image) Rot(angle Angle) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_rot(in.vi, &out, C.VipsAngle(angle))
 	return imageError(out, e)
 }

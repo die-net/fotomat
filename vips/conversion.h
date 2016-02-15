@@ -19,3 +19,15 @@ cgo_vips_extract_area(VipsImage *in, VipsImage **out, int left, int top, int wid
 {
     return vips_extract_area(in, out, left, top, width, height, NULL);
 }
+
+int
+cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction)
+{
+    return vips_flip(in, out, direction, NULL);
+}
+
+int
+cgo_vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle)
+{
+    return vips_rot(in, out, angle, NULL);
+}
