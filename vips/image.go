@@ -13,12 +13,27 @@ import (
 )
 
 type Image struct {
-	image *C.struct__VipsImage
+	vi     *C.struct__VipsImage
+	width  int
+	height int
 }
 
-func (image Image) Close() {
-	C.g_object_unref(C.gpointer(image.image))
-	image.image = nil
+func imageFromVi(vi *C.struct__VipsImage) *Image {
+	if vi == nil {
+		return nil
+	}
+
+	image := &Image{
+		vi:     vi,
+		width:  int(vi.Xsize),
+		height: int(vi.Ysize),
+	}
+	return image
+}
+
+func (image *Image) Close() {
+	C.g_object_unref(C.gpointer(image.vi))
+	*image = Image{}
 }
 
 func vipsError(e C.int) error {
@@ -29,4 +44,12 @@ func vipsError(e C.int) error {
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
 	return errors.New(s)
+}
+
+func imageError(out *C.struct__VipsImage, e C.int) (*Image, error) {
+	if err := vipsError(e); err != nil {
+		return nil, err
+	}
+
+	return imageFromVi(out), nil
 }

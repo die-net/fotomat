@@ -3,7 +3,13 @@
 #include <vips/vips7compat.h>
 
 int
-cgo_vips_jpegload_buffer(void *buf, size_t len, VipsImage **out, int shrink)
+cgo_vips_jpegload_buffer(void *buf, size_t len, VipsImage **out)
+{
+    return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+};
+
+int
+cgo_vips_jpegload_buffer_shrink(void *buf, size_t len, VipsImage **out, int shrink)
 {
     return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, "shrink", shrink, NULL);
 };

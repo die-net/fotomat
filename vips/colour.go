@@ -31,14 +31,14 @@ const (
 )
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.
-func (in Image) Colourspace(space Interpretation) (Image, error) {
-	out := Image{}
-	err := vipsError(C.cgo_vips_colourspace(in.image, &out.image, C.VipsInterpretation(space)))
-	return out, err
+func (in Image) Colourspace(space Interpretation) (*Image, error) {
+	out := &C.struct__VipsImage{}
+	e := C.cgo_vips_colourspace(in.vi, &out, C.VipsInterpretation(space))
+	return imageError(out, e)
 }
 
-func (in Image) IccImport() (Image, error) {
-	out := Image{}
-	err := vipsError(C.cgo_vips_icc_import(in.image, &out.image))
-	return out, err
+func (in Image) IccImport() (*Image, error) {
+	out := &C.struct__VipsImage{}
+	e := C.cgo_vips_icc_import(in.vi, &out)
+	return imageError(out, e)
 }

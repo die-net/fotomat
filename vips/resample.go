@@ -23,20 +23,20 @@ func (i Interpolate) Close() {
 	i.interpolate = nil
 }
 
-func (in *Image) Affine(a, b, c, d float64, interpolate Interpolate) (Image, error) {
-	out := Image{}
-	err := vipsError(C.cgo_vips_affine(in.image, &out.image, C.double(a), C.double(b), C.double(c), C.double(d), interpolate.interpolate))
-	return out, err
+func (in *Image) Affine(a, b, c, d float64, interpolate Interpolate) (*Image, error) {
+	out := &C.struct__VipsImage{}
+	e := C.cgo_vips_affine(in.vi, &out, C.double(a), C.double(b), C.double(c), C.double(d), interpolate.interpolate)
+	return imageError(out, e)
 }
 
-func (in *Image) Resize(scale float64, interpolate Interpolate) (Image, error) {
-	out := Image{}
-	err := vipsError(C.cgo_vips_resize(in.image, &out.image, C.double(scale), interpolate.interpolate))
-	return out, err
+func (in *Image) Resize(scale float64, interpolate Interpolate) (*Image, error) {
+	out := &C.struct__VipsImage{}
+	e := C.cgo_vips_resize(in.vi, &out, C.double(scale), interpolate.interpolate)
+	return imageError(out, e)
 }
 
-func (in *Image) Shrink(xshrink, yshrink float64) (Image, error) {
-	out := Image{}
-	err := vipsError(C.cgo_vips_shrink(in.image, &out.image, C.double(xshrink), C.double(yshrink)))
-	return out, err
+func (in *Image) Shrink(xshrink, yshrink float64) (*Image, error) {
+	out := &C.struct__VipsImage{}
+	e := C.cgo_vips_shrink(in.vi, &out, C.double(xshrink), C.double(yshrink))
+	return imageError(out, e)
 }
