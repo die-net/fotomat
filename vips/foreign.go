@@ -10,13 +10,13 @@ import (
 	"unsafe"
 )
 
-func JpegloadBuffer(buf []byte, shrink int) (VipsImage, error) {
-	out := VipsImage{}
+func JpegloadBuffer(buf []byte, shrink int) (Image, error) {
+	out := Image{}
 	err := vipsError(C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out.image, C.int(shrink)))
 	return out, err
 }
 
-func (in *VipsImage) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace bool) ([]byte, error) {
+func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
 
@@ -28,13 +28,13 @@ func (in *VipsImage) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace
 	return buf, err
 }
 
-func PngloadBuffer(buf []byte) (VipsImage, error) {
-	out := VipsImage{}
+func PngloadBuffer(buf []byte) (Image, error) {
+	out := Image{}
 	err := vipsError(C.cgo_vips_pngload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out.image))
 	return out, err
 }
 
-func (in *VipsImage) PngsaveBuffer(compression int, interlace bool) ([]byte, error) {
+func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
 
@@ -46,13 +46,13 @@ func (in *VipsImage) PngsaveBuffer(compression int, interlace bool) ([]byte, err
 	return buf, err
 }
 
-func WebploadBuffer(buf []byte) (VipsImage, error) {
-	out := VipsImage{}
+func WebploadBuffer(buf []byte) (Image, error) {
+	out := Image{}
 	err := vipsError(C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out.image))
 	return out, err
 }
 
-func (in *VipsImage) WebpsaveBuffer(q int) ([]byte, error) {
+func (in *Image) WebpsaveBuffer(q int) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
 

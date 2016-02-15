@@ -12,11 +12,11 @@ import (
 	"errors"
 )
 
-type VipsImage struct {
+type Image struct {
 	image *C.struct__VipsImage
 }
 
-func (image VipsImage) Close() {
+func (image Image) Close() {
 	C.g_object_unref(C.gpointer(image.image))
 	image.image = nil
 }
