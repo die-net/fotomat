@@ -11,13 +11,13 @@ import (
 )
 
 func JpegloadBuffer(buf []byte) (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return imageError(out, e)
 }
 
 func JpegloadBufferShrink(buf []byte, shrink int) (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer_shrink(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
 	return imageError(out, e)
 }
@@ -35,7 +35,7 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 }
 
 func PngloadBuffer(buf []byte) (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_pngload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return imageError(out, e)
 }
@@ -53,7 +53,7 @@ func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) 
 }
 
 func WebploadBuffer(buf []byte) (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return imageError(out, e)
 }

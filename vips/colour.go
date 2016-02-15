@@ -32,13 +32,13 @@ const (
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.
 func (in Image) Colourspace(space Interpretation) (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_colourspace(in.vi, &out, C.VipsInterpretation(space))
 	return imageError(out, e)
 }
 
 func (in Image) IccImport() (*Image, error) {
-	out := &C.struct__VipsImage{}
+	var out *C.struct__VipsImage
 	e := C.cgo_vips_icc_import(in.vi, &out)
 	return imageError(out, e)
 }
