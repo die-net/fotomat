@@ -20,7 +20,7 @@ type Result struct {
 
 func (imager *Imager) NewResult(width, height int, options Options) (*Result, error) {
 	// Swap width and height if orientation will be corrected later.
-	width, height = imager.orientation.Dimensions(width, height)
+	width, height = imager.Orientation.Dimensions(width, height)
 
 	image, err := imager.shrinkImage(width, height)
 	if err != nil {
@@ -47,13 +47,13 @@ func (imager *Imager) NewResult(width, height int, options Options) (*Result, er
 		imager:      imager,
 		image:       image,
 		options:     options,
-		orientation: imager.orientation,
+		orientation: imager.Orientation,
 	}
 
 	// These may be smaller than imager.width and imager.height if JPEG decoder pre-scaled image.
 	result.width, result.height = result.orientation.Dimensions(result.image.Xsize(), result.image.Ysize())
 
-	if result.width < imager.width && result.height < imager.height {
+	if result.width < imager.Width && result.height < imager.Height {
 		result.shrank = true
 	}
 
@@ -61,8 +61,8 @@ func (imager *Imager) NewResult(width, height int, options Options) (*Result, er
 }
 
 func (imager *Imager) shrinkImage(width, height int) (*vips.Image, error) {
-	shrink := imager.width / width
-	ys := imager.height / height
+	shrink := imager.Width / width
+	ys := imager.Height / height
 	if ys < shrink {
 		shrink = ys
 	}
@@ -70,7 +70,7 @@ func (imager *Imager) shrinkImage(width, height int) (*vips.Image, error) {
 	// JPEG decode can shrink by a factor of 2, 4, or 8 with a huge
 	// performance boost.
 	jpegShrink := 1
-	if imager.format == Jpeg {
+	if imager.Format == Jpeg {
 		switch {
 		case shrink >= 8:
 			jpegShrink = 8

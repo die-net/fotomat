@@ -24,10 +24,10 @@ const (
 type Imager struct {
 	blob        []byte
 	image       *vips.Image
-	width       int
-	height      int
-	orientation Orientation
-	format      Format
+	Width       int
+	Height      int
+	Orientation Orientation
+	Format      Format
 }
 
 func New(blob []byte) (*Imager, error) {
@@ -60,23 +60,23 @@ func New(blob []byte) (*Imager, error) {
 	imager := &Imager{
 		blob:        blob,
 		image:       image,
-		width:       width,
-		height:      height,
-		orientation: orientation,
-		format:      format,
+		Width:       width,
+		Height:      height,
+		Orientation: orientation,
+		Format:      format,
 	}
 	return imager, nil
 }
 
 func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
-	if err := options.Check(imager.format, imager.width, imager.height); err != nil {
+	if err := options.Check(imager.Format, imager.Width, imager.Height); err != nil {
 		return nil, err
 	}
 
 	width := options.Width
 	height := options.Height
 
-	width, height = scaleAspect(imager.width, imager.height, width, height, true)
+	width, height = scaleAspect(imager.Width, imager.Height, width, height, true)
 
 	result, err := imager.NewResult(width, height, options)
 	if err != nil {
@@ -94,7 +94,7 @@ func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
 }
 
 func (imager *Imager) Crop(options Options) ([]byte, error) {
-	if err := options.Check(imager.format, imager.width, imager.height); err != nil {
+	if err := options.Check(imager.Format, imager.Width, imager.Height); err != nil {
 		return nil, err
 	}
 
@@ -103,13 +103,13 @@ func (imager *Imager) Crop(options Options) ([]byte, error) {
 
 	// If requested width or height are larger than original, scale
 	// request down to fit within original dimensions.
-	if width > imager.width || height > imager.height {
-		width, height = scaleAspect(width, height, imager.width, imager.height, true)
+	if width > imager.Width || height > imager.Height {
+		width, height = scaleAspect(width, height, imager.Width, imager.Height, true)
 	}
 
 	// Figure out the intermediate size the original image would have to
 	// be scaled to be cropped to requested size.
-	iw, ih := scaleAspect(imager.width, imager.height, width, height, false)
+	iw, ih := scaleAspect(imager.Width, imager.Height, width, height, false)
 
 	result, err := imager.NewResult(iw, ih, options)
 	if err != nil {

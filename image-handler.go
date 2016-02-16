@@ -243,7 +243,7 @@ func processImage(url string, orig []byte, preview, crop bool, width, height int
 func sendError(w http.ResponseWriter, err error, status int) {
 	if status == 0 {
 		switch err {
-		case imager.ErrUnknownFormat:
+		case imager.ErrUnknownFormat, imager.ErrTooSmall:
 			status = http.StatusUnsupportedMediaType
 		case imager.ErrTooBig:
 			status = http.StatusRequestEntityTooLarge

@@ -56,8 +56,8 @@ func TestImageThumbnail(t *testing.T) {
 	if !assert.NotNil(t, img) {
 		return
 	}
-	assert.Equal(t, img.width, 398)
-	assert.Equal(t, img.height, 536)
+	assert.Equal(t, img.Width, 398)
+	assert.Equal(t, img.Height, 536)
 
 	// Verify scaling down to fit completely into box.
 	thumb, err := img.Thumbnail(Options{Width: 200, Height: 300})
@@ -82,8 +82,8 @@ func TestImageCrop(t *testing.T) {
 	if !assert.NotNil(t, img) {
 		return
 	}
-	assert.Equal(t, img.width, 398)
-	assert.Equal(t, img.height, 536)
+	assert.Equal(t, img.Width, 398)
+	assert.Equal(t, img.Height, 536)
 
 	// Verify cropping to fit.
 	thumb, err := img.Crop(Options{Width: 300, Height: 400, Crop: true})
@@ -103,8 +103,8 @@ func TestImageRotation(t *testing.T) {
 		defer img.Close()
 		assert.Nil(t, err)
 		if assert.NotNil(t, img) {
-			assert.Equal(t, img.width, 48)
-			assert.Equal(t, img.height, 80)
+			assert.Equal(t, img.Width, 48)
+			assert.Equal(t, img.Height, 80)
 
 			// Verify that img.Thumbnail() maintains orientation.
 			thumb, err := img.Thumbnail(Options{Width: 40, Height: 40})
@@ -120,8 +120,8 @@ func TestImageFormat(t *testing.T) {
 	img, err := New(image("2px.gif"))
 	assert.Nil(t, err)
 	if assert.NotNil(t, img) {
-		assert.Equal(t, img.width, 2)
-		assert.Equal(t, img.height, 3)
+		assert.Equal(t, img.Width, 2)
+		assert.Equal(t, img.Height, 3)
 
 		// Verify that we rewrite it as a PNG of the same size.
 		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
@@ -133,8 +133,8 @@ func TestImageFormat(t *testing.T) {
 	img, err = New(image("flowers.png"))
 	assert.Nil(t, err)
 	if assert.NotNil(t, img) {
-		assert.Equal(t, img.width, 256)
-		assert.Equal(t, img.height, 169)
+		assert.Equal(t, img.Width, 256)
+		assert.Equal(t, img.Height, 169)
 
 		// Verify that we rewrite it as JPEG of the same size.
 		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
@@ -150,11 +150,11 @@ func isSize(image []byte, format Format, width, height int) error {
 		return err
 	}
 	defer img.Close()
-	if width != img.width || height != img.height {
-		return fmt.Errorf("Width %d!=%d or height %d!=%d", width, img.width, height, img.height)
+	if width != img.Width || height != img.Height {
+		return fmt.Errorf("Width %d!=%d or height %d!=%d", width, img.Width, height, img.Height)
 	}
-	if format != img.format {
-		return fmt.Errorf("Format %s!=%s", format, img.format)
+	if format != img.Format {
+		return fmt.Errorf("Format %s!=%s", format, img.Format)
 	}
 	return nil
 }

@@ -40,16 +40,16 @@ func init() {
 
 func TestSuccess(t *testing.T) {
 	// Load a 2x3 pixel image.
-	assert.Nil(t, isSize("2px.png=s2048x2048", "PNG", 2, 3))
+	assert.Nil(t, isSize("2px.png=s2048x2048", imager.Png, 2, 3))
 
 	// Crop JPEG to 200x100.
-	assert.Nil(t, isSize("watermelon.jpg=c200x100", "JPEG", 200, 100))
+	assert.Nil(t, isSize("watermelon.jpg=c200x100", imager.Jpeg, 200, 100))
 
 	// Scale preview JPEG.
-	assert.Nil(t, isSize("watermelon.jpg=ps100x100", "JPEG", 74, 100))
+	assert.Nil(t, isSize("watermelon.jpg=ps100x100", imager.Jpeg, 74, 100))
 
 	// Crop 3000x2000 PNG to a small preview JPEG.
-	assert.Nil(t, isSize("3000px.png=pc16x16", "JPEG", 16, 16))
+	assert.Nil(t, isSize("3000px.png=pc16x16", imager.Jpeg, 16, 16))
 }
 
 func TestResponseErrors(t *testing.T) {
@@ -95,13 +95,13 @@ func TestParameterValidation(t *testing.T) {
 	assert.Equal(t, status("watermelon.jpg=s16x16=s16x16"), http.StatusBadRequest)
 }
 
-func isSize(filename, format string, width, height uint) error {
+func isSize(filename string, format imager.Format, width, height int) error {
 	image, code := fetch(filename)
 	if code != 200 {
 		return fmt.Errorf("HTTP error %d", code)
 	}
 
-	img, err := imager.New(image, 10000000)
+	img, err := imager.New(image)
 	if err != nil {
 		return err
 	}
@@ -109,8 +109,8 @@ func isSize(filename, format string, width, height uint) error {
 	if width != img.Width || height != img.Height {
 		return fmt.Errorf("Width %d!=%d or Height %d!=%d", width, img.Width, height, img.Height)
 	}
-	if format != img.InputFormat {
-		return fmt.Errorf("Format %s!=%s", format, img.InputFormat)
+	if format != img.Format {
+		return fmt.Errorf("Format %s!=%s", format, img.Format)
 	}
 	return nil
 }
