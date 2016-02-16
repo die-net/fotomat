@@ -78,7 +78,7 @@ func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
 
 	width, height = scaleAspect(imager.width, imager.height, width, height, options.Crop)
 
-	result, err := imager.NewResult(width, height)
+	result, err := imager.NewResult(width, height, options)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (imager *Imager) Crop(options Options) ([]byte, error) {
 	// be scaled to be cropped to requested size.
 	iw, ih := scaleAspect(imager.width, imager.height, width, height, false)
 
-	result, err := imager.NewResult(iw, ih)
+	result, err := imager.NewResult(iw, ih, options)
 	if err != nil {
 		return nil, err
 	}

@@ -21,4 +21,3 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
 
 	return rw, rh
 }
-

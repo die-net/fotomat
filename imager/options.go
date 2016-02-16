@@ -16,28 +16,28 @@ type Options struct {
 }
 
 func (o *Options) Check(format Format, width, height int) error {
-        // If output format is not set, pick one.
-        if o.Format == UnknownFormat {
-        	switch format {
-        	case Gif:
-        		o.Format = Jpeg
+	// If output format is not set, pick one.
+	if o.Format == UnknownFormat {
+		switch format {
+		case Gif:
+			o.Format = Jpeg
 		default:
- 			o.Format = format
+			o.Format = format
 		}
-        }
-        // Is this now a format that can save? If not, error.
-        if !o.Format.CanSave() {
+	}
+	// Is this now a format that can save? If not, error.
+	if !o.Format.CanSave() {
 		return ErrUnknownFormat
-        }
+	}
 
-        // If output width or height are not set, use original.
+	// If output width or height are not set, use original.
 	if o.Width == 0 {
 		o.Width = width
 	}
 	if o.Height == 0 {
 		o.Height = height
 	}
-        // Security: Verify requested width and height.
+	// Security: Verify requested width and height.
 	if o.Width < 1 || o.Height < 1 {
 		return ErrTooSmall
 	}
@@ -45,15 +45,15 @@ func (o *Options) Check(format Format, width, height int) error {
 		return ErrTooBig
 	}
 
-        // If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG
-        // decoder can pre-scale to 1/8 original width and height.
-        scale := 1
-        if format == Jpeg {
-                scale = 8
-        }
-        if o.MaxBufferPixels > 0 && width*height > o.MaxBufferPixels*scale*scale {
-                return ErrTooBig
-        }
+	// If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG
+	// decoder can pre-scale to 1/8 original width and height.
+	scale := 1
+	if format == Jpeg {
+		scale = 8
+	}
+	if o.MaxBufferPixels > 0 && width*height > o.MaxBufferPixels*scale*scale {
+		return ErrTooBig
+	}
 
 	if o.Quality == 0 {
 		o.Quality = DefaultQuality

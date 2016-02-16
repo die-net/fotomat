@@ -32,8 +32,8 @@ const (
 
 var formatInfo = []struct {
 	mime string
-	load        func([]byte) (*vips.Image, error)
-	save        func(*vips.Image, Options) ([]byte, error)
+	load func([]byte) (*vips.Image, error)
+	save func(*vips.Image, Options) ([]byte, error)
 }{
 	{mime: "application/octet-stream", load: nil, save: nil},
 	{mime: "image/gif", load: vips.MagickloadBuffer, save: nil},
