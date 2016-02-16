@@ -6,23 +6,22 @@ package imager
 
 import (
 	"fmt"
-	"github.com/gographics/imagick/imagick"
+	"github.com/die-net/fotomat/vips"
 )
 
 type Result struct {
-	wand        *imagick.MagickWand
-	img         *Imager
-	Width       uint
-	Height      uint
+	wand        *vips.Image
+	imager      *Imager
+	Width       int
+	Height      int
 	Orientation Orientation
 	shrank      bool
 }
 
-func (img *Imager) NewResult(width, height uint) (*Result, error) {
+func (imager *Imager) NewResult(width, height int) (*Result, error) {
 	result := &Result{
-		Orientation: *img.Orientation,
-		img:         img,
-		wand:        imagick.NewMagickWand(),
+		orientation: orientation,
+		imager:      imager,
 	}
 
 	// Swap width and height if orientation will be corrected later.
@@ -31,7 +30,7 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	// If we're scaling down, ask the jpeg decoder to pre-scale for us,
 	// down to something at least as big as this.  This is often a huge
 	// performance gain.
-	if width > 0 && height > 0 && img.Width > width && img.Height > height {
+	if width > 0 && height > 0 && imager.width > width && imager.height > height {
 		s := fmt.Sprintf("%dx%d", width, height)
 		if err := result.wand.SetOption("jpeg:size", s); err != nil {
 			result.Close()
@@ -40,7 +39,7 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 	}
 
 	// Decompress the image into a pixel buffer, possibly pre-scaling first.
-	if err := result.wand.ReadImageBlob(img.blob); err != nil {
+	if err := result.wand.ReadImageBlob(imager.blob); err != nil {
 		result.Close()
 		return nil, err
 	}
@@ -68,10 +67,10 @@ func (img *Imager) NewResult(width, height uint) (*Result, error) {
 		}
 	}
 
-	// These may be smaller than img.Width and img.Height if JPEG decoder pre-scaled image.
+	// These may be smaller than imager.width and imager.height if JPEG decoder pre-scaled image.
 	result.Width, result.Height = result.Orientation.Dimensions(result.wand.GetImageWidth(), result.wand.GetImageHeight())
 
-	if result.Width < img.Width && result.Height < img.Height {
+	if result.Width < imager.width && result.Height < imager.height {
 		result.shrank = true
 	}
 
@@ -93,7 +92,7 @@ func (result *Result) applyColorProfile() bool {
 	return err == nil // did we successfully apply?
 }
 
-func (result *Result) Resize(width, height uint) error {
+func (result *Result) Resize(width, height int) error {
 	// Only use Lanczos if we are shrinking by more than 2.5%.
 	filter := imagick.FILTER_TRIANGLE
 	shrinking := false
@@ -115,7 +114,7 @@ func (result *Result) Resize(width, height uint) error {
 	return nil
 }
 
-func (result *Result) Crop(width, height uint) error {
+func (result *Result) Crop(width, height int) error {
 	if width > result.Width || height > result.Height {
 		return ErrTooBig
 	}
@@ -139,12 +138,12 @@ func (result *Result) Crop(width, height uint) error {
 func (result *Result) Get() ([]byte, error) {
 	// If the image shrunk, apply sharpen or blur as requested
 	if result.shrank {
-		if result.img.Sharpen {
+		if result.imager.Sharpen {
 			if err := result.wand.UnsharpMaskImage(0, 0.8, 0.6, 0.05); err != nil {
 				return nil, err
 			}
-		} else if result.img.BlurSigma > 0 {
-			if err := result.wand.GaussianBlurImage(0, result.img.BlurSigma); err != nil {
+		} else if result.imager.BlurSigma > 0 {
+			if err := result.wand.GaussianBlurImage(0, result.imager.BlurSigma); err != nil {
 				return nil, err
 			}
 		}
@@ -161,7 +160,7 @@ func (result *Result) Get() ([]byte, error) {
 	}
 
 	// Stretch contrast if AutoContrast flag set.
-	if result.img.AutoContrast {
+	if result.imager.AutoContrast {
 		if err := result.wand.NormalizeImage(); err != nil {
 			return nil, err
 		}
@@ -173,6 +172,7 @@ func (result *Result) Get() ([]byte, error) {
 		return nil, err
 	}
 
+	result.format.Save(result.image, result.options)
 	hasAlpha := result.wand.GetImageAlphaChannel()
 	if hasAlpha {
 		// Don't preserve data for fully-transparent pixels.
@@ -181,9 +181,9 @@ func (result *Result) Get() ([]byte, error) {
 		}
 	}
 
-	if result.img.OutputFormat == "PNG" {
+	if result.imager.OutputFormat == "PNG" {
 		blob, err := result.compress("PNG", 95, imagick.INTERLACE_NO)
-		if err != nil || hasAlpha || (len(blob)-256)*8 <= int(result.Width*result.Height*result.img.PngMaxBitsPerPixel) {
+		if err != nil || hasAlpha || (len(blob)-256)*8 <= int(result.Width*result.Height*result.imager.PngMaxBitsPerPixel) {
 			return blob, err
 		}
 	}
@@ -191,13 +191,13 @@ func (result *Result) Get() ([]byte, error) {
 	// Interlace saves 2-3%, but incurs a few hundred bytes of overhead.
 	// This isn't usually beneficial on small images.
 	if result.Width*result.Height < 200*200 {
-		return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_NO)
+		return result.compress("JPEG", result.imager.JpegQuality, imagick.INTERLACE_NO)
 	}
 
-	return result.compress("JPEG", result.img.JpegQuality, imagick.INTERLACE_LINE)
+	return result.compress("JPEG", result.imager.JpegQuality, imagick.INTERLACE_LINE)
 }
 
-func (result *Result) compress(format string, quality uint, interlace imagick.InterlaceType) ([]byte, error) {
+func (result *Result) compress(format string, quality int, interlace imagick.InterlaceType) ([]byte, error) {
 	// Output image format may differ from input format.
 	if err := result.wand.SetImageFormat(format); err != nil {
 		return nil, err
@@ -216,8 +216,7 @@ func (result *Result) compress(format string, quality uint, interlace imagick.In
 }
 
 func (result *Result) Close() {
-	// imagick.MagicWand will otherwise leak unless we wand.Destroy().
-	result.wand.Destroy()
+	result.image.Close()
 
 	*result = Result{}
 }

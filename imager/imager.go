@@ -6,11 +6,14 @@ package imager
 
 import (
 	"errors"
+	"github.com/die-net/fotomat/vips"
 )
 
 var (
 	ErrUnknownFormat = errors.New("Unknown image format")
 	ErrTooBig        = errors.New("Image is too wide or tall")
+	ErrTooSmall      = errors.New("Image is too small")
+	ErrBadOption     = errors.New("Bad option specified")
 )
 
 const (
@@ -19,69 +22,61 @@ const (
 )
 
 type Imager struct {
-	blob               []byte
-	Width              uint
-	Height             uint
-	Orientation        *Orientation
-	InputFormat        string
-	OutputFormat       string
-	JpegQuality        uint
-	PngMaxBitsPerPixel uint
-	Sharpen            bool
-	BlurSigma          float64
-	AutoContrast       bool
+	blob        []byte
+	image       *vips.Image
+	width       int
+	height      int
+	orientation Orientation
+	format      Format
 }
 
-func New(blob []byte, maxBufferPixels uint) (*Imager, error) {
-	// Security: Guess at formats.  Limit formats we pass to ImageMagick
-	// to just JPEG, PNG, GIF.
-	inputFormat, outputFormat := detectFormats(blob)
-	if inputFormat == "" {
+func New(blob []byte) (*Imager, error) {
+	// Security: Limit formats we pass to VIPS to JPEG, PNG, GIF, WEBP.
+	format := DetectFormat(blob)
+	if format == UnknownFormat {
 		return nil, ErrUnknownFormat
 	}
 
-	// Ask ImageMagick to parse metadata.
-	width, height, orientation, format, err := imageMetaData(blob)
+	// Ask VIPS to parse metadata.
+	image, err := format.Load(blob)
 	if err != nil {
 		return nil, ErrUnknownFormat
 	}
 
-	// Assume JPEG decoder can pre-scale to 1/8 original width and height.
-	if format == "JPEG" {
-		maxBufferPixels *= 64
+	width := image.Xsize()
+	height := image.Ysize()
+
+	// Security: Confirm that image sizes are sane.
+	if width < minDimension || height < minDimension {
+		return nil, ErrTooSmall
+	}
+	if width > maxDimension || height > maxDimension {
+		return nil, ErrTooBig
 	}
 
-	// Security: Confirm that detectFormat() and imageMagick agreed on
-	// format and that image sizes are sane.
-	if format != inputFormat {
-		return nil, ErrUnknownFormat
-	} else if width < minDimension || height < minDimension {
-		return nil, ErrUnknownFormat
-	} else if width > maxDimension || height > maxDimension {
-		return nil, ErrTooBig
-	} else if width*height > maxBufferPixels {
-		return nil, ErrTooBig
-	}
+	orientation := DetectOrientation(image)
+	width, height = orientation.Dimensions(width, height)
 
 	img := &Imager{
-		blob:               blob,
-		Width:              width,
-		Height:             height,
-		Orientation:        orientation,
-		InputFormat:        inputFormat,
-		OutputFormat:       outputFormat,
-		JpegQuality:        85,
-		PngMaxBitsPerPixel: 4,
-		Sharpen:            true,
-		BlurSigma:          0.0,
-		AutoContrast:       false,
+		blob:        blob,
+		image:       image,
+		width:       width,
+		height:      height,
+		orientation: orientation,
+		format:      format,
 	}
-
 	return img, nil
 }
 
-func (img *Imager) Thumbnail(width, height uint, within bool) ([]byte, error) {
-	width, height = scaleAspect(img.Width, img.Height, width, height, within)
+func (img *Imager) Thumbnail(options Options) ([]byte, error) {
+	if err := options.Check(img.format, img.width, img.height); err != nil {
+		return nil, err
+	}
+
+	width := options.Width
+	height := options.Height
+
+	width, height = scaleAspect(img.width, img.height, width, height, options.Crop)
 
 	result, err := img.NewResult(width, height)
 	if err != nil {
@@ -98,16 +93,16 @@ func (img *Imager) Thumbnail(width, height uint, within bool) ([]byte, error) {
 	return result.Get()
 }
 
-func (img *Imager) Crop(width, height uint) ([]byte, error) {
+func (img *Imager) Crop(width, height int) ([]byte, error) {
 	// If requested width or height are larger than original, scale
 	// request down to fit within original dimensions.
-	if width > img.Width || height > img.Height {
-		width, height = scaleAspect(width, height, img.Width, img.Height, true)
+	if width > img.width || height > img.height {
+		width, height = scaleAspect(width, height, img.width, img.height, true)
 	}
 
 	// Figure out the intermediate size the original image would have to
 	// be scaled to be cropped to requested size.
-	iw, ih := scaleAspect(img.Width, img.Height, width, height, false)
+	iw, ih := scaleAspect(img.width, img.height, width, height, false)
 
 	result, err := img.NewResult(iw, ih)
 	if err != nil {
