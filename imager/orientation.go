@@ -46,7 +46,7 @@ func DetectOrientation(image *vips.Image) Orientation {
 		return Unknown
 	}
 
-	orientation, err := strconv.Atoi(o)
+	orientation, err := strconv.Atoi(o[:1])
 	if err != nil || orientation <= 0 || orientation >= len(orientationInfo) {
 		return Unknown
 	}
