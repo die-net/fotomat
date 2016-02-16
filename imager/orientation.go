@@ -82,7 +82,7 @@ func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {
 	oi := &orientationInfo[orientation]
 
 	if oi.apply == nil {
-		return image, nil
+		return nil, nil
 	}
 	out, err := oi.apply(image)
 	if err != nil {

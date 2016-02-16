@@ -51,7 +51,7 @@ func (imager *Imager) NewResult(width, height int, options Options) (*Result, er
 	}
 
 	// These may be smaller than imager.width and imager.height if JPEG decoder pre-scaled image.
-	result.width, result.height = result.orientation.Dimensions(image.Xsize(), image.Ysize())
+	result.width, result.height = result.orientation.Dimensions(result.image.Xsize(), result.image.Ysize())
 
 	if result.width < imager.width && result.height < imager.height {
 		result.shrank = true
@@ -198,8 +198,10 @@ func (result *Result) Get() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	result.image.Close()
-	result.image = image
+        if image != nil {
+		result.image.Close()
+		result.image = image
+        }
 
 	// Stretch contrast if AutoContrast flag set.
 	/*
