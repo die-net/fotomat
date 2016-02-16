@@ -23,7 +23,7 @@ func (i Interpolate) Close() {
 	i.interpolate = nil
 }
 
-func (in *Image) Affine(a, b, c, d float64, interpolate Interpolate) (*Image, error) {
+func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_affine(in.vi, &out, C.double(a), C.double(b), C.double(c), C.double(d), interpolate.interpolate)
 	return imageError(out, e)
