@@ -57,7 +57,7 @@ func New(blob []byte) (*Imager, error) {
 	orientation := DetectOrientation(image)
 	width, height = orientation.Dimensions(width, height)
 
-	img := &Imager{
+	imager := &Imager{
 		blob:        blob,
 		image:       image,
 		width:       width,
@@ -65,26 +65,26 @@ func New(blob []byte) (*Imager, error) {
 		orientation: orientation,
 		format:      format,
 	}
-	return img, nil
+	return imager, nil
 }
 
-func (img *Imager) Thumbnail(options Options) ([]byte, error) {
-	if err := options.Check(img.format, img.width, img.height); err != nil {
+func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
+	if err := options.Check(imager.format, imager.width, imager.height); err != nil {
 		return nil, err
 	}
 
 	width := options.Width
 	height := options.Height
 
-	width, height = scaleAspect(img.width, img.height, width, height, options.Crop)
+	width, height = scaleAspect(imager.width, imager.height, width, height, options.Crop)
 
-	result, err := img.NewResult(width, height)
+	result, err := imager.NewResult(width, height)
 	if err != nil {
 		return nil, err
 	}
 	defer result.Close()
 
-	if result.Width > width || result.Height > height {
+	if result.width > width || result.height > height {
 		if err := result.Resize(width, height); err != nil {
 			return nil, err
 		}
@@ -93,32 +93,39 @@ func (img *Imager) Thumbnail(options Options) ([]byte, error) {
 	return result.Get()
 }
 
-func (img *Imager) Crop(width, height int) ([]byte, error) {
+func (imager *Imager) Crop(options Options) ([]byte, error) {
+	if err := options.Check(imager.format, imager.width, imager.height); err != nil {
+		return nil, err
+	}
+
+	width := options.Width
+	height := options.Height
+
 	// If requested width or height are larger than original, scale
 	// request down to fit within original dimensions.
-	if width > img.width || height > img.height {
-		width, height = scaleAspect(width, height, img.width, img.height, true)
+	if width > imager.width || height > imager.height {
+		width, height = scaleAspect(width, height, imager.width, imager.height, true)
 	}
 
 	// Figure out the intermediate size the original image would have to
 	// be scaled to be cropped to requested size.
-	iw, ih := scaleAspect(img.width, img.height, width, height, false)
+	iw, ih := scaleAspect(imager.width, imager.height, width, height, false)
 
-	result, err := img.NewResult(iw, ih)
+	result, err := imager.NewResult(iw, ih)
 	if err != nil {
 		return nil, err
 	}
 	defer result.Close()
 
 	// If necessary, scale down to appropriate intermediate size.
-	if result.Width > iw || result.Height > ih {
+	if result.width > iw || result.height > ih {
 		if err := result.Resize(iw, ih); err != nil {
 			return nil, err
 		}
 	}
 
 	// If necessary, crop to fit exact size.
-	if result.Width > width || result.Height > height {
+	if result.width > width || result.height > height {
 		if err := result.Crop(width, height); err != nil {
 			return nil, err
 		}
@@ -127,6 +134,6 @@ func (img *Imager) Crop(width, height int) ([]byte, error) {
 	return result.Get()
 }
 
-func (img *Imager) Close() {
-	*img = Imager{}
+func (imager *Imager) Close() {
+	*imager = Imager{}
 }

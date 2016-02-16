@@ -31,13 +31,13 @@ var orientationInfo = []struct {
 }{
 	{swapXY: false, flipX: false, flipY: false, apply: nil}, // Unknown
 	{swapXY: false, flipX: false, flipY: false, apply: nil},
-	{swapXY: false, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Flip(vips.DirectionHorizontal) }},
-	{swapXY: false, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Rot(vips.AngleD180) }},
-	{swapXY: false, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Flip(vips.DirectionVertical) }},
-	{swapXY: true, flipX: false, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Flip(vips.DirectionVertical) }}, //TODO: Transpose
-	{swapXY: true, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Rot(vips.Angle90) }},
-	{swapXY: true, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Flip(vips.DirectionVertical) }}, //TODO: Transverse
-	{swapXY: true, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return vips.Rot(vips.Angle270) }},
+	{swapXY: false, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionHorizontal) }},
+	{swapXY: false, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.AngleD180) }},
+	{swapXY: false, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionVertical) }},
+	{swapXY: true, flipX: false, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionVertical) }}, //TODO: Transpose
+	{swapXY: true, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.AngleD90) }},
+	{swapXY: true, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionVertical) }}, //TODO: Transverse
+	{swapXY: true, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.AngleD270) }},
 }
 
 func DetectOrientation(image *vips.Image) Orientation {
