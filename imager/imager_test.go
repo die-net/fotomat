@@ -29,15 +29,15 @@ func TestImageValidation(t *testing.T) {
 	assert.Equal(t, tryNew("34000px.png"), ErrTooBig)
 
 	// Refuse to load a 213328 pixel JPEG image into 1000 pixel buffer.
-        // TODO: Add back MaxBufferPixels.
+	// TODO: Add back MaxBufferPixels.
 	assert.Equal(t, tryNew("watermelon.jpg"), ErrTooBig)
 
 	// Succeed in loading a 213328 pixel JPEG image into 10000 pixel buffer.
-        // TODO: Add back MaxBufferPixels.
+	// TODO: Add back MaxBufferPixels.
 	assert.Nil(t, tryNew("watermelon.jpg"))
 
 	// Load the image when given a larger limit.
-        // TODO: Add back MaxBufferPixels.
+	// TODO: Add back MaxBufferPixels.
 	assert.Nil(t, tryNew("watermelon.jpg"))
 }
 
@@ -53,9 +53,9 @@ func TestImageThumbnail(t *testing.T) {
 	img, err := New(image("watermelon.jpg"))
 	defer img.Close()
 	assert.Nil(t, err)
-        if !assert.NotNil(t, img) {
-        	return
-        }
+	if !assert.NotNil(t, img) {
+		return
+	}
 	assert.Equal(t, img.width, 398)
 	assert.Equal(t, img.height, 536)
 
@@ -79,8 +79,8 @@ func TestImageCrop(t *testing.T) {
 	img, err := New(image("watermelon.jpg"))
 	defer img.Close()
 	assert.Nil(t, err)
-        if !assert.NotNil(t, img) {
-        	return
+	if !assert.NotNil(t, img) {
+		return
 	}
 	assert.Equal(t, img.width, 398)
 	assert.Equal(t, img.height, 536)
@@ -102,7 +102,7 @@ func TestImageRotation(t *testing.T) {
 		img, err := New(image("orient" + strconv.Itoa(i) + ".jpg"))
 		defer img.Close()
 		assert.Nil(t, err)
-                if assert.NotNil(t, img) {
+		if assert.NotNil(t, img) {
 			assert.Equal(t, img.width, 48)
 			assert.Equal(t, img.height, 80)
 
@@ -110,7 +110,7 @@ func TestImageRotation(t *testing.T) {
 			thumb, err := img.Thumbnail(Options{Width: 40, Height: 40})
 			assert.Nil(t, err)
 			assert.Nil(t, isSize(thumb, Jpeg, 24, 40))
-                }
+		}
 
 		// TODO: Figure out how to test crop.
 	}
@@ -119,29 +119,29 @@ func TestImageRotation(t *testing.T) {
 func TestImageFormat(t *testing.T) {
 	img, err := New(image("2px.gif"))
 	assert.Nil(t, err)
-        if assert.NotNil(t, img) {
+	if assert.NotNil(t, img) {
 		assert.Equal(t, img.width, 2)
 		assert.Equal(t, img.height, 3)
 
 		// Verify that we rewrite it as a PNG of the same size.
-		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024})
+		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, Png, 2, 3))
 		img.Close()
-        }
+	}
 
 	img, err = New(image("flowers.png"))
 	assert.Nil(t, err)
-        if assert.NotNil(t, img) {
+	if assert.NotNil(t, img) {
 		assert.Equal(t, img.width, 256)
 		assert.Equal(t, img.height, 169)
 
 		// Verify that we rewrite it as JPEG of the same size.
-		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024})
+		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
 		img.Close()
-        }
+	}
 }
 
 func isSize(image []byte, format Format, width, height int) error {

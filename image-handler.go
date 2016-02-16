@@ -18,7 +18,7 @@ import (
 
 var (
 	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
-	maxBufferPixels       = flag.Uint("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
+	maxBufferPixels       = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
 	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
 	pool                  chan bool
@@ -55,7 +55,7 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 
 var matchPath = regexp.MustCompile(`^(/.*)=(p?)([sc])(\d{1,5})x(\d{1,5})$`)
 
-func parsePath(path string) (string, bool, bool, uint, uint, bool) {
+func parsePath(path string) (string, bool, bool, int, int, bool) {
 	g := matchPath.FindStringSubmatch(path)
 	if len(g) != 6 {
 		return "", false, false, 0, 0, false
@@ -76,7 +76,7 @@ func parsePath(path string) (string, bool, bool, uint, uint, bool) {
 		return "", false, false, 0, 0, false
 	}
 
-	return g[1], (g[2] == "p"), (g[3] == "c"), uint(width), uint(height), true
+	return g[1], (g[2] == "p"), (g[3] == "c"), int(width), int(height), true
 }
 
 func poolInit(limit int) {
@@ -117,7 +117,7 @@ func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
 	fetchAndProcessImage(w, r.FormValue("image_url"), false, crop, width, height)
 }
 
-func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool, width, height uint) {
+func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
 	orig, status, err := fetchURL(url)
@@ -155,7 +155,7 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool,
 	thumb = nil // Free up image memory ASAP.
 }
 
-func parseGeometry(geometry string) (bool, uint, uint, bool) {
+func parseGeometry(geometry string) (bool, int, int, bool) {
 	g := matchGeometry.FindStringSubmatch(geometry)
 	if len(g) != 4 {
 		return false, 0, 0, false
@@ -169,7 +169,7 @@ func parseGeometry(geometry string) (bool, uint, uint, bool) {
 		return false, 0, 0, false
 	}
 	crop := (g[3] == "#")
-	return crop, uint(width), uint(height), true
+	return crop, width, height, true
 }
 
 func fetchURL(url string) ([]byte, int, error) {
@@ -201,7 +201,7 @@ func fetchURL(url string) ([]byte, int, error) {
 	}
 }
 
-func processImage(url string, orig []byte, preview, crop bool, width, height uint) ([]byte, error) {
+func processImage(url string, orig []byte, preview, crop bool, width, height int) ([]byte, error) {
 	if *maxProcessingDuration > 0 {
 		timer := time.AfterFunc(*maxProcessingDuration, func() {
 			panic(fmt.Sprintf("Processing %v longer than %v", url, *maxProcessingDuration))
@@ -209,26 +209,33 @@ func processImage(url string, orig []byte, preview, crop bool, width, height uin
 		defer timer.Stop()
 	}
 
-	img, err := imager.New(orig, *maxBufferPixels)
+	img, err := imager.New(orig)
 	if err != nil {
 		return nil, err
 	}
 
 	defer img.Close()
 
+	options := imager.Options{
+		Width:           width,
+		Height:          height,
+		MaxBufferPixels: *maxBufferPixels,
+	}
+
 	// Preview images are tiny, blurry JPEGs.
 	if preview {
-		img.Sharpen = false
-		img.BlurSigma = 0.8
-		img.OutputFormat = "JPEG"
-		img.JpegQuality = 40
+		options.Sharpen = false
+		options.BlurSigma = 0.8
+		options.Format = imager.Jpeg
+		options.Quality = 40
 	}
 
 	var thumb []byte
 	if crop {
-		thumb, err = img.Crop(width, height)
+		options.Crop = true
+		thumb, err = img.Crop(options)
 	} else {
-		thumb, err = img.Thumbnail(width, height, true)
+		thumb, err = img.Thumbnail(options)
 	}
 	return thumb, err
 }

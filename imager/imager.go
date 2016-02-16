@@ -76,7 +76,7 @@ func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
 	width := options.Width
 	height := options.Height
 
-	width, height = scaleAspect(imager.width, imager.height, width, height, options.Crop)
+	width, height = scaleAspect(imager.width, imager.height, width, height, true)
 
 	result, err := imager.NewResult(width, height, options)
 	if err != nil {

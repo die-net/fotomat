@@ -198,10 +198,13 @@ func (result *Result) Get() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-        if image != nil {
+	if image != nil {
 		result.image.Close()
 		result.image = image
-        }
+		result.orientation = TopLeft
+		result.width = image.Xsize()
+		result.height = image.Ysize()
+	}
 
 	// Stretch contrast if AutoContrast flag set.
 	/*
