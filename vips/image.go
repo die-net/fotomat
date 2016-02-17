@@ -28,6 +28,12 @@ func (image *Image) Ysize() int {
 	return int(image.vi.Ysize)
 }
 
+func (in *Image) Write() (*Image, error) {
+        out := C.vips_image_new_memory();
+        e := C.vips_image_write(in.vi, out)
+        return imageError(out, e)
+}
+
 func (image *Image) Close() {
 	C.g_object_unref(C.gpointer(image.vi))
 	*image = Image{}

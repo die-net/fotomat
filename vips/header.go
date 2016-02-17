@@ -21,7 +21,7 @@ func (in Image) ImageGetAsString(field string) (string, bool) {
 }
 
 func (in Image) ImageRemove(field string) bool {
-	ok := C.cgo_vips_image_remove(in.vi, C.CString(field))
+	ok := C.vips_image_remove(in.vi, C.CString(field))
 
 	return ok != 0
 }

@@ -84,14 +84,23 @@ func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {
 	if oi.apply == nil {
 		return nil, nil
 	}
-	out, err := oi.apply(image)
+
+	// We want to stay sequential, so we copy memory here and execute
+	// all work in the pipeline so far.
+	out, err := image.Write()
 	if err != nil {
 		return nil, err
 	}
 
-	_ = out.ImageRemove(vips.ExifOrientation)
+	rot, err := oi.apply(out)
+	out.Close()
+	if err != nil {
+		return nil, err
+	}
 
-	return out, nil
+	_ = rot.ImageRemove(vips.ExifOrientation)
+
+	return rot, nil
 }
 
 func Transpose(image *vips.Image) (*vips.Image, error) {

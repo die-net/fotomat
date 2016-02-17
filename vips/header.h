@@ -10,9 +10,3 @@ cgo_vips_image_get_as_string(const VipsImage *image, const char *field, const ch
     }
     return -1;
 }
-
-int
-cgo_vips_image_remove(VipsImage *image, const char *field)
-{
-    return vips_image_remove(image, field);
-}
