@@ -149,19 +149,21 @@ func (result *Result) Crop(width, height int) error {
 	if width > result.width || height > result.height {
 		return ErrTooBig
 	}
-	/*
-		// Center horizontally
-		x := (int(result.width) - int(width) + 1) / 2
-		// Assume faces are higher up vertically
-		y := (int(result.height) - int(height) + 1) / 4
 
-		ow, oh, ox, oy := result.orientation.Crop(width, height, x, y, result.width, result.height)
+	// Center horizontally
+	x := (int(result.width) - int(width) + 1) / 2
+	// Assume faces are higher up vertically
+	y := (int(result.height) - int(height) + 1) / 4
 
-		if err := result.wand.CropImage(ow, oh, ox, oy); err != nil {
-			return err
-		}
-	*/
+	ow, oh, ox, oy := result.orientation.Crop(width, height, x, y, result.width, result.height)
 
+	image, err := result.image.ExtractArea(ox, oy, ow, oh)
+	if err != nil {
+		return err
+	}
+
+	result.image.Close()
+	result.image = image
 	result.width = width
 	result.height = height
 

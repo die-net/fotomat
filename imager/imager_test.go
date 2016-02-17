@@ -30,11 +30,11 @@ func TestImageValidation(t *testing.T) {
 
 	// Refuse to load a 213328 pixel JPEG image into 1000 pixel buffer.
 	// TODO: Add back MaxBufferPixels.
-        _, err := Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 1000})
+	_, err := Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 1000})
 	assert.Equal(t, err, ErrTooBig)
 
 	// Succeed in loading a 213328 pixel JPEG image into 10000 pixel buffer.
-        _, err = Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 10000})
+	_, err = Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 10000})
 	assert.Nil(t, err)
 }
 

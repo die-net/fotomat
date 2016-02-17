@@ -38,6 +38,10 @@ func Thumbnail(blob []byte, options Options) ([]byte, error) {
 
 	defer imager.close()
 
+	if options.Crop {
+		return imager.crop(options)
+	}
+
 	return imager.thumbnail(options)
 }
 
