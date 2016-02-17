@@ -20,10 +20,10 @@ const (
 type Angle int
 
 const (
-	AngleD0   = C.VIPS_ANGLE_D0
-	AngleD90  = C.VIPS_ANGLE_D90
-	AngleD180 = C.VIPS_ANGLE_D180
-	AngleD270 = C.VIPS_ANGLE_D270
+	Angle0   = C.VIPS_ANGLE_0
+	Angle90  = C.VIPS_ANGLE_90
+	Angle180 = C.VIPS_ANGLE_180
+	Angle270 = C.VIPS_ANGLE_270
 )
 
 type Direction int

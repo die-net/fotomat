@@ -5,6 +5,7 @@ package vips
 #include <stdlib.h>
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
+#include "init.h"
 */
 import "C"
 
@@ -16,7 +17,7 @@ func init() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	if err := C.vips_init(C.CString("govips")); err != 0 {
+	if err := C.cgo_vips_init(); err != 0 {
 		C.vips_shutdown()
 		panic("vips_initialize error")
 	}

@@ -223,7 +223,7 @@ func (result *Result) Get() ([]byte, error) {
 		}
 	*/
 
-	return result.options.Format.Save(result.image, result.options)
+	return result.options.Format.Save(result.image, result.options.SaveOptions)
 
 	/*
 		hasAlpha := result.wand.GetImageAlphaChannel()

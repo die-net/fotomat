@@ -133,7 +133,7 @@ func TestImageFormat(t *testing.T) {
 		assert.Equal(t, height, 169)
 
 		// Verify that we rewrite it as JPEG of the same size.
-		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
+		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, SaveOptions: SaveOptions{LosslessMaxBitsPerPixel: 4}})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
 	}

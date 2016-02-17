@@ -10,6 +10,12 @@ import (
 	"unsafe"
 )
 
+func Jpegload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_jpegload(C.CString(filename), &out)
+	return imageError(out, e)
+}
+
 func JpegloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
@@ -34,9 +40,15 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 	return buf, vipsError(e)
 }
 
-func MagickloadBuffer(buf []byte) (*Image, error) {
+func Magickload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_magickload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	e := C.cgo_vips_magickload(C.CString(filename), &out)
+	return imageError(out, e)
+}
+
+func Pngload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_pngload(C.CString(filename), &out)
 	return imageError(out, e)
 }
 
@@ -56,6 +68,12 @@ func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) 
 	C.g_free(C.gpointer(ptr))
 
 	return buf, vipsError(e)
+}
+
+func Webpload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_webpload(C.CString(filename), &out)
+	return imageError(out, e)
 }
 
 func WebploadBuffer(buf []byte) (*Image, error) {

@@ -27,7 +27,6 @@ const (
 	InterpretationGrey16    = C.VIPS_INTERPRETATION_GREY16
 	InterpretationMatrix    = C.VIPS_INTERPRETATION_MATRIX
 	InterpretationScRGB     = C.VIPS_INTERPRETATION_scRGB
-	InterpretationHSV       = C.VIPS_INTERPRETATION_HSV
 )
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.

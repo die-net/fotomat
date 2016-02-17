@@ -64,7 +64,7 @@ func load(blob []byte) (*Imager, error) {
 	}
 
 	// Ask VIPS to parse metadata.
-	image, err := format.Load(blob)
+	image, err := format.LoadBytes(blob)
 	if err != nil {
 		return nil, ErrUnknownFormat
 	}

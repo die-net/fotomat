@@ -11,13 +11,6 @@ cgo_vips_affine(VipsImage *in, VipsImage **out, double a, double b, double c, do
 
 
 int
-cgo_vips_resize(VipsImage *in, VipsImage **out, double scale, VipsInterpolate *interpolate)
-{
-    return vips_resize(in, out, scale, "interpolate", interpolate, NULL);
-};
-
-
-int
 cgo_vips_shrink(VipsImage *in, VipsImage **out, double xshrink, double yshrink)
 {
     return vips_shrink(in, out, xshrink, yshrink, NULL);

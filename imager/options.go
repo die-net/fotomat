@@ -1,18 +1,14 @@
 package imager
 
 type Options struct {
-	Width                   int
-	Height                  int
-	Crop                    bool
-	Format                  Format
-	Quality                 int
-	Compression             int
-	Lossless                bool
-	MaxBufferPixels         int
-	LosslessMaxBitsPerPixel int
-	Sharpen                 bool
-	BlurSigma               float64
-	AutoContrast            bool
+	Width           int
+	Height          int
+	Crop            bool
+	MaxBufferPixels int
+	Sharpen         bool
+	BlurSigma       float64
+	AutoContrast    bool
+	SaveOptions
 }
 
 func (o *Options) Check(format Format, width, height int) error {
