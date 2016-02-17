@@ -30,7 +30,29 @@ type Imager struct {
 	Format      Format
 }
 
-func New(blob []byte) (*Imager, error) {
+func Thumbnail(blob []byte, options Options) ([]byte, error) {
+	imager, err := load(blob)
+	if err != nil {
+		return nil, err
+	}
+
+	defer imager.close()
+
+	return imager.thumbnail(options)
+}
+
+func Metadata(blob []byte) (int, int, Format, Orientation, error) {
+	imager, err := load(blob)
+	if err != nil {
+		return 0, 0, UnknownFormat, Unknown, err
+	}
+
+	defer imager.close()
+
+	return imager.Width, imager.Height, imager.Format, imager.Orientation, nil
+}
+
+func load(blob []byte) (*Imager, error) {
 	// Security: Limit formats we pass to VIPS to JPEG, PNG, GIF, WEBP.
 	format := DetectFormat(blob)
 	if format == UnknownFormat {
@@ -60,15 +82,15 @@ func New(blob []byte) (*Imager, error) {
 	imager := &Imager{
 		blob:        blob,
 		image:       image,
+		Format:      format,
 		Width:       width,
 		Height:      height,
 		Orientation: orientation,
-		Format:      format,
 	}
 	return imager, nil
 }
 
-func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
+func (imager *Imager) thumbnail(options Options) ([]byte, error) {
 	if err := options.Check(imager.Format, imager.Width, imager.Height); err != nil {
 		return nil, err
 	}
@@ -93,7 +115,7 @@ func (imager *Imager) Thumbnail(options Options) ([]byte, error) {
 	return result.Get()
 }
 
-func (imager *Imager) Crop(options Options) ([]byte, error) {
+func (imager *Imager) crop(options Options) ([]byte, error) {
 	if err := options.Check(imager.Format, imager.Width, imager.Height); err != nil {
 		return nil, err
 	}
@@ -134,6 +156,6 @@ func (imager *Imager) Crop(options Options) ([]byte, error) {
 	return result.Get()
 }
 
-func (imager *Imager) Close() {
+func (imager *Imager) close() {
 	*imager = Imager{}
 }

@@ -42,56 +42,49 @@ func TestImageValidation(t *testing.T) {
 }
 
 func tryNew(filename string) error {
-	img, err := New(image(filename))
-	if img != nil {
-		img.Close()
-	}
+	_, _, _, _, err := Metadata(image(filename))
 	return err
 }
 
 func TestImageThumbnail(t *testing.T) {
-	img, err := New(image("watermelon.jpg"))
-	defer img.Close()
+	img := image("watermelon.jpg")
+
+	width, height, _, _, err := Metadata(img)
 	assert.Nil(t, err)
-	if !assert.NotNil(t, img) {
-		return
-	}
-	assert.Equal(t, img.Width, 398)
-	assert.Equal(t, img.Height, 536)
+	assert.Equal(t, width, 398)
+	assert.Equal(t, height, 536)
 
 	// Verify scaling down to fit completely into box.
-	thumb, err := img.Thumbnail(Options{Width: 200, Height: 300})
+	thumb, err := Thumbnail(img, Options{Width: 200, Height: 300})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 200, 269))
 
 	// Verify scaling down to have one side fit into box.
-	thumb, err = img.Thumbnail(Options{Width: 200, Height: 300})
+	thumb, err = Thumbnail(img, Options{Width: 200, Height: 300})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 223, 300))
 
 	// Verify that we don't scale up.
-	thumb, err = img.Thumbnail(Options{Width: 2048, Height: 2048})
+	thumb, err = Thumbnail(img, Options{Width: 2048, Height: 2048})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 398, 536))
 }
 
 func TestImageCrop(t *testing.T) {
-	img, err := New(image("watermelon.jpg"))
-	defer img.Close()
+	img := image("watermelon.jpg")
+
+	width, height, _, _, err := Metadata(img)
 	assert.Nil(t, err)
-	if !assert.NotNil(t, img) {
-		return
-	}
-	assert.Equal(t, img.Width, 398)
-	assert.Equal(t, img.Height, 536)
+	assert.Equal(t, width, 398)
+	assert.Equal(t, height, 536)
 
 	// Verify cropping to fit.
-	thumb, err := img.Crop(Options{Width: 300, Height: 400, Crop: true})
+	thumb, err := Thumbnail(img, Options{Width: 300, Height: 400, Crop: true})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 300, 400))
 
 	// Verify cropping to fit, too big.
-	thumb, err = img.Crop(Options{Width: 2000, Height: 1500, Crop: true})
+	thumb, err = Thumbnail(img, Options{Width: 2000, Height: 1500, Crop: true})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 398, 299))
 }
@@ -99,15 +92,15 @@ func TestImageCrop(t *testing.T) {
 func TestImageRotation(t *testing.T) {
 	for i := 1; i <= 8; i++ {
 		// Verify that New() correctly translates dimensions.
-		img, err := New(image("orient" + strconv.Itoa(i) + ".jpg"))
-		defer img.Close()
-		assert.Nil(t, err)
-		if assert.NotNil(t, img) {
-			assert.Equal(t, img.Width, 48)
-			assert.Equal(t, img.Height, 80)
+		img := image("orient" + strconv.Itoa(i) + ".jpg")
+
+		width, height, _, _, err := Metadata(img)
+		if assert.Nil(t, err) {
+			assert.Equal(t, width, 48)
+			assert.Equal(t, height, 80)
 
 			// Verify that img.Thumbnail() maintains orientation.
-			thumb, err := img.Thumbnail(Options{Width: 40, Height: 40})
+			thumb, err := Thumbnail(img, Options{Width: 40, Height: 40})
 			assert.Nil(t, err)
 			assert.Nil(t, isSize(thumb, Jpeg, 24, 40))
 		}
@@ -117,44 +110,43 @@ func TestImageRotation(t *testing.T) {
 }
 
 func TestImageFormat(t *testing.T) {
-	img, err := New(image("2px.gif"))
-	assert.Nil(t, err)
-	if assert.NotNil(t, img) {
-		assert.Equal(t, img.Width, 2)
-		assert.Equal(t, img.Height, 3)
+	img := image("2px.gif")
+
+	width, height, _, _, err := Metadata(img)
+	if assert.Nil(t, err) {
+		assert.Equal(t, width, 2)
+		assert.Equal(t, height, 3)
 
 		// Verify that we rewrite it as a PNG of the same size.
-		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
+		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, Png, 2, 3))
-		img.Close()
 	}
 
-	img, err = New(image("flowers.png"))
-	assert.Nil(t, err)
-	if assert.NotNil(t, img) {
-		assert.Equal(t, img.Width, 256)
-		assert.Equal(t, img.Height, 169)
+	img = image("flowers.png")
+
+	width, height, _, _, err = Metadata(img)
+	if assert.Nil(t, err) {
+		assert.Equal(t, width, 256)
+		assert.Equal(t, height, 169)
 
 		// Verify that we rewrite it as JPEG of the same size.
-		thumb, err := img.Thumbnail(Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
+		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, LosslessMaxBitsPerPixel: 4})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
-		img.Close()
 	}
 }
 
 func isSize(image []byte, format Format, width, height int) error {
-	img, err := New(image)
+	w, h, f, _, err := Metadata(image)
 	if err != nil {
 		return err
 	}
-	defer img.Close()
-	if width != img.Width || height != img.Height {
-		return fmt.Errorf("Width %d!=%d or height %d!=%d", width, img.Width, height, img.Height)
+	if width != w || height != h {
+		return fmt.Errorf("Width %d!=%d or height %d!=%d", width, w, height, h)
 	}
-	if format != img.Format {
-		return fmt.Errorf("Format %s!=%s", format, img.Format)
+	if format != f {
+		return fmt.Errorf("Format %s!=%s", format, f)
 	}
 	return nil
 }

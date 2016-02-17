@@ -29,9 +29,9 @@ func (image *Image) Ysize() int {
 }
 
 func (in *Image) Write() (*Image, error) {
-        out := C.vips_image_new_memory();
-        e := C.vips_image_write(in.vi, out)
-        return imageError(out, e)
+	out := C.vips_image_new_memory()
+	e := C.vips_image_write(in.vi, out)
+	return imageError(out, e)
 }
 
 func (image *Image) Close() {

@@ -209,17 +209,11 @@ func processImage(url string, orig []byte, preview, crop bool, width, height int
 		defer timer.Stop()
 	}
 
-	img, err := imager.New(orig)
-	if err != nil {
-		return nil, err
-	}
-
-	defer img.Close()
-
 	options := imager.Options{
 		Width:           width,
 		Height:          height,
 		MaxBufferPixels: *maxBufferPixels,
+		Crop:            crop,
 	}
 
 	// Preview images are tiny, blurry JPEGs.
@@ -230,14 +224,7 @@ func processImage(url string, orig []byte, preview, crop bool, width, height int
 		options.Quality = 40
 	}
 
-	var thumb []byte
-	if crop {
-		options.Crop = true
-		thumb, err = img.Crop(options)
-	} else {
-		thumb, err = img.Thumbnail(options)
-	}
-	return thumb, err
+	return imager.Thumbnail(orig, options)
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
