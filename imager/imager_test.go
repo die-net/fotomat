@@ -59,8 +59,13 @@ func TestImageThumbnail(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 200, 269))
 
-	// Verify scaling down to have one side fit into box.
-	thumb, err = Thumbnail(img, Options{Width: 200, Height: 300})
+	// Verify scaling down to have width fit.
+	thumb, err = Thumbnail(img, Options{Width: 200})
+	assert.Nil(t, err)
+	assert.Nil(t, isSize(thumb, Jpeg, 200, 269))
+
+	// Verify scaling down to have height fit.
+	thumb, err = Thumbnail(img, Options{Height: 300})
 	assert.Nil(t, err)
 	assert.Nil(t, isSize(thumb, Jpeg, 223, 300))
 

@@ -20,7 +20,7 @@ func (o *Options) Check(format Format, width, height int) error {
 	if o.Format == UnknownFormat {
 		switch format {
 		case Gif:
-			o.Format = Jpeg
+			o.Format = Png
 		default:
 			o.Format = format
 		}

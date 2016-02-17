@@ -122,11 +122,9 @@ func (result *Result) applyColorProfile() bool {
 */
 
 func (result *Result) Resize(width, height int) error {
-	ow, oh := result.orientation.Dimensions(width, height)
-
-	factor := float64(ow) / float64(result.width)
-	fy := float64(oh) / float64(result.height)
-	if fy < factor {
+	factor := float64(width) / float64(result.width)
+	fy := float64(height) / float64(result.height)
+	if fy > factor {
 		factor = fy
 	}
 
