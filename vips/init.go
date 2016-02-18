@@ -14,6 +14,10 @@ import (
 )
 
 func init() {
+	Initialize()
+}
+
+func Initialize() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
@@ -25,4 +29,12 @@ func init() {
 	C.vips_concurrency_set(1)
 	C.vips_cache_set_max_mem(100 * 1024 * 1024)
 	C.vips_cache_set_max(500)
+}
+
+func ThreadShutdown() {
+	C.vips_thread_shutdown()
+}
+
+func Shutdown() {
+	C.vips_shutdown()
 }

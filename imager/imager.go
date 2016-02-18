@@ -7,6 +7,7 @@ package imager
 import (
 	"errors"
 	"github.com/die-net/fotomat/vips"
+	"runtime"
 )
 
 var (
@@ -31,6 +32,9 @@ type Imager struct {
 }
 
 func Thumbnail(blob []byte, options Options) ([]byte, error) {
+        runtime.LockOSThread()
+        defer runtime.UnlockOSThread()
+
 	imager, err := load(blob)
 	if err != nil {
 		return nil, err
@@ -46,6 +50,9 @@ func Thumbnail(blob []byte, options Options) ([]byte, error) {
 }
 
 func Metadata(blob []byte) (int, int, Format, Orientation, error) {
+        runtime.LockOSThread()
+        defer runtime.UnlockOSThread()
+
 	imager, err := load(blob)
 	if err != nil {
 		return 0, 0, UnknownFormat, Unknown, err
@@ -161,5 +168,12 @@ func (imager *Imager) crop(options Options) ([]byte, error) {
 }
 
 func (imager *Imager) close() {
+	if imager.image != nil {
+		imager.image.Close()
+
+		// Free some thread-local caches. Safe to call unnecessarily.
+		vips.ThreadShutdown()
+	}
+
 	*imager = Imager{}
 }
