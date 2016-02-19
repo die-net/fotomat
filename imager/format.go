@@ -145,7 +145,7 @@ func (format Format) LoadFile(filename string, shrink int) (*vips.Image, error) 
 }
 
 func (format Format) LoadBytes(blob []byte, shrink int) (*vips.Image, error) {
-	if format == Jpeg {
+	if format == Jpeg && shrink > 1 {
 		j, shrink := jpegShrink(shrink)
 		image, err := vips.JpegloadBufferShrink(blob, j)
 		return loadShrink(image, err, shrink)
