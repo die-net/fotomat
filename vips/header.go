@@ -15,7 +15,7 @@ func (in Image) ImageGetAsString(field string) (string, bool) {
 	e := C.cgo_vips_image_get_as_string(in.vi, C.CString(field), &out)
 
 	s := C.GoString(out)
-	C.g_free(C.gpointer(out))
+	// TODO: Leak? Crash if I follow docs and: C.g_free(C.gpointer(out))
 
 	return s, e == 0
 }
