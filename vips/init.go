@@ -10,6 +10,7 @@ package vips
 import "C"
 
 import (
+	"os"
 	"runtime"
 )
 
@@ -20,6 +21,8 @@ func init() {
 func Initialize() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
+
+	_ = os.Setenv("VIPS_WARNING", "disable")
 
 	if err := C.cgo_vips_init(); err != 0 {
 		C.vips_shutdown()

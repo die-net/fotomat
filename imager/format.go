@@ -51,7 +51,7 @@ var formatInfo = []struct {
 	save      func(*vips.Image, SaveOptions) ([]byte, error)
 }{
 	{mime: "application/octet-stream", loadFile: nil, loadBytes: nil, save: nil},
-	{mime: "image/gif", loadFile: vips.Magickload, loadBytes: nil, save: nil},
+	{mime: "image/gif", loadFile: vips.Magickload, loadBytes: vips.MagickloadBuffer, save: nil},
 	{mime: "image/jpeg", loadFile: vips.Jpegload, loadBytes: vips.JpegloadBuffer, save: jpegSave},
 	{mime: "image/png", loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer, save: pngSave},
 	{mime: "image/webp", loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer, save: webpSaveLossy},

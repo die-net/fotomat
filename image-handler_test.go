@@ -46,7 +46,7 @@ func TestSuccess(t *testing.T) {
 	assert.Nil(t, isSize("watermelon.jpg=c200x100", imager.Jpeg, 200, 100))
 
 	// Scale preview JPEG.
-	assert.Nil(t, isSize("watermelon.jpg=ps100x100", imager.Jpeg, 75, 100))
+	assert.Nil(t, isSize("watermelon.jpg=ps100x100", imager.Jpeg, 74, 100))
 
 	// Crop 3000x2000 PNG to a small preview JPEG.
 	assert.Nil(t, isSize("3000px.png=pc16x16", imager.Jpeg, 16, 16))

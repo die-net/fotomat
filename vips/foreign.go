@@ -52,6 +52,12 @@ func Magickload(filename string) (*Image, error) {
 	return imageError(out, e)
 }
 
+func MagickloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_magickload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	return imageError(out, e)
+}
+
 func Pngload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_pngload(C.CString(filename), &out)

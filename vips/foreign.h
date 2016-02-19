@@ -38,14 +38,11 @@ cgo_vips_magickload(const char *filename, VipsImage **out)
     return vips_magickload(filename, out, NULL);
 }
 
-/*
-TODO: Not available in VIPS7.
 int
 cgo_vips_magickload_buffer(void *buf, size_t len, VipsImage **out)
 {
     return vips_magickload_buffer(buf, len, out, NULL);
 }
-*/
 
 int
 cgo_vips_pngload(const char *filename, VipsImage **out)
