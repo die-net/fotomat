@@ -7,6 +7,7 @@ package imager
 import (
 	"errors"
 	"github.com/die-net/fotomat/vips"
+	"math"
 	"runtime"
 )
 
@@ -51,13 +52,12 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	// be cropped to requested size.
 	iw, ih := scaleAspect(m.Width, m.Height, w, h, !o.Crop)
 
-	shrink := m.Width / o.Width
-	ys := m.Height / o.Height
-	if ys < shrink {
-		shrink = ys
-	}
+	shrink := math.Sqrt(float64(m.Width*m.Height) / float64(iw*ih))
 
-	image, err := m.Format.LoadBytes(blob, shrink)
+	// Are we shrinking by more than 2.5%?
+	shrank := shrink > 1.025
+
+	image, err := m.Format.LoadBytes(blob, int(shrink))
 	if err != nil {
 		return nil, err
 	}
@@ -66,15 +66,10 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 	m = MetadataImage(image)
 	if iw < m.Width || ih < m.Height {
-		factor := float64(iw) / float64(m.Width)
-		fy := float64(ih) / float64(m.Height)
-		if fy > factor {
-			factor = fy
-		}
-
 		interpolate := vips.NewInterpolate("bicubic")
 		defer interpolate.Close()
 
+		factor := math.Sqrt(float64(iw*ih) / float64(m.Width*m.Height))
 		out, err := image.Affine(float64(factor), 0, 0, float64(factor), interpolate)
 		if err != nil {
 			return nil, err
@@ -126,7 +121,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		m = MetadataImage(image)
 	}
 
-	if o.Sharpen {
+	if o.Sharpen && shrank {
 		out, err := image.MildSharpen()
 		if err != nil {
 			return nil, err
