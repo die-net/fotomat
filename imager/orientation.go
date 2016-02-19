@@ -75,7 +75,7 @@ func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int,
 	if oi.flipY {
 		y = int(ih) - int(oh) - y
 	}
-	return ow, oh, x, y
+	return x, y, ow, oh
 }
 
 func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {

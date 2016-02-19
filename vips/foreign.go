@@ -16,6 +16,12 @@ func Jpegload(filename string) (*Image, error) {
 	return imageError(out, e)
 }
 
+func JpegloadShrink(filename string, shrink int) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_jpegload_shrink(C.CString(filename), &out, C.int(shrink))
+	return imageError(out, e)
+}
+
 func JpegloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)

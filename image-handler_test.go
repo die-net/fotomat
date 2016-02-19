@@ -101,15 +101,15 @@ func isSize(filename string, format imager.Format, width, height int) error {
 		return fmt.Errorf("HTTP error %d", code)
 	}
 
-	w, h, f, _, err := imager.Metadata(image)
+	m, err := imager.MetadataBytes(image)
 	if err != nil {
 		return err
 	}
-	if width != w || height != h {
-		return fmt.Errorf("Width %d!=%d or Height %d!=%d", width, w, height, h)
+	if m.Width != width || m.Height != height {
+		return fmt.Errorf("Width %d!=%d or Height %d!=%d", m.Width, width, m.Height, height)
 	}
-	if format != f {
-		return fmt.Errorf("Format %s!=%s", format, f)
+	if m.Format != format {
+		return fmt.Errorf("Format %s!=%s", m.Format, format)
 	}
 	return nil
 }

@@ -26,6 +26,13 @@ type SaveOptions struct {
 	LosslessMaxBitsPerPixel int
 }
 
+type Metadata struct {
+	Width       int
+	Height      int
+	Format      Format
+	Orientation Orientation
+}
+
 type Format int
 
 const (
@@ -75,20 +82,92 @@ func (format Format) CanLoadBytes() bool {
 	return formatInfo[format].loadBytes != nil
 }
 
-func (format Format) LoadFile(filename string) (*vips.Image, error) {
+func (format Format) MetadataFile(filename string) (Metadata, error) {
+	image, err := format.LoadFile(filename, 1)
+	if err != nil {
+		return Metadata{}, err
+	}
+
+	defer image.Close()
+
+	return metadataFormat(image, format), nil
+}
+
+func MetadataBytes(blob []byte) (Metadata, error) {
+	format := DetectFormat(blob)
+	if format == UnknownFormat {
+		return Metadata{}, ErrUnknownFormat
+	}
+
+	return format.MetadataBytes(blob)
+}
+
+func (format Format) MetadataBytes(blob []byte) (Metadata, error) {
+	image, err := format.LoadBytes(blob, 1)
+	if err != nil {
+		return Metadata{}, ErrUnknownFormat
+	}
+
+	defer image.Close()
+
+	return metadataFormat(image, format), nil
+}
+
+func metadataFormat(image *vips.Image, format Format) Metadata {
+	m := MetadataImage(image)
+	m.Format = format
+	return m
+}
+
+func MetadataImage(image *vips.Image) Metadata {
+	o := DetectOrientation(image)
+	w, h := o.Dimensions(image.Xsize(), image.Ysize())
+	if w <= 0 || h <= 0 {
+		panic("Invalid image dimensions.")
+	}
+	return Metadata{Width: w, Height: h, Orientation: o}
+}
+
+func (format Format) LoadFile(filename string, shrink int) (*vips.Image, error) {
+	if format == Jpeg {
+		j, shrink := jpegShrink(shrink)
+		image, err := vips.JpegloadShrink(filename, j)
+		return loadShrink(image, err, shrink)
+	}
+
 	loadFile := formatInfo[format].loadFile
 	if loadFile == nil {
 		return nil, ErrInvalidOperation
 	}
-	return loadFile(filename)
+
+	image, err := loadFile(filename)
+	return loadShrink(image, err, shrink)
 }
 
-func (format Format) LoadBytes(blob []byte) (*vips.Image, error) {
+func (format Format) LoadBytes(blob []byte, shrink int) (*vips.Image, error) {
+	if format == Jpeg {
+		j, shrink := jpegShrink(shrink)
+		image, err := vips.JpegloadBufferShrink(blob, j)
+		return loadShrink(image, err, shrink)
+	}
+
 	loadBytes := formatInfo[format].loadBytes
 	if loadBytes == nil {
 		return nil, ErrInvalidOperation
 	}
-	return loadBytes(blob)
+
+	image, err := loadBytes(blob)
+	return loadShrink(image, err, shrink)
+}
+
+func loadShrink(image *vips.Image, err error, shrink int) (*vips.Image, error) {
+	if err != nil || shrink <= 1 {
+		return image, err
+	}
+
+	out, err := image.Shrink(float64(shrink), float64(shrink))
+	image.Close()
+	return out, err
 }
 
 func (format Format) CanSave() bool {
@@ -116,6 +195,19 @@ func (format Format) Save(image *vips.Image, options SaveOptions) ([]byte, error
 	}
 
 	return save(image, options)
+}
+
+func jpegShrink(shrink int) (int, int) {
+	j := 1
+	switch {
+	case shrink >= 8:
+		j = 8
+	case shrink >= 4:
+		j = 4
+	case shrink >= 2:
+		j = 2
+	}
+	return j, shrink / j
 }
 
 func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
