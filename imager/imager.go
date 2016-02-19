@@ -114,5 +114,29 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		m = MetadataImage(image)
 	}
 
+	if o.BlurSigma > 0.0 {
+		out, err := image.Gaussblur(o.BlurSigma)
+		if err != nil {
+			return nil, err
+		}
+
+		defer out.Close()
+
+		image = out
+		m = MetadataImage(image)
+	}
+
+	if o.Sharpen {
+		out, err := image.Sharpen(3, 1.0, 2.0)
+		if err != nil {
+			return nil, err
+		}
+
+		defer out.Close()
+
+		image = out
+		m = MetadataImage(image)
+	}
+
 	return o.Format.Save(image, o.SaveOptions)
 }
