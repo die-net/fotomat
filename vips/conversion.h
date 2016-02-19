@@ -10,6 +10,12 @@
 #endif
 
 int
+cgo_vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format)
+{
+    return vips_cast(in, out, format, NULL);
+}
+
+int
 cgo_vips_copy(VipsImage *in, VipsImage **out)
 {
     return vips_copy(in, out, NULL);

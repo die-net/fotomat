@@ -21,3 +21,16 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
 
 	return rw, rh
 }
+
+func jpegShrink(shrink int) int {
+	switch {
+	case shrink >= 8:
+		return 8
+	case shrink >= 4:
+		return 4
+	case shrink >= 2:
+		return 2
+	default:
+		return 1
+	}
+}

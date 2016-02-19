@@ -189,8 +189,8 @@ func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: If PNG has transparency, return it.
-	if false {
+	// If PNG has transparency, return it.
+	if image.HasAlpha() {
 		return blob, nil
 	}
 

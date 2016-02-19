@@ -67,7 +67,28 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	defer image.Close()
+	if out, err := image.IccImport(); err == nil {
+		image.Close()
+		image = out
+	}
+
+	if image.ImageGuessInterpretation() != vips.InterpretationSRGB {
+		out, err := image.Colourspace(vips.InterpretationSRGB)
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
+
+	if image.ImageGetFormat() != vips.FormatUchar {
+		out, err := image.Cast(vips.FormatUchar)
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
 
 	m = MetadataImage(image)
 	if iw < m.Width || ih < m.Height {
@@ -77,8 +98,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 			return nil, err
 		}
 
-		defer out.Close()
-
+		image.Close()
 		image = out
 		m = MetadataImage(image)
 	}
@@ -95,8 +115,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 			return nil, err
 		}
 
-		defer out.Close()
-
+		image.Close()
 		image = out
 		m = MetadataImage(image)
 	}
@@ -106,7 +125,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 	if out != nil {
-		defer out.Close()
+		image.Close()
 		image = out
 		m = MetadataImage(image)
 	}
@@ -117,8 +136,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 			return nil, err
 		}
 
-		defer out.Close()
-
+		image.Close()
 		image = out
 		m = MetadataImage(image)
 	}
@@ -129,24 +147,12 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 			return nil, err
 		}
 
-		defer out.Close()
-
+		image.Close()
 		image = out
 		m = MetadataImage(image)
 	}
 
-	return o.Format.Save(image, o.SaveOptions)
-}
-
-func jpegShrink(shrink int) int {
-	switch {
-	case shrink >= 8:
-		return 8
-	case shrink >= 4:
-		return 4
-	case shrink >= 2:
-		return 2
-	default:
-		return 1
-	}
+	thumb, err := o.Format.Save(image, o.SaveOptions)
+	image.Close()
+	return thumb, err
 }

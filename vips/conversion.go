@@ -33,6 +33,12 @@ const (
 	DirectionVertical   = C.VIPS_DIRECTION_VERTICAL
 )
 
+func (in Image) Cast(format int) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_cast(in.vi, &out, C.VipsBandFormat(format))
+	return imageError(out, e)
+}
+
 func (in Image) Copy() (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_copy(in.vi, &out)
