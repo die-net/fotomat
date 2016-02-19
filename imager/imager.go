@@ -127,7 +127,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 
 	if o.Sharpen {
-		out, err := image.Sharpen(3, 1.0, 2.0)
+		out, err := image.MildSharpen()
 		if err != nil {
 			return nil, err
 		}

@@ -17,13 +17,14 @@ import (
 )
 
 var (
-	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
-	maxBufferPixels       = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
-	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
-	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
-	pool                  chan bool
-	transport             = http.Transport{Proxy: http.ProxyFromEnvironment}
-	client                = http.Client{Transport: http.RoundTripper(&transport)}
+	maxOutputDimension      = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
+	maxBufferPixels         = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
+	losslessMaxBitsPerPixel = flag.Int("lossless_max_bits_per_pixel", 4, "If saving in lossless format exceeds this size, switch to lossy (0=disable).")
+	maxProcessingDuration   = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+	localImageDirectory     = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
+	pool                    chan bool
+	transport               = http.Transport{Proxy: http.ProxyFromEnvironment}
+	client                  = http.Client{Transport: http.RoundTripper(&transport)}
 )
 
 func init() {
@@ -214,6 +215,10 @@ func processImage(url string, orig []byte, preview, crop bool, width, height int
 		Height:          height,
 		MaxBufferPixels: *maxBufferPixels,
 		Crop:            crop,
+		Sharpen:         true,
+		SaveOptions: imager.SaveOptions{
+			LosslessMaxBitsPerPixel: *losslessMaxBitsPerPixel,
+		},
 	}
 
 	// Preview images are tiny, blurry JPEGs.
