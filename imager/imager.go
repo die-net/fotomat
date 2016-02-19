@@ -57,7 +57,12 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	// Are we shrinking by more than 2.5%?
 	shrank := shrink > 1.025
 
-	image, err := m.Format.LoadBytes(blob, int(shrink))
+	var image *vips.Image
+	if m.Format == Jpeg {
+		image, err = vips.JpegloadBufferShrink(blob, jpegShrink(int(shrink)))
+	} else {
+		image, err = m.Format.LoadBytes(blob)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -66,11 +71,8 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 	m = MetadataImage(image)
 	if iw < m.Width || ih < m.Height {
-		interpolate := vips.NewInterpolate("bicubic")
-		defer interpolate.Close()
-
 		factor := math.Sqrt(float64(iw*ih) / float64(m.Width*m.Height))
-		out, err := image.Affine(float64(factor), 0, 0, float64(factor), interpolate)
+		out, err := image.Resize(float64(factor))
 		if err != nil {
 			return nil, err
 		}
@@ -134,4 +136,17 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 
 	return o.Format.Save(image, o.SaveOptions)
+}
+
+func jpegShrink(shrink int) int {
+	switch {
+	case shrink >= 8:
+		return 8
+	case shrink >= 4:
+		return 4
+	case shrink >= 2:
+		return 2
+	default:
+		return 1
+	}
 }

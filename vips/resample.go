@@ -29,6 +29,12 @@ func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) (*Image, e
 	return imageError(out, e)
 }
 
+func (in *Image) Resize(scale float64) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_resize(in.vi, &out, C.double(scale))
+	return imageError(out, e)
+}
+
 func (in *Image) Shrink(xshrink, yshrink float64) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_shrink(in.vi, &out, C.double(xshrink), C.double(yshrink))
