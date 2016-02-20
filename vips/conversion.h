@@ -39,8 +39,28 @@ cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction)
     return vips_flip(in, out, direction, NULL);
 }
 
+static double
+cgo_max_alpha(VipsImage *in)
+{
+    if (in->BandFmt == VIPS_FORMAT_USHORT)
+        return 65535;
+    return 255;
+}
+
+int
+cgo_vips_premultiply(VipsImage *in, VipsImage **out)
+{
+    return vips_premultiply(in, out, "max_alpha", cgo_max_alpha(in), NULL);
+}
+
 int
 cgo_vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle)
 {
     return vips_rot(in, out, angle, NULL);
+}
+
+int
+cgo_vips_unpremultiply(VipsImage *in, VipsImage **out)
+{
+    return vips_unpremultiply(in, out, "max_alpha", cgo_max_alpha(in), NULL);
 }

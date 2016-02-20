@@ -63,8 +63,20 @@ func (in Image) Flip(direction Direction) (*Image, error) {
 	return imageError(out, e)
 }
 
+func (in Image) Premultiply() (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_premultiply(in.vi, &out)
+	return imageError(out, e)
+}
+
 func (in Image) Rot(angle Angle) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_rot(in.vi, &out, C.VipsAngle(angle))
+	return imageError(out, e)
+}
+
+func (in Image) Unpremultiply() (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_unpremultiply(in.vi, &out)
 	return imageError(out, e)
 }

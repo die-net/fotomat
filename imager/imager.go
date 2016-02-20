@@ -57,37 +57,14 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	// Are we shrinking by more than 2.5%?
 	shrank := shrink > 1.025
 
-	var image *vips.Image
-	if m.Format == Jpeg {
-		image, err = vips.JpegloadBufferShrink(blob, jpegShrink(int(shrink)))
-	} else {
-		image, err = m.Format.LoadBytes(blob)
-	}
+	image, err := load(blob, m.Format, int(shrink))
 	if err != nil {
 		return nil, err
 	}
 
-	if out, err := image.IccImport(); err == nil {
-		image.Close()
-		image = out
-	}
-
-	if image.ImageGuessInterpretation() != vips.InterpretationSRGB {
-		out, err := image.Colourspace(vips.InterpretationSRGB)
-		if err != nil {
-			return nil, err
-		}
-		image.Close()
-		image = out
-	}
-
-	if image.ImageGetFormat() != vips.FormatUchar {
-		out, err := image.Cast(vips.FormatUchar)
-		if err != nil {
-			return nil, err
-		}
-		image.Close()
-		image = out
+	image, err = preProcess(image)
+	if err != nil {
+		return nil, err
 	}
 
 	m = MetadataImage(image)
@@ -120,28 +97,63 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		m = MetadataImage(image)
 	}
 
-	out, err := m.Orientation.Apply(image)
+	image, err = postProcess(image, m.Orientation, shrank, o)
 	if err != nil {
 		return nil, err
 	}
-	if out != nil {
-		image.Close()
-		image = out
-		m = MetadataImage(image)
+
+	thumb, err := o.Format.Save(image, o.SaveOptions)
+	image.Close()
+	return thumb, err
+}
+
+func load(blob []byte, format Format, shrink int) (*vips.Image, error) {
+	if format == Jpeg {
+		return vips.JpegloadBufferShrink(blob, jpegShrink(shrink))
 	}
 
-	if o.BlurSigma > 0.0 {
-		out, err := image.Gaussblur(o.BlurSigma)
+	return format.LoadBytes(blob)
+}
+
+func preProcess(image *vips.Image) (*vips.Image, error) {
+	if out, err := image.IccImport(); err == nil {
+		image.Close()
+		image = out
+	}
+
+	if image.ImageGuessInterpretation() != vips.InterpretationSRGB {
+		out, err := image.Colourspace(vips.InterpretationSRGB)
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
+
+	if image.HasAlpha() {
+		out, err := image.Premultiply()
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
+
+	return image, nil
+}
+
+func postProcess(image *vips.Image, orientation Orientation, shrank bool, options Options) (*vips.Image, error) {
+	if options.BlurSigma > 0.0 {
+		out, err := image.Gaussblur(options.BlurSigma)
 		if err != nil {
 			return nil, err
 		}
 
 		image.Close()
 		image = out
-		m = MetadataImage(image)
 	}
 
-	if o.Sharpen && shrank {
+	if options.Sharpen && shrank {
 		out, err := image.MildSharpen()
 		if err != nil {
 			return nil, err
@@ -149,10 +161,34 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 		image.Close()
 		image = out
-		m = MetadataImage(image)
 	}
 
-	thumb, err := o.Format.Save(image, o.SaveOptions)
-	image.Close()
-	return thumb, err
+	if image.HasAlpha() {
+		out, err := image.Unpremultiply()
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
+
+        if image.ImageGetFormat() != vips.FormatUchar {
+		out, err := image.Cast(vips.FormatUchar)
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+	}
+
+	out, err := orientation.Apply(image)
+	if err != nil {
+		return nil, err
+	}
+	if out != nil {
+		image.Close()
+		image = out
+	}
+
+	return image, nil
 }
