@@ -33,7 +33,7 @@ const (
 	DirectionVertical   = C.VIPS_DIRECTION_VERTICAL
 )
 
-func (in Image) Cast(format int) (*Image, error) {
+func (in Image) Cast(format BandFormat) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_cast(in.vi, &out, C.VipsBandFormat(format))
 	return imageError(out, e)

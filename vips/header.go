@@ -6,23 +6,29 @@ package vips
 */
 import "C"
 
+// Potential values for ImageGetAsString.
 const (
-	ExifOrientation = "exif-ifd0-Orientation" // Not exposed as a symbol
+	ExifOrientation = "exif-ifd0-Orientation"
 	MetaIccName     = "icc-profile-data"
 )
 
+// BandFormat is the format used for each band element.  Each corresponds to
+// a native C type for the current machine.
+type BandFormat int
+
+// Potential values that GetBandFormat will return.
 const (
-	FormatNotSet    = C.VIPS_FORMAT_NOTSET
-	FormatUchar     = C.VIPS_FORMAT_UCHAR
-	FormatChar      = C.VIPS_FORMAT_CHAR
-	FormatUshort    = C.VIPS_FORMAT_USHORT
-	FormatShort     = C.VIPS_FORMAT_SHORT
-	FormatUint      = C.VIPS_FORMAT_UINT
-	FormatInt       = C.VIPS_FORMAT_INT
-	FormatFloaT     = C.VIPS_FORMAT_FLOAT
-	FormatComplex   = C.VIPS_FORMAT_COMPLEX
-	FormatDouble    = C.VIPS_FORMAT_DOUBLE
-	FormatDpComplex = C.VIPS_FORMAT_DPCOMPLEX
+	BandFormatNotSet    BandFormat = C.VIPS_FORMAT_NOTSET
+	BandFormatUchar     BandFormat = C.VIPS_FORMAT_UCHAR
+	BandFormatChar      BandFormat = C.VIPS_FORMAT_CHAR
+	BandFormatUshort    BandFormat = C.VIPS_FORMAT_USHORT
+	BandFormatShort     BandFormat = C.VIPS_FORMAT_SHORT
+	BandFormatUint      BandFormat = C.VIPS_FORMAT_UINT
+	BandFormatInt       BandFormat = C.VIPS_FORMAT_INT
+	BandFormatFloaT     BandFormat = C.VIPS_FORMAT_FLOAT
+	BandFormatComplex   BandFormat = C.VIPS_FORMAT_COMPLEX
+	BandFormatDouble    BandFormat = C.VIPS_FORMAT_DOUBLE
+	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
 )
 
 func (in Image) ImageGetAsString(field string) (string, bool) {
@@ -39,12 +45,12 @@ func (in Image) ImageGetBands() int {
 	return int(C.vips_image_get_bands(in.vi))
 }
 
-func (in Image) ImageGetFormat() int {
-	return int(C.vips_image_get_format(in.vi))
+func (in Image) ImageGetBandFormat() BandFormat {
+	return BandFormat(C.vips_image_get_format(in.vi))
 }
 
-func (in Image) ImageGuessInterpretation() int {
-	return int(C.vips_image_guess_interpretation(in.vi))
+func (in Image) ImageGuessInterpretation() Interpretation {
+	return Interpretation(C.vips_image_guess_interpretation(in.vi))
 }
 
 func (in Image) HasAlpha() bool {

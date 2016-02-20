@@ -23,6 +23,10 @@ const (
 	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
 )
 
+func init() {
+	vips.Initialize()
+}
+
 func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
@@ -186,8 +190,8 @@ func postProcess(image *vips.Image, orientation Orientation, shrank bool, option
 		image = out
 	}
 
-	if image.ImageGetFormat() != vips.FormatUchar {
-		out, err := image.Cast(vips.FormatUchar)
+	if image.ImageGetBandFormat() != vips.BandFormatUchar {
+		out, err := image.Cast(vips.BandFormatUchar)
 		if err != nil {
 			return nil, err
 		}

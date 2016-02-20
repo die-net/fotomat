@@ -6,27 +6,31 @@ package vips
 */
 import "C"
 
+// Interpretation suggests how the values in an image should be interpreted.
+// For example, a three-band float image of type InterpretationLAB
+// should have its pixels interpreted as coordinates in CIE Lab space.
 type Interpretation int
 
+// Various Interpretation values understood by VIPS.
 const (
-	InterpretationMultiband = C.VIPS_INTERPRETATION_MULTIBAND
-	InterpretationBW        = C.VIPS_INTERPRETATION_B_W
-	InterpretationHistogram = C.VIPS_INTERPRETATION_HISTOGRAM
-	InterpretationXYZ       = C.VIPS_INTERPRETATION_XYZ
-	InterpretationLAB       = C.VIPS_INTERPRETATION_LAB
-	InterpretationCMYK      = C.VIPS_INTERPRETATION_CMYK
-	InterpretationLABQ      = C.VIPS_INTERPRETATION_LABQ
-	InterpretationRGB       = C.VIPS_INTERPRETATION_RGB
-	InterpretationCMC       = C.VIPS_INTERPRETATION_CMC
-	InterpretationLCH       = C.VIPS_INTERPRETATION_LCH
-	InterpretationLABS      = C.VIPS_INTERPRETATION_LABS
-	InterpretationSRGB      = C.VIPS_INTERPRETATION_sRGB
-	InterpretationYXY       = C.VIPS_INTERPRETATION_YXY
-	InterpretationFourier   = C.VIPS_INTERPRETATION_FOURIER
-	InterpretationRGB16     = C.VIPS_INTERPRETATION_RGB16
-	InterpretationGrey16    = C.VIPS_INTERPRETATION_GREY16
-	InterpretationMatrix    = C.VIPS_INTERPRETATION_MATRIX
-	InterpretationScRGB     = C.VIPS_INTERPRETATION_scRGB
+	InterpretationMultiband Interpretation = C.VIPS_INTERPRETATION_MULTIBAND
+	InterpretationBW        Interpretation = C.VIPS_INTERPRETATION_B_W
+	InterpretationHistogram Interpretation = C.VIPS_INTERPRETATION_HISTOGRAM
+	InterpretationXYZ       Interpretation = C.VIPS_INTERPRETATION_XYZ
+	InterpretationLAB       Interpretation = C.VIPS_INTERPRETATION_LAB
+	InterpretationCMYK      Interpretation = C.VIPS_INTERPRETATION_CMYK
+	InterpretationLABQ      Interpretation = C.VIPS_INTERPRETATION_LABQ
+	InterpretationRGB       Interpretation = C.VIPS_INTERPRETATION_RGB
+	InterpretationCMC       Interpretation = C.VIPS_INTERPRETATION_CMC
+	InterpretationLCH       Interpretation = C.VIPS_INTERPRETATION_LCH
+	InterpretationLABS      Interpretation = C.VIPS_INTERPRETATION_LABS
+	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
+	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
+	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
+	InterpretationRGB16     Interpretation = C.VIPS_INTERPRETATION_RGB16
+	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
+	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
+	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
 )
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.
@@ -36,6 +40,8 @@ func (in Image) Colourspace(space Interpretation) (*Image, error) {
 	return imageError(out, e)
 }
 
+// IccImport moves an image from device space to D65 LAB using the image's
+// embedded ICC profile.
 func (in Image) IccImport() (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_icc_import(in.vi, &out)

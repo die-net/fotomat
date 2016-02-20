@@ -14,10 +14,8 @@ import (
 	"runtime"
 )
 
-func init() {
-	Initialize()
-}
-
+// Initialize starts up the world of VIPS. You should call this on program
+// startup before using any other VIPS operations.
 func Initialize() {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
@@ -31,13 +29,20 @@ func Initialize() {
 
 	C.vips_concurrency_set(1)
 	C.vips_cache_set_max_mem(100 * 1024 * 1024)
-	C.vips_cache_set_max(500)
+	C.vips_cache_set_max(1000)
 }
 
+// ThreadShutdown frees any thread-private data and flushes any profiling
+// information.  This function needs to be called when a thread that has
+// been using vips exits or there will be memory leaks.  It may be called
+// many times, and you can continue using vips after calling it.  Calling it
+// too often will reduce performance.
 func ThreadShutdown() {
 	C.vips_thread_shutdown()
 }
 
+// Shutdown drops caches and closes plugins, and runs a leak check if
+// requested.  May be called many times.
 func Shutdown() {
 	C.vips_shutdown()
 }
