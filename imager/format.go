@@ -203,7 +203,16 @@ func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 }
 
 func webpSaveLossless(image *vips.Image, options SaveOptions) ([]byte, error) {
-	return image.WebpsaveBuffer(options.Quality, true)
+	blob, err := image.WebpsaveBuffer(options.Quality, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if options.LosslessMaxBitsPerPixel > 0 && (len(blob)-256)*8 > image.Xsize()*image.Ysize()*options.LosslessMaxBitsPerPixel {
+		return webpSaveLossy(image, options)
+	}
+
+	return blob, nil
 }
 
 func webpSaveLossy(image *vips.Image, options SaveOptions) ([]byte, error) {

@@ -149,6 +149,12 @@ func preProcess(image *vips.Image) (*vips.Image, error) {
 	}
 
 	if image.HasAlpha() {
+		// TODO: Check if image has alpha channel set to 100% opaque
+		// and Flatten() it instead.
+
+		// Interpolation of RGB values with an alpha channel isn't
+		// safe unless the values are pre-multiplied.  Undo this
+		// later.
 		out, err := image.Premultiply()
 		if err != nil {
 			return nil, err
@@ -182,6 +188,8 @@ func postProcess(image *vips.Image, orientation Orientation, shrank bool, option
 	}
 
 	if image.HasAlpha() {
+		// Assume we pre-multiplied above and undo it after all
+		// operations that touch adjacent pixels.
 		out, err := image.Unpremultiply()
 		if err != nil {
 			return nil, err
@@ -190,6 +198,9 @@ func postProcess(image *vips.Image, orientation Orientation, shrank bool, option
 		image = out
 	}
 
+	// Make sure we generate images with 8 bits per channel. Do this
+	// before the rotate to reduce the amount of data that needs to be
+	// copied.
 	if image.ImageGetBandFormat() != vips.BandFormatUchar {
 		out, err := image.Cast(vips.BandFormatUchar)
 		if err != nil {
@@ -199,6 +210,8 @@ func postProcess(image *vips.Image, orientation Orientation, shrank bool, option
 		image = out
 	}
 
+	// Before rotating this will also apply all operations above into a
+	// copy of the image.
 	out, err := orientation.Apply(image)
 	if err != nil {
 		return nil, err
