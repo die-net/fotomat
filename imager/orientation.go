@@ -27,13 +27,13 @@ var orientationInfo = []struct {
 }{
 	{swapXY: false, flipX: false, flipY: false, apply: nil}, // Unknown
 	{swapXY: false, flipX: false, flipY: false, apply: nil},
-	{swapXY: false, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionHorizontal) }},
-	{swapXY: false, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle180) }},
-	{swapXY: false, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionVertical) }},
+	{swapXY: false, flipX: true, flipY: false, apply: flop},
+	{swapXY: false, flipX: true, flipY: true, apply: rot180},
+	{swapXY: false, flipX: false, flipY: true, apply: flip},
 	{swapXY: true, flipX: false, flipY: false, apply: transpose},
-	{swapXY: true, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle90) }},
+	{swapXY: true, flipX: false, flipY: true, apply: rot90},
 	{swapXY: true, flipX: true, flipY: true, apply: transverse},
-	{swapXY: true, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle270) }},
+	{swapXY: true, flipX: true, flipY: false, apply: rot270},
 }
 
 func DetectOrientation(image *vips.Image) Orientation {
@@ -97,6 +97,26 @@ func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {
 	_ = rot.ImageRemove(vips.ExifOrientation)
 
 	return rot, nil
+}
+
+func flip(image *vips.Image) (*vips.Image, error) {
+	return image.Flip(vips.DirectionVertical)
+}
+
+func flop(image *vips.Image) (*vips.Image, error) {
+	return image.Flip(vips.DirectionHorizontal)
+}
+
+func rot90(image *vips.Image) (*vips.Image, error) {
+	return image.Rot(vips.Angle90)
+}
+
+func rot180(image *vips.Image) (*vips.Image, error) {
+	return image.Rot(vips.Angle180)
+}
+
+func rot270(image *vips.Image) (*vips.Image, error) {
+	return image.Rot(vips.Angle270)
 }
 
 func transpose(image *vips.Image) (*vips.Image, error) {
