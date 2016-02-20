@@ -39,7 +39,8 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := o.Check(m); err != nil {
+	o, err = o.Check(m)
+	if err != nil {
 		return nil, err
 	}
 
@@ -112,7 +113,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	thumb, err := o.Format.Save(image, o.SaveOptions)
+	thumb, err := o.Format.Save(image, o)
 	image.Close()
 	return thumb, err
 }

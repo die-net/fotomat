@@ -1,28 +1,36 @@
 package imager
 
+const (
+	DefaultQuality     = 85
+	DefaultCompression = 6
+)
+
 type Options struct {
-	Width           int
-	Height          int
-	Crop            bool
-	MaxBufferPixels int
-	Sharpen         bool
-	BlurSigma       float64
-	AutoContrast    bool
-	SaveOptions
+	Width                   int
+	Height                  int
+	Crop                    bool
+	MaxBufferPixels         int
+	Sharpen                 bool
+	BlurSigma               float64
+	AutoContrast            bool
+	Format                  Format
+	Quality                 int
+	Compression             int
+	LosslessMaxBitsPerPixel int
 }
 
-func (o *Options) Check(m Metadata) error {
+func (o Options) Check(m Metadata) (Options, error) {
 	// Security: Limit formats we pass to VIPS to JPEG, PNG, GIF, WEBP.
 	if m.Format == UnknownFormat {
-		return ErrUnknownFormat
+		return Options{}, ErrUnknownFormat
 	}
 
 	// Security: Confirm that image sizes are sane.
 	if m.Width < minDimension || m.Height < minDimension {
-		return ErrTooSmall
+		return Options{}, ErrTooSmall
 	}
 	if m.Width > maxDimension || m.Height > maxDimension {
-		return ErrTooBig
+		return Options{}, ErrTooBig
 	}
 
 	// If output format is not set, pick one.
@@ -36,7 +44,7 @@ func (o *Options) Check(m Metadata) error {
 	}
 	// Is this now a format that can save? If not, error.
 	if !o.Format.CanSave() {
-		return ErrUnknownFormat
+		return Options{}, ErrUnknownFormat
 	}
 
 	// If output width or height are not set, use original.
@@ -48,10 +56,10 @@ func (o *Options) Check(m Metadata) error {
 	}
 	// Security: Verify requested width and height.
 	if o.Width < 1 || o.Height < 1 {
-		return ErrTooSmall
+		return Options{}, ErrTooSmall
 	}
 	if o.Width > maxDimension || o.Height > maxDimension {
-		return ErrTooBig
+		return Options{}, ErrTooBig
 	}
 	// If requested crop width or height are larger than original, scale
 	// request down to fit within original dimensions.
@@ -66,26 +74,26 @@ func (o *Options) Check(m Metadata) error {
 		scale = 8
 	}
 	if o.MaxBufferPixels > 0 && m.Width*m.Height > o.MaxBufferPixels*scale*scale {
-		return ErrTooBig
+		return Options{}, ErrTooBig
 	}
 
 	if o.Quality == 0 {
 		o.Quality = DefaultQuality
 	}
 	if o.Quality < 1 || o.Quality > 100 {
-		return ErrBadOption
+		return Options{}, ErrBadOption
 	}
 
 	if o.Compression == 0 {
 		o.Compression = DefaultCompression
 	}
 	if o.Compression < 1 || o.Compression > 9 {
-		return ErrBadOption
+		return Options{}, ErrBadOption
 	}
 
 	if o.BlurSigma < 0.0 || o.BlurSigma > 8.0 {
-		return ErrBadOption
+		return Options{}, ErrBadOption
 	}
 
-	return nil
+	return o, nil
 }

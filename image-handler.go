@@ -212,14 +212,12 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	}
 
 	options := imager.Options{
-		Width:           width,
-		Height:          height,
-		MaxBufferPixels: *maxBufferPixels,
-		Crop:            crop,
-		Sharpen:         *sharpen,
-		SaveOptions: imager.SaveOptions{
-			LosslessMaxBitsPerPixel: *losslessMaxBitsPerPixel,
-		},
+		Width:                   width,
+		Height:                  height,
+		MaxBufferPixels:         *maxBufferPixels,
+		Crop:                    crop,
+		Sharpen:                 *sharpen,
+		LosslessMaxBitsPerPixel: *losslessMaxBitsPerPixel,
 	}
 
 	// Preview images are tiny, blurry JPEGs.

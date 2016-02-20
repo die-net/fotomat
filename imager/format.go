@@ -14,18 +14,6 @@ var (
 	ErrInvalidOperation = errors.New("Invalid Operation")
 )
 
-const (
-	DefaultQuality     = 85
-	DefaultCompression = 6
-)
-
-type SaveOptions struct {
-	Format                  Format
-	Quality                 int
-	Compression             int
-	LosslessMaxBitsPerPixel int
-}
-
 type Metadata struct {
 	Width       int
 	Height      int
@@ -48,7 +36,7 @@ var formatInfo = []struct {
 	mime      string
 	loadFile  func(filename string) (*vips.Image, error)
 	loadBytes func([]byte) (*vips.Image, error)
-	save      func(*vips.Image, SaveOptions) ([]byte, error)
+	save      func(*vips.Image, Options) ([]byte, error)
 }{
 	{mime: "application/octet-stream", loadFile: nil, loadBytes: nil, save: nil},
 	{mime: "image/gif", loadFile: vips.Magickload, loadBytes: vips.MagickloadBuffer, save: nil},
@@ -150,7 +138,7 @@ func (format Format) CanSave() bool {
 	return formatInfo[format].save != nil
 }
 
-func (format Format) Save(image *vips.Image, options SaveOptions) ([]byte, error) {
+func (format Format) Save(image *vips.Image, options Options) ([]byte, error) {
 	save := formatInfo[format].save
 	if save == nil {
 		return nil, ErrInvalidOperation
@@ -173,7 +161,7 @@ func (format Format) Save(image *vips.Image, options SaveOptions) ([]byte, error
 	return save(image, options)
 }
 
-func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
+func jpegSave(image *vips.Image, options Options) ([]byte, error) {
 	// JPEG interlace saves 2-3%, but incurs a few hundred bytes of
 	// overhead.  This isn't usually beneficial on small images.
 	interlace := image.Xsize()*image.Ysize() >= 200*200
@@ -182,7 +170,7 @@ func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 	return image.JpegsaveBuffer(true, options.Quality, true, interlace)
 }
 
-func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
+func pngSave(image *vips.Image, options Options) ([]byte, error) {
 	// PNG interlace is larger; don't use it.
 	blob, err := image.PngsaveBuffer(options.Compression, false)
 	if err != nil {
@@ -202,7 +190,7 @@ func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 	return blob, nil
 }
 
-func webpSaveLossless(image *vips.Image, options SaveOptions) ([]byte, error) {
+func webpSaveLossless(image *vips.Image, options Options) ([]byte, error) {
 	blob, err := image.WebpsaveBuffer(options.Quality, true)
 	if err != nil {
 		return nil, err
@@ -215,7 +203,7 @@ func webpSaveLossless(image *vips.Image, options SaveOptions) ([]byte, error) {
 	return blob, nil
 }
 
-func webpSaveLossy(image *vips.Image, options SaveOptions) ([]byte, error) {
+func webpSaveLossy(image *vips.Image, options Options) ([]byte, error) {
 
 	return image.WebpsaveBuffer(options.Quality, false)
 }
