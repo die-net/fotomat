@@ -39,7 +39,7 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, preview, crop, width, height, ok := parsePath(r.URL.Path)
+	path, preview, webp, crop, width, height, ok := parsePath(r.URL.Path)
 	if !ok {
 		sendError(w, nil, 400)
 		return
@@ -52,33 +52,33 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		u = &url.URL{Scheme: "file", Host: "localhost", Path: path}
 	}
 
-	fetchAndProcessImage(w, u.String(), preview, crop, width, height)
+	fetchAndProcessImage(w, u.String(), preview, webp, crop, width, height)
 }
 
-var matchPath = regexp.MustCompile(`^(/.*)=(p?)([sc])(\d{1,5})x(\d{1,5})$`)
+var matchPath = regexp.MustCompile(`^(/.*)=(p?)(w?)([sc])(\d{1,5})x(\d{1,5})$`)
 
-func parsePath(path string) (string, bool, bool, int, int, bool) {
+func parsePath(path string) (string, bool, bool, bool, int, int, bool) {
 	g := matchPath.FindStringSubmatch(path)
-	if len(g) != 6 {
-		return "", false, false, 0, 0, false
+	if len(g) != 7 {
+		return "", false, false, false, 0, 0, false
 	}
 
 	// Disallow repeated scaling parameters.
 	if matchPath.MatchString(g[1]) {
-		return "", false, false, 0, 0, false
+		return "", false, false, false, 0, 0, false
 	}
 
-	width, err := strconv.Atoi(g[4])
+	width, err := strconv.Atoi(g[5])
 	if err != nil || width <= 0 || width > *maxOutputDimension {
-		return "", false, false, 0, 0, false
+		return "", false, false, false, 0, 0, false
 	}
 
-	height, err := strconv.Atoi(g[5])
+	height, err := strconv.Atoi(g[6])
 	if err != nil || height <= 0 || height > *maxOutputDimension {
-		return "", false, false, 0, 0, false
+		return "", false, false, false, 0, 0, false
 	}
 
-	return g[1], (g[2] == "p"), (g[3] == "c"), int(width), int(height), true
+	return g[1], (g[2] == "p"), (g[3] == "w"), (g[4] == "c"), int(width), int(height), true
 }
 
 func poolInit(limit int) {
@@ -116,10 +116,10 @@ func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fetchAndProcessImage(w, r.FormValue("image_url"), false, crop, width, height)
+	fetchAndProcessImage(w, r.FormValue("image_url"), false, false, crop, width, height)
 }
 
-func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool, width, height int) {
+func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
 	orig, status, err := fetchURL(url)
@@ -140,7 +140,7 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, crop bool,
 	default:
 	}
 
-	thumb, err := processImage(url, orig, preview, crop, width, height)
+	thumb, err := processImage(url, orig, preview, webp, crop, width, height)
 	orig = nil // Free up image memory ASAP.
 
 	pool <- true // Free up image thread ASAP.
@@ -203,7 +203,7 @@ func fetchURL(url string) ([]byte, int, error) {
 	}
 }
 
-func processImage(url string, orig []byte, preview, crop bool, width, height int) ([]byte, error) {
+func processImage(url string, orig []byte, preview, webp, crop bool, width, height int) ([]byte, error) {
 	if *maxProcessingDuration > 0 {
 		timer := time.AfterFunc(*maxProcessingDuration, func() {
 			panic(fmt.Sprintf("Processing %v longer than %v", url, *maxProcessingDuration))
@@ -228,6 +228,10 @@ func processImage(url string, orig []byte, preview, crop bool, width, height int
 		options.BlurSigma = 0.8
 		options.Format = imager.Jpeg
 		options.Quality = 40
+	}
+
+	if webp {
+		options.Format = imager.WebpLossy
 	}
 
 	return imager.Thumbnail(orig, options)

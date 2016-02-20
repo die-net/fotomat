@@ -172,7 +172,7 @@ func postProcess(image *vips.Image, orientation Orientation, shrank bool, option
 		image = out
 	}
 
-        if image.ImageGetFormat() != vips.FormatUchar {
+	if image.ImageGetFormat() != vips.FormatUchar {
 		out, err := image.Cast(vips.FormatUchar)
 		if err != nil {
 			return nil, err
