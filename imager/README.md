@@ -1,8 +1,9 @@
-# Fotomat Imager
+Fotomat Imager
+==============
 
 Golang-based Image Thumbnailing and Cropping Library
 
-This is a simple wrapper around the [ImageMagick](http://www.imagemagick.org/) [bindings for go](https://github.com/gographics/imagick) that offers two operations:
+This is a simple wrapper around [VIPS](http://www.vips.ecs.soton.ac.uk/index.php?title=Libvips) that offers two operations:
 
 * Thumbnail: Scale longest side of original image to fit within W x H pixels.  Examples:
 
@@ -34,4 +35,4 @@ It aims to generate high-quality, compact images using available performance opt
 
 * Metadata stripping: Remove potentially large metadata from each image; particularly useful for images saved by Photoshop.
 
-* Limited input formats: Only accepts common web image formats (JPG, PNG, and GIF), preventing potential attackers from being able to feed bad data to ImageMagick's rarely-used and potentially buggy image parsers.
+* Limited input formats: Only accepts common web image formats (JPG, PNG, and GIF), preventing potential attackers from being able to feed bad data to rarely-used and potentially buggy image parsers.

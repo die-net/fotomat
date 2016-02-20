@@ -1,25 +1,21 @@
 fotomat
 =======
 
-Golang-based image thumbnailing and cropping proxy, using many of the size, speed, and quality optimizations available in ImageMagick via the [Fotomat imager](https://github.com/die-net/fotomat/tree/master/imager) library.
+Go-based image thumbnailing proxy, using many of the size, speed, and
+quality optimizations available in
+[VIPS](http://www.vips.ecs.soton.ac.uk/index.php?title=Libvips) via the
+[Fotomat imager](https://github.com/die-net/fotomat/tree/master/imager)
+library.
 
 Building:
 --------
 
-Install [Go](http://golang.org/doc/install), git, and ImageMagick 6.8.8+ with
-Color Management support.
+Install [Go](http://golang.org/doc/install), git, and
+[VIPS 8.2+](http://www.vips.ecs.soton.ac.uk/index.php?title=Stable).
 
-On OSX, this is:
+On OSX, this is as simple as:
 
-    brew update && brew install imagemagick --with-little-cms
-
-On Debian or Ubuntu, this should just be:
-
-	apt-get update && apt-get install imagemagick imagemagick-devel
-
-On RHEL 6.4, I rebuilt a [Fedora Rawhide source
-RPM](http://mirror.pnl.gov/fedora/linux/development/rawhide/source/SRPMS/i/),
-and commented out a couple of dependencies that aren't available on RHEL 6.
+    brew install go git homebrew/science/vips
 
 If you haven't used Go before, you'll need to create a source tree for your Go code:
 
@@ -32,7 +28,12 @@ Then for all OSes:
     
 And you'll end up with the executable:```$GOPATH/bin/fotomat```
 
-The same command will also fetch updates and recompile.
+Docker:
+------
+
+Alternatively if you use Docker, there's an up-to-date Docker image:
+
+    docker pull dienet/fotomat:latest
 
 Command-line flags:
 ------------------
@@ -60,11 +61,11 @@ It defaults to:
 
 * Only allocating image buffers that are at most 6,500,000 pixels (width * height). It can read larger JPEGs than this because it scale them down by a factor of 8 or 16 when decoding.
 
-* Allowing as many ImageMagick threads to be running as the machine has CPU cores. Raising this probably won't increase throughput, but lowering it may reduce memory usage.
+* Allowing as many VIPS threads to be running as the machine has CPU cores. Raising this probably won't increase throughput, but lowering it may reduce memory usage.
 
 * Allowing output images to be up to 2048 x 2048. Raising this will allow larger images, and be slower.
 
-* Limiting a single ImageMagick operation to 1 minute, after which it assumes it has hit an ImageMagick bug and crashes the process.  Raise this if actual image operations take longer.
+* Limiting a single VIPS operation to 1 minute, after which it assumes it has hit a VIPS bug and crashes the process.  Raise this if actual image operations take longer.
 
 License
 -------
