@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrInvalidOperation = errors.New("Invalid Operation")
+	ErrUnknownFormat    = errors.New("Unknown image format")
 )
 
 type Metadata struct {

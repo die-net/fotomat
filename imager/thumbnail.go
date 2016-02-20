@@ -5,27 +5,10 @@
 package imager
 
 import (
-	"errors"
 	"github.com/die-net/fotomat/vips"
 	"math"
 	"runtime"
 )
-
-var (
-	ErrUnknownFormat = errors.New("Unknown image format")
-	ErrTooBig        = errors.New("Image is too wide or tall")
-	ErrTooSmall      = errors.New("Image is too small")
-	ErrBadOption     = errors.New("Bad option specified")
-)
-
-const (
-	minDimension = 2             // Avoid off-by-one divide-by-zero errors.
-	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
-)
-
-func init() {
-	vips.Initialize()
-}
 
 func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	runtime.LockOSThread()

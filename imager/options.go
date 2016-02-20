@@ -1,5 +1,20 @@
 package imager
 
+import (
+	"errors"
+)
+
+var (
+	ErrBadOption = errors.New("Bad option specified")
+	ErrTooBig    = errors.New("Image is too wide or tall")
+	ErrTooSmall  = errors.New("Image is too small")
+)
+
+const (
+	minDimension = 2             // Avoid off-by-one divide-by-zero errors.
+	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
+)
+
 const (
 	DefaultQuality     = 85
 	DefaultCompression = 6
