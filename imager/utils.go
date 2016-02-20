@@ -22,6 +22,14 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
 	return rw, rh
 }
 
+func scaleFactor(iw, ih, mw, mh int) float64 {
+	sw := float64(iw) / float64(mw)
+	if sh := float64(ih) / float64(mh); sh > sw {
+		return sh
+	}
+	return sw
+}
+
 func jpegShrink(shrink int) int {
 	switch {
 	case shrink >= 8:

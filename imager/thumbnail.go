@@ -101,14 +101,6 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	return thumb, err
 }
 
-func scaleFactor(iw, ih, mw, mh int) float64 {
-	sw := float64(iw) / float64(mw)
-	if sh := float64(ih) / float64(mh); sh > sw {
-		return sh
-	}
-	return sw
-}
-
 func load(blob []byte, format Format, shrink int) (*vips.Image, error) {
 	if format == Jpeg && shrink > 1 {
 		return vips.JpegloadBufferShrink(blob, jpegShrink(shrink))
