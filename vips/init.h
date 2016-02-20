@@ -4,7 +4,6 @@
 
 
 int
-cgo_vips_init()
-{
+cgo_vips_init() {
     return vips_init("fotomat");
-};
+}

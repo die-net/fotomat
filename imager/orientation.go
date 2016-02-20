@@ -34,9 +34,9 @@ var orientationInfo = []struct {
 	{swapXY: false, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionHorizontal) }},
 	{swapXY: false, flipX: true, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle180) }},
 	{swapXY: false, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Flip(vips.DirectionVertical) }},
-	{swapXY: true, flipX: false, flipY: false, apply: Transpose},
+	{swapXY: true, flipX: false, flipY: false, apply: transpose},
 	{swapXY: true, flipX: false, flipY: true, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle90) }},
-	{swapXY: true, flipX: true, flipY: true, apply: Transverse},
+	{swapXY: true, flipX: true, flipY: true, apply: transverse},
 	{swapXY: true, flipX: true, flipY: false, apply: func(image *vips.Image) (*vips.Image, error) { return image.Rot(vips.Angle270) }},
 }
 
@@ -103,7 +103,7 @@ func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {
 	return rot, nil
 }
 
-func Transpose(image *vips.Image) (*vips.Image, error) {
+func transpose(image *vips.Image) (*vips.Image, error) {
 	flip, err := image.Flip(vips.DirectionVertical)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func Transpose(image *vips.Image) (*vips.Image, error) {
 	return flip.Rot(vips.Angle90)
 }
 
-func Transverse(image *vips.Image) (*vips.Image, error) {
+func transverse(image *vips.Image) (*vips.Image, error) {
 	flip, err := image.Flip(vips.DirectionVertical)
 	if err != nil {
 		return nil, err

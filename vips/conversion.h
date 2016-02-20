@@ -10,57 +10,48 @@
 #endif
 
 int
-cgo_vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format)
-{
+cgo_vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format) {
     return vips_cast(in, out, format, NULL);
 }
 
 int
-cgo_vips_copy(VipsImage *in, VipsImage **out)
-{
+cgo_vips_copy(VipsImage *in, VipsImage **out) {
     return vips_copy(in, out, NULL);
 }
 
 int
-cgo_vips_embed(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend)
-{
+cgo_vips_embed(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend) {
     return vips_embed(in, out, left, top, width, height, "extend", extend, NULL);
 }
 
 int
-cgo_vips_extract_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height)
-{
+cgo_vips_extract_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {
     return vips_extract_area(in, out, left, top, width, height, NULL);
 }
 
 int
-cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction)
-{
+cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction) {
     return vips_flip(in, out, direction, NULL);
 }
 
 static double
-cgo_max_alpha(VipsImage *in)
-{
+cgo_max_alpha(VipsImage *in) {
     if (in->BandFmt == VIPS_FORMAT_USHORT)
         return 65535;
     return 255;
 }
 
 int
-cgo_vips_premultiply(VipsImage *in, VipsImage **out)
-{
+cgo_vips_premultiply(VipsImage *in, VipsImage **out) {
     return vips_premultiply(in, out, "max_alpha", cgo_max_alpha(in), NULL);
 }
 
 int
-cgo_vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle)
-{
+cgo_vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle) {
     return vips_rot(in, out, angle, NULL);
 }
 
 int
-cgo_vips_unpremultiply(VipsImage *in, VipsImage **out)
-{
+cgo_vips_unpremultiply(VipsImage *in, VipsImage **out) {
     return vips_unpremultiply(in, out, "max_alpha", cgo_max_alpha(in), NULL);
 }

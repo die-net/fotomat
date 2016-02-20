@@ -20,12 +20,12 @@ func imageFromVi(vi *C.struct__VipsImage) *Image {
 	return &Image{vi: vi}
 }
 
-func (image *Image) Xsize() int {
-	return int(image.vi.Xsize)
+func (in *Image) Xsize() int {
+	return int(in.vi.Xsize)
 }
 
-func (image *Image) Ysize() int {
-	return int(image.vi.Ysize)
+func (in *Image) Ysize() int {
+	return int(in.vi.Ysize)
 }
 
 func (in *Image) Write() (*Image, error) {
@@ -34,7 +34,7 @@ func (in *Image) Write() (*Image, error) {
 	return imageError(out, e)
 }
 
-func (image *Image) Close() {
-	C.g_object_unref(C.gpointer(image.vi))
-	*image = Image{}
+func (in *Image) Close() {
+	C.g_object_unref(C.gpointer(in.vi))
+	*in = Image{}
 }
