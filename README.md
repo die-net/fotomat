@@ -65,3 +65,18 @@ It defaults to:
 * Allowing output images to be up to 2048 x 2048. Raising this will allow larger images, and be slower.
 
 * Limiting a single ImageMagick operation to 1 minute, after which it assumes it has hit an ImageMagick bug and crashes the process.  Raise this if actual image operations take longer.
+
+License
+-------
+
+Copyright 2013, 2014, 2015, 2016 Aaron Hopkins and contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
