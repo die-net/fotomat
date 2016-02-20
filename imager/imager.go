@@ -39,20 +39,12 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	w, h := o.Width, o.Height
-
-	// If requested crop width or height are larger than original, scale
-	// request down to fit within original dimensions.
-	if o.Crop && (w > m.Width || h > m.Height) {
-		w, h = scaleAspect(w, h, m.Width, m.Height, true)
-	}
-
 	// Figure out size to scale image down to.  For crop, this is the
 	// intermediate size the original image would have to be scaled to
 	// be cropped to requested size.
-	iw, ih := scaleAspect(m.Width, m.Height, w, h, !o.Crop)
+	iw, ih := scaleAspect(m.Width, m.Height, o.Width, o.Height, !o.Crop)
 
-	shrink := math.Sqrt(float64(m.Width*m.Height) / float64(iw*ih))
+	shrink := scaleFactor(m.Width, m.Height, iw, ih)
 
 	// Are we shrinking by more than 2.5%?
 	shrank := shrink > 1.025
@@ -68,8 +60,22 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 
 	m = MetadataImage(image)
+
+	// A box filter will quickly get us within 2x of the final size.
+	shrink = math.Floor(scaleFactor(m.Width, m.Height, iw, ih))
+	if shrink >= 2 {
+		out, err := image.Shrink(shrink, shrink)
+		if err != nil {
+			return nil, err
+		}
+		image.Close()
+		image = out
+		m = MetadataImage(image)
+	}
+
+	// Do a high-quality resize to scale to final size.
 	if iw < m.Width || ih < m.Height {
-		factor := math.Sqrt(float64(iw*ih) / float64(m.Width*m.Height))
+		factor := scaleFactor(iw, ih, m.Width, m.Height)
 		out, err := image.Resize(float64(factor))
 		if err != nil {
 			return nil, err
@@ -81,13 +87,13 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 
 	// If necessary, crop to fit exact size.
-	if o.Crop && (m.Width > w || m.Height > h) {
+	if o.Crop && (o.Width < m.Width || o.Height < m.Height) {
 		// Center horizontally
-		x := (m.Width - w + 1) / 2
+		x := (m.Width - o.Width + 1) / 2
 		// Assume faces are higher up vertically
-		y := (m.Height - h + 1) / 4
+		y := (m.Height - o.Height + 1) / 4
 
-		out, err := image.ExtractArea(m.Orientation.Crop(w, h, x, y, m.Width, m.Height))
+		out, err := image.ExtractArea(m.Orientation.Crop(o.Width, o.Height, x, y, m.Width, m.Height))
 		if err != nil {
 			return nil, err
 		}
@@ -107,8 +113,16 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	return thumb, err
 }
 
+func scaleFactor(iw, ih, mw, mh int) float64 {
+	sw := float64(iw) / float64(mw)
+	if sh := float64(ih) / float64(mh); sh > sw {
+		return sh
+	}
+	return sw
+}
+
 func load(blob []byte, format Format, shrink int) (*vips.Image, error) {
-	if format == Jpeg {
+	if format == Jpeg && shrink > 1 {
 		return vips.JpegloadBufferShrink(blob, jpegShrink(shrink))
 	}
 
