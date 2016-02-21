@@ -3,11 +3,22 @@ package imager
 import (
 	"fmt"
 	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/vips"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"os"
 	"strconv"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	vips.Initialize()
+	vips.LeakSet(true)
+	r := m.Run()
+	vips.ThreadShutdown()
+	vips.Shutdown()
+	os.Exit(r)
+}
 
 func TestImageValidation(t *testing.T) {
 	// Return ErrUnknownFormat on a text file.

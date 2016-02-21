@@ -32,6 +32,10 @@ func Initialize() {
 	C.vips_cache_set_max(1000)
 }
 
+func LeakSet(enable bool) {
+	C.vips_leak_set(C.gboolean(btoi(enable)))
+}
+
 // ThreadShutdown frees any thread-private data and flushes any profiling
 // information.  This function needs to be called when a thread that has
 // been using vips exits or there will be memory leaks.  It may be called

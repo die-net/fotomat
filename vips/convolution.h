@@ -15,7 +15,10 @@ cgo_vips_mild_sharpen(VipsImage *in, VipsImage **out) {
         -1.0, 32.0, -1.0,
         -1.0, -1.0, -1.0);
     vips_image_set_double(sharpen, "scale", 24.0);
-    return vips_conv(in, out, sharpen, NULL);
+    int e = vips_conv(in, out, sharpen, NULL);
+    g_object_unref(sharpen);
+
+    return e;
 }
 
 int

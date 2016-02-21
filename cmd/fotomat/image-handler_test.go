@@ -4,16 +4,27 @@ import (
 	"flag"
 	"fmt"
 	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/vips"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"runtime"
 	"testing"
 )
 
 var localhost string
+
+func TestMain(m *testing.M) {
+	vips.Initialize()
+	vips.LeakSet(true)
+	r := m.Run()
+	vips.ThreadShutdown()
+	vips.Shutdown()
+	os.Exit(r)
+}
 
 func init() {
 	// Initialize flags with default values, enable local serving.
