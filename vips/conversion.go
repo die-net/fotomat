@@ -9,28 +9,28 @@ import "C"
 type Extend int
 
 const (
-	ExtendBlack      = C.VIPS_EXTEND_BLACK
-	ExtendCopy       = C.VIPS_EXTEND_COPY
-	ExtendRepeat     = C.VIPS_EXTEND_REPEAT
-	ExtendMirror     = C.VIPS_EXTEND_MIRROR
-	ExtendWhite      = C.VIPS_EXTEND_WHITE
-	ExtendBackground = C.VIPS_EXTEND_BACKGROUND
+	ExtendBlack      Extend = C.VIPS_EXTEND_BLACK
+	ExtendCopy       Extend = C.VIPS_EXTEND_COPY
+	ExtendRepeat     Extend = C.VIPS_EXTEND_REPEAT
+	ExtendMirror     Extend = C.VIPS_EXTEND_MIRROR
+	ExtendWhite      Extend = C.VIPS_EXTEND_WHITE
+	ExtendBackground Extend = C.VIPS_EXTEND_BACKGROUND
 )
 
 type Angle int
 
 const (
-	Angle0   = C.VIPS_ANGLE_D0
-	Angle90  = C.VIPS_ANGLE_D90
-	Angle180 = C.VIPS_ANGLE_D180
-	Angle270 = C.VIPS_ANGLE_D270
+	Angle0   Angle = C.VIPS_ANGLE_D0
+	Angle90  Angle = C.VIPS_ANGLE_D90
+	Angle180 Angle = C.VIPS_ANGLE_D180
+	Angle270 Angle = C.VIPS_ANGLE_D270
 )
 
 type Direction int
 
 const (
-	DirectionHorizontal = C.VIPS_DIRECTION_HORIZONTAL
-	DirectionVertical   = C.VIPS_DIRECTION_VERTICAL
+	DirectionHorizontal Direction = C.VIPS_DIRECTION_HORIZONTAL
+	DirectionVertical   Direction = C.VIPS_DIRECTION_VERTICAL
 )
 
 func (in Image) Cast(format BandFormat) (*Image, error) {
