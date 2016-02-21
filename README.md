@@ -31,7 +31,10 @@ And you'll end up with the executable:```$GOPATH/bin/fotomat```
 Docker:
 ------
 
-Alternatively if you use Docker, there's an up-to-date Docker image:
+Alternatively if you use Docker, there's a
+[Dockerfile](https://github.com/die-net/fotomat/blob/master/Dockerfile)
+which is used to build an up-to-date
+[Docker image](https://hub.docker.com/r/dienet/fotomat/). Fetch it with:
 
     docker pull dienet/fotomat:latest
 
