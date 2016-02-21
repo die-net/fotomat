@@ -164,7 +164,7 @@ func isSize(image []byte, f format.Format, width, height int) error {
 }
 
 func image(filename string) []byte {
-	bytes, err := ioutil.ReadFile("testdata/" + filename)
+	bytes, err := ioutil.ReadFile("../testdata/" + filename)
 	if err != nil {
 		panic(err)
 	}

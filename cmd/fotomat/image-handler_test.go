@@ -18,7 +18,7 @@ var localhost string
 func init() {
 	// Initialize flags with default values, enable local serving.
 	flag.Parse()
-	*localImageDirectory = "."
+	*localImageDirectory = "../../testdata/"
 	poolInit(1)
 	runtime.GOMAXPROCS(2)
 
@@ -116,7 +116,7 @@ func status(filename string) int {
 }
 
 func fetch(filename string) ([]byte, int) {
-	resp, err := http.Get("http://" + localhost + "/imager/testdata/" + filename)
+	resp, err := http.Get("http://" + localhost + "/" + filename)
 	if err != nil {
 		panic(err)
 	}
