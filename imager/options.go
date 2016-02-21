@@ -2,6 +2,7 @@ package imager
 
 import (
 	"errors"
+	"github.com/die-net/fotomat/format"
 )
 
 var (
@@ -15,29 +16,20 @@ const (
 	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
 )
 
-const (
-	DefaultQuality     = 85
-	DefaultCompression = 6
-)
-
 type Options struct {
-	Width                   int
-	Height                  int
-	Crop                    bool
-	MaxBufferPixels         int
-	Sharpen                 bool
-	BlurSigma               float64
-	AutoContrast            bool
-	Format                  Format
-	Quality                 int
-	Compression             int
-	LosslessMaxBitsPerPixel int
+	Width           int
+	Height          int
+	Crop            bool
+	MaxBufferPixels int
+	Sharpen         bool
+	BlurSigma       float64
+	AutoContrast    bool
 }
 
-func (o Options) Check(m Metadata) (Options, error) {
-	// Security: Limit formats we pass to VIPS to JPEG, PNG, GIF, WEBP.
-	if m.Format == UnknownFormat {
-		return Options{}, ErrUnknownFormat
+func (o Options) Check(m format.Metadata) (Options, error) {
+	// Input format must be set.
+	if m.Format == format.Unknown {
+		return Options{}, format.ErrUnknownFormat
 	}
 
 	// Security: Confirm that image sizes are sane.
@@ -46,20 +38,6 @@ func (o Options) Check(m Metadata) (Options, error) {
 	}
 	if m.Width > maxDimension || m.Height > maxDimension {
 		return Options{}, ErrTooBig
-	}
-
-	// If output format is not set, pick one.
-	if o.Format == UnknownFormat {
-		switch m.Format {
-		case Gif:
-			o.Format = Png
-		default:
-			o.Format = m.Format
-		}
-	}
-	// Is this now a format that can save? If not, error.
-	if !o.Format.CanSave() {
-		return Options{}, ErrUnknownFormat
 	}
 
 	// If output width or height are not set, use original.
@@ -85,25 +63,11 @@ func (o Options) Check(m Metadata) (Options, error) {
 	// If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG
 	// decoder can pre-scale to 1/8 original width and height.
 	scale := 1
-	if m.Format == Jpeg {
+	if m.Format == format.Jpeg {
 		scale = 8
 	}
 	if o.MaxBufferPixels > 0 && m.Width*m.Height > o.MaxBufferPixels*scale*scale {
 		return Options{}, ErrTooBig
-	}
-
-	if o.Quality == 0 {
-		o.Quality = DefaultQuality
-	}
-	if o.Quality < 1 || o.Quality > 100 {
-		return Options{}, ErrBadOption
-	}
-
-	if o.Compression == 0 {
-		o.Compression = DefaultCompression
-	}
-	if o.Compression < 1 || o.Compression > 9 {
-		return Options{}, ErrBadOption
 	}
 
 	if o.BlurSigma < 0.0 || o.BlurSigma > 8.0 {

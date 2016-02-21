@@ -1,19 +1,20 @@
 package imager
 
 import (
+	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/vips"
 	"math"
 	"runtime"
 )
 
-func Thumbnail(blob []byte, o Options) ([]byte, error) {
+func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, error) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
 	// Free some thread-local caches. Safe to call unnecessarily.
 	defer vips.ThreadShutdown()
 
-	m, err := MetadataBytes(blob)
+	m, err := format.MetadataBytes(blob)
 	if err != nil {
 		return nil, err
 	}
@@ -21,6 +22,11 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	o, err = o.Check(m)
 	if err != nil {
 		return nil, err
+	}
+
+	// If output format is not set, pick one.
+	if saveOptions.Format == format.Unknown {
+		saveOptions.Format = m.Format.SaveAs()
 	}
 
 	// Figure out size to scale image down to.  For crop, this is the
@@ -43,7 +49,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	m = MetadataImage(image)
+	m = format.MetadataImage(image)
 
 	// A box filter will quickly get us within 2x of the final size.
 	shrink = math.Floor(scaleFactor(m.Width, m.Height, iw, ih))
@@ -54,7 +60,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		}
 		image.Close()
 		image = out
-		m = MetadataImage(image)
+		m = format.MetadataImage(image)
 	}
 
 	// Do a high-quality resize to scale to final size.
@@ -67,7 +73,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 		image.Close()
 		image = out
-		m = MetadataImage(image)
+		m = format.MetadataImage(image)
 	}
 
 	// If necessary, crop to fit exact size.
@@ -84,7 +90,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 		image.Close()
 		image = out
-		m = MetadataImage(image)
+		m = format.MetadataImage(image)
 	}
 
 	image, err = postProcess(image, m.Orientation, shrank, o)
@@ -92,17 +98,17 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	thumb, err := o.Format.Save(image, o)
+	thumb, err := format.Save(image, saveOptions)
 	image.Close()
 	return thumb, err
 }
 
-func load(blob []byte, format Format, shrink int) (*vips.Image, error) {
-	if format == Jpeg && shrink > 1 {
+func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
+	if f == format.Jpeg && shrink > 1 {
 		return vips.JpegloadBufferShrink(blob, jpegShrink(shrink))
 	}
 
-	return format.LoadBytes(blob)
+	return f.LoadBytes(blob)
 }
 
 func preProcess(image *vips.Image) (*vips.Image, error) {
@@ -138,7 +144,7 @@ func preProcess(image *vips.Image) (*vips.Image, error) {
 	return image, nil
 }
 
-func postProcess(image *vips.Image, orientation Orientation, shrank bool, options Options) (*vips.Image, error) {
+func postProcess(image *vips.Image, orientation format.Orientation, shrank bool, options Options) (*vips.Image, error) {
 	if options.BlurSigma > 0.0 {
 		out, err := image.Gaussblur(options.BlurSigma)
 		if err != nil {

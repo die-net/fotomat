@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/imager"
 	"io/ioutil"
 	"net/http"
@@ -208,11 +209,14 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	}
 
 	options := imager.Options{
-		Width:                   width,
-		Height:                  height,
-		MaxBufferPixels:         *maxBufferPixels,
-		Crop:                    crop,
-		Sharpen:                 *sharpen,
+		Width:           width,
+		Height:          height,
+		MaxBufferPixels: *maxBufferPixels,
+		Crop:            crop,
+		Sharpen:         *sharpen,
+	}
+
+	saveOptions := format.SaveOptions{
 		LosslessMaxBitsPerPixel: *losslessMaxBitsPerPixel,
 	}
 
@@ -220,21 +224,22 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	if preview {
 		options.Sharpen = false
 		options.BlurSigma = 0.8
-		options.Format = imager.Jpeg
-		options.Quality = 40
+		saveOptions.Format = format.Jpeg
+		saveOptions.Quality = 40
 	}
 
 	if webp {
-		options.Format = imager.WebpLossy
+		saveOptions.Format = format.Webp
+		saveOptions.LosslessMaxBitsPerPixel = 0 // Always use lossy
 	}
 
-	return imager.Thumbnail(orig, options)
+	return imager.Thumbnail(orig, options, saveOptions)
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
 	if status == 0 {
 		switch err {
-		case imager.ErrUnknownFormat, imager.ErrTooSmall:
+		case format.ErrUnknownFormat, imager.ErrTooSmall:
 			status = http.StatusUnsupportedMediaType
 		case imager.ErrTooBig:
 			status = http.StatusRequestEntityTooLarge

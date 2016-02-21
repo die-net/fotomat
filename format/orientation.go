@@ -1,4 +1,4 @@
-package imager
+package format
 
 import (
 	"github.com/die-net/fotomat/vips"
@@ -8,7 +8,7 @@ import (
 type Orientation int
 
 const (
-	Unknown Orientation = iota
+	Undefined Orientation = iota
 	TopLeft
 	TopRight
 	BottomRight
@@ -39,12 +39,12 @@ var orientationInfo = []struct {
 func DetectOrientation(image *vips.Image) Orientation {
 	o, ok := image.ImageGetAsString(vips.ExifOrientation)
 	if !ok || o == "" {
-		return Unknown
+		return Undefined
 	}
 
 	orientation, err := strconv.Atoi(o[:1])
 	if err != nil || orientation <= 0 || orientation >= len(orientationInfo) {
-		return Unknown
+		return Undefined
 	}
 
 	return Orientation(orientation)
