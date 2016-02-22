@@ -1,5 +1,5 @@
-Fotomat Imager
-==============
+Fotomat Thumbnail
+=================
 
 Golang-based Image Thumbnailing and Cropping Library
 

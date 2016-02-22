@@ -1,4 +1,4 @@
-package imager
+package thumbnail
 
 import (
 	"github.com/die-net/fotomat/format"

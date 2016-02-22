@@ -1,4 +1,4 @@
-package imager
+package thumbnail
 
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.
 // If within=true, fit completely within result, leaving empty space if necessary.

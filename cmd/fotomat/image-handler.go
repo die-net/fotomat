@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/imager"
+	"github.com/die-net/fotomat/thumbnail"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -187,7 +187,7 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 		defer timer.Stop()
 	}
 
-	options := imager.Options{
+	options := thumbnail.Options{
 		Width:           width,
 		Height:          height,
 		MaxBufferPixels: *maxBufferPixels,
@@ -212,7 +212,7 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 		saveOptions.LosslessMaxBitsPerPixel = 0 // Always use lossy
 	}
 
-	return imager.Thumbnail(orig, options, saveOptions)
+	return thumbnail.Thumbnail(orig, options, saveOptions)
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
@@ -227,9 +227,9 @@ func sendError(w http.ResponseWriter, err error, status int) {
 		err = nil
 	case 0:
 		switch err {
-		case format.ErrUnknownFormat, imager.ErrTooSmall:
+		case format.ErrUnknownFormat, thumbnail.ErrTooSmall:
 			status = http.StatusUnsupportedMediaType
-		case imager.ErrTooBig:
+		case thumbnail.ErrTooBig:
 			status = http.StatusRequestEntityTooLarge
 		default:
 			status = http.StatusInternalServerError
