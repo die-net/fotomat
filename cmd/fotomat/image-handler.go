@@ -119,9 +119,9 @@ func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
-	orig, status, err := fetchURL(url)
-	if err != nil || status != http.StatusOK {
-		sendError(w, err, status)
+	resp, err := client.Get(url)
+	if err != nil {
+		sendError(w, err, 0)
 		return
 	}
 
@@ -137,13 +137,22 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 	default:
 	}
 
+	orig, err := ioutil.ReadAll(resp.Body)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		pool <- true // Free up image thread ASAP.
+		resp.Body.Close()
+		sendError(w, err, resp.StatusCode)
+		return
+	}
+
+	resp.Body.Close()
+
 	thumb, err := processImage(url, orig, preview, webp, crop, width, height)
 	orig = nil // Free up image memory ASAP.
 
 	pool <- true // Free up image thread ASAP.
 
 	if err != nil {
-		thumb = nil // Free up image memory ASAP.
 		sendError(w, err, 0)
 		return
 	}
@@ -151,7 +160,6 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 	w.Header().Set("Server", "Fotomat")
 	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
 	w.Write(thumb)
-	thumb = nil // Free up image memory ASAP.
 }
 
 func parseGeometry(geometry string) (bool, int, int, bool) {
@@ -169,35 +177,6 @@ func parseGeometry(geometry string) (bool, int, int, bool) {
 	}
 	crop := (g[3] == "#")
 	return crop, width, height, true
-}
-
-func fetchURL(url string) ([]byte, int, error) {
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	switch resp.StatusCode {
-	case http.StatusOK,
-		http.StatusNoContent,
-		http.StatusBadRequest,
-		http.StatusUnauthorized,
-		http.StatusForbidden,
-		http.StatusNotFound,
-		http.StatusRequestTimeout,
-		http.StatusGone:
-		return body, resp.StatusCode, nil
-	default:
-		err := fmt.Errorf("Proxy received %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		return nil, http.StatusBadGateway, err
-	}
 }
 
 func processImage(url string, orig []byte, preview, webp, crop bool, width, height int) ([]byte, error) {
@@ -237,7 +216,16 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
-	if status == 0 {
+	switch status {
+	case http.StatusNoContent,
+		http.StatusBadRequest,
+		http.StatusUnauthorized,
+		http.StatusForbidden,
+		http.StatusNotFound,
+		http.StatusRequestTimeout,
+		http.StatusGone:
+		err = nil
+	case 0:
 		switch err {
 		case format.ErrUnknownFormat, imager.ErrTooSmall:
 			status = http.StatusUnsupportedMediaType
@@ -246,6 +234,9 @@ func sendError(w http.ResponseWriter, err error, status int) {
 		default:
 			status = http.StatusInternalServerError
 		}
+	default:
+		err = fmt.Errorf("Proxy received %d %s", status, http.StatusText(status))
+		status = http.StatusBadGateway
 	}
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
