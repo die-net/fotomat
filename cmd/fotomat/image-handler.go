@@ -27,7 +27,6 @@ var (
 
 func init() {
 	http.HandleFunc("/", imageProxyHandler)
-	http.HandleFunc("/albums/crop", albumsCropHandler)
 }
 
 func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,33 +88,6 @@ func poolInit(limit int) {
 	}
 }
 
-/*
-        Supported geometries:
-	WxH#        - scale down so the shorter edge fits within this bounding box, crop to new aspect ratio
-	WxH or WxH> - scale down so the longer edge fits within this bounding box, no crop
-*/
-var matchGeometry = regexp.MustCompile(`^(\d{1,5})x(\d{1,5})([>#])?$`)
-
-func albumsCropHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" && r.Method != "HEAD" {
-		sendError(w, nil, http.StatusMethodNotAllowed)
-		return
-	}
-
-	if err := r.ParseForm(); err != nil {
-		sendError(w, err, 0)
-		return
-	}
-
-	crop, width, height, ok := parseGeometry(r.FormValue("geometry"))
-	if !ok {
-		sendError(w, nil, 400)
-		return
-	}
-
-	fetchAndProcessImage(w, r.FormValue("image_url"), false, false, crop, width, height)
-}
-
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
@@ -160,23 +132,6 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 	w.Header().Set("Server", "Fotomat")
 	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
 	w.Write(thumb)
-}
-
-func parseGeometry(geometry string) (bool, int, int, bool) {
-	g := matchGeometry.FindStringSubmatch(geometry)
-	if len(g) != 4 {
-		return false, 0, 0, false
-	}
-	width, err := strconv.Atoi(g[1])
-	if err != nil || width <= 0 || width > *maxOutputDimension {
-		return false, 0, 0, false
-	}
-	height, err := strconv.Atoi(g[2])
-	if err != nil || height <= 0 || height > *maxOutputDimension {
-		return false, 0, 0, false
-	}
-	crop := (g[3] == "#")
-	return crop, width, height, true
 }
 
 func processImage(url string, orig []byte, preview, webp, crop bool, width, height int) ([]byte, error) {
