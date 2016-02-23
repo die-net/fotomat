@@ -113,13 +113,15 @@ func TestImageRotation(t *testing.T) {
 		img := image("orient" + strconv.Itoa(i) + ".jpg")
 
 		m, err := format.MetadataBytes(img)
-		if assert.Nil(t, err) {
-			assert.Equal(t, m.Width, 48)
-			assert.Equal(t, m.Height, 80)
+		if !assert.Nil(t, err) {
+			continue
+		}
+		assert.Equal(t, m.Width, 48)
+		assert.Equal(t, m.Height, 80)
 
-			// Verify that img.Thumbnail() maintains orientation.
-			thumb, err := Thumbnail(img, Options{Width: 40, Height: 40}, format.SaveOptions{})
-			assert.Nil(t, err)
+		// Verify that img.Thumbnail() maintains orientation.
+		thumb, err := Thumbnail(img, Options{Width: 40, Height: 40}, format.SaveOptions{})
+		if assert.Nil(t, err) {
 			assert.Nil(t, isSize(thumb, format.Jpeg, 24, 40))
 		}
 
@@ -137,13 +139,15 @@ func TestImageFormat(t *testing.T) {
 
 		// Verify that we rewrite it by default as a PNG of the same size.
 		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
-		assert.Nil(t, err)
-		assert.Nil(t, isSize(thumb, format.Png, 2, 3))
+		if assert.Nil(t, err) {
+			assert.Nil(t, isSize(thumb, format.Png, 2, 3))
+		}
 
 		// If we ask for Jpeg, verify that we rewrite it as a Jpeg of the same size.
 		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{Format: format.Jpeg})
-		assert.Nil(t, err)
-		assert.Nil(t, isSize(thumb, format.Jpeg, 2, 3))
+		if assert.Nil(t, err) {
+			assert.Nil(t, isSize(thumb, format.Jpeg, 2, 3))
+		}
 	}
 
 	img = image("flowers.png")
