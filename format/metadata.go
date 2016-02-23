@@ -63,6 +63,9 @@ func MetadataImage(image *vips.Image) Metadata {
 	return Metadata{Width: w, Height: h, Orientation: o}
 }
 
+// vips.MagickloadBuffer completely decodes the image, which is slow and
+// unsafe, as we can't check the size before decode. Use Go's GIF reader
+// to fetch metadata instead.
 func metadataGif(blob []byte) (Metadata, error) {
 	c, err := gif.DecodeConfig(bytes.NewReader(blob))
 	if err != nil {
