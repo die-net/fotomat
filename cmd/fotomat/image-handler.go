@@ -95,7 +95,14 @@ func parsePath(path string) (string, bool, bool, bool, int, int, bool) {
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		sendError(w, err, 0)
+	}
+
+	req.Header.Set("User-Agent", "Fotomat/1.0 (https://github.com/die-net/fotomat)")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		sendError(w, err, 0)
 		return
