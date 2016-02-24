@@ -54,12 +54,12 @@ cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int compression,
 
 int
 cgo_vips_webpload(const char *filename, VipsImage **out) {
-    return vips_webpload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+    return vips_webpload(filename, out, NULL);
 }
 
 int
 cgo_vips_webpload_buffer(void *buf, size_t len, VipsImage **out) {
-    return vips_webpload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+    return vips_webpload_buffer(buf, len, out, NULL);
 }
 
 int
