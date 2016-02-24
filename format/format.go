@@ -76,10 +76,10 @@ func (format Format) LoadBytes(blob []byte) (*vips.Image, error) {
 	return loadBytes(blob)
 }
 
-func (format Format) SaveAs() Format {
-	if format == Gif {
+func (format Format) SaveAs(lossless bool) Format {
+	if format != Jpeg && lossless {
 		return Png
 	}
 
-	return format
+	return Jpeg
 }

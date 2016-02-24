@@ -17,16 +17,31 @@ var (
 	maxOutputDimension      = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
 	maxBufferPixels         = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
 	sharpen                 = flag.Bool("sharpen", true, "Sharpen after resize.")
-	losslessMaxBitsPerPixel = flag.Int("lossless_max_bits_per_pixel", 4, "If saving in lossless format exceeds this size, switch to lossy (0=disable).")
-	maxProcessingDuration   = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0 = disable).")
+	losslessMaxBitsPerPixel = flag.Int("lossless_max_bits_per_pixel", 4, "If saving in lossless format exceeds this size, switch to lossy (0=always lossy).")
+	fetchTimeout            = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
+	maxProcessingDuration   = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
 	localImageDirectory     = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
 	pool                    chan bool
-	transport               = http.Transport{Proxy: http.ProxyFromEnvironment}
-	client                  = http.Client{Transport: http.RoundTripper(&transport)}
+	transport               http.Transport
+	client                  http.Client
 )
 
 func init() {
 	http.HandleFunc("/", imageProxyHandler)
+}
+
+func poolInit(limit int) {
+	transport = http.Transport{Proxy: http.ProxyFromEnvironment}
+	if *localImageDirectory != "" {
+		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(*localImageDirectory)))
+	}
+
+	client = http.Client{Transport: http.RoundTripper(&transport), Timeout: *fetchTimeout}
+
+	pool = make(chan bool, limit)
+	for i := 0; i < limit; i++ {
+		pool <- true
+	}
 }
 
 func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,17 +90,6 @@ func parsePath(path string) (string, bool, bool, bool, int, int, bool) {
 	}
 
 	return g[1], (g[2] == "p"), (g[3] == "w"), (g[4] == "c"), int(width), int(height), true
-}
-
-func poolInit(limit int) {
-	if *localImageDirectory != "" {
-		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(*localImageDirectory)))
-	}
-
-	pool = make(chan bool, limit)
-	for i := 0; i < limit; i++ {
-		pool <- true
-	}
 }
 
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {

@@ -129,36 +129,70 @@ func TestImageRotation(t *testing.T) {
 	}
 }
 
-func TestImageFormat(t *testing.T) {
-	img := image("2px.gif")
+func TestImageConversion(t *testing.T) {
+	var formatTest = []struct {
+		filename    string
+		in          format.Format
+		outLossless format.Format
+		outLossy    format.Format
+	}{
+		{"2px.gif", format.Gif, format.Png, format.Jpeg},
+		{"2px.png", format.Png, format.Png, format.Jpeg},
+		{"2px.jpg", format.Jpeg, format.Jpeg, format.Jpeg},
+		{"2px.webp", format.Webp, format.Png, format.Jpeg},
+	}
+	for _, f := range formatTest {
+		img := image(f.filename)
 
-	m, err := format.MetadataBytes(img)
-	if assert.Nil(t, err) {
-		assert.Equal(t, m.Width, 2)
-		assert.Equal(t, m.Height, 3)
+		m, err := format.MetadataBytes(img)
+		if assert.Nil(t, err, "format: %s", f.in) {
+			assert.Equal(t, m.Format, f.in, "format: %s", f.in)
+			assert.Equal(t, m.Width, 2, "format: %s", f.in)
+			assert.Equal(t, m.Height, 3, "format: %s", f.in)
 
-		// Verify that we rewrite it by default as a PNG of the same size.
-		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
-		if assert.Nil(t, err) {
-			assert.Nil(t, isSize(thumb, format.Png, 2, 3))
+			// With lossless disabled, verify that we rewrite in the lossy format.
+			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
+			if assert.Nil(t, err, "format: %s", f.in) {
+				assert.Nil(t, isSize(thumb, f.outLossy, 2, 3), "format: %s", f.in)
+			}
+
+			// With lossless enabled, verify that we rewrite in the lossless format.
+			thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 4})
+			if assert.Nil(t, err) {
+				assert.Nil(t, isSize(thumb, f.outLossless, 2, 3), "format: %s", f.in)
+			}
 		}
 
-		// If we ask for Jpeg, verify that we rewrite it as a Jpeg of the same size.
-		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{Format: format.Jpeg})
-		if assert.Nil(t, err) {
-			assert.Nil(t, isSize(thumb, format.Jpeg, 2, 3))
+		for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
+			// If we ask for a specific format, it should return that.
+			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{Format: of})
+			if assert.Nil(t, err, "formats: %s -> %s", f.in, of) {
+				assert.Nil(t, isSize(thumb, of, 2, 3), "formats: %s -> %s", f.in, of)
+			}
 		}
 	}
+}
 
-	img = image("flowers.png")
+func TestImageSwitchToLossy(t *testing.T) {
+	img := image("flowers.png")
 
-	m, err = format.MetadataBytes(img)
+	m, err := format.MetadataBytes(img)
 	if assert.Nil(t, err) {
 		assert.Equal(t, m.Width, 256)
 		assert.Equal(t, m.Height, 169)
 
-		// Verify that we rewrite it as JPEG of the same size.
-		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 4})
+		// With lossless disabled, we should always return a JPEG.
+		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
+		assert.Nil(t, err)
+		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169))
+
+		// With lossless set to a high value, we should return a PNG.
+		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 20})
+		assert.Nil(t, err)
+		assert.Nil(t, isSize(thumb, format.Png, 256, 169))
+
+		// Otherwise, make sure that LosslessMaxBitsPerPixel works as expected.
+		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 4})
 		assert.Nil(t, err)
 		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169))
 	}
