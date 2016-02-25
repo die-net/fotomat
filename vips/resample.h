@@ -9,8 +9,8 @@ cgo_vips_affine(VipsImage *in, VipsImage **out, double a, double b, double c, do
 }
 
 int
-cgo_vips_resize(VipsImage *in, VipsImage **out, double scale) {
-    return vips_resize(in, out, scale, NULL);
+cgo_vips_resize(VipsImage *in, VipsImage **out, double xscale, double yscale) {
+    return vips_resize(in, out, xscale, "vscale", yscale, NULL);
 }
 
 int

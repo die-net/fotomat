@@ -12,25 +12,25 @@ import (
 
 func Jpegload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload(C.CString(filename), &out)
+	e := C.cgo_vips_jpegload(C.CString(filename), &out, 1)
 	return imageError(out, e)
 }
 
 func JpegloadShrink(filename string, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload_shrink(C.CString(filename), &out, C.int(shrink))
+	e := C.cgo_vips_jpegload(C.CString(filename), &out, C.int(shrink))
 	return imageError(out, e)
 }
 
 func JpegloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1)
 	return imageError(out, e)
 }
 
 func JpegloadBufferShrink(buf []byte, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload_buffer_shrink(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
+	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
 	return imageError(out, e)
 }
 

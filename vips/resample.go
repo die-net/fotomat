@@ -45,9 +45,9 @@ func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) (*Image, e
 // image is block-shrunk with Shrink() to roughly half the interpolator
 // window size above the target size, then blurred with an anti-alias
 // filter, then resampled with Affine(), then sharpened.
-func (in *Image) Resize(scale float64) (*Image, error) {
+func (in *Image) Resize(xscale, yscale float64) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_resize(in.vi, &out, C.double(scale))
+	e := C.cgo_vips_resize(in.vi, &out, C.double(xscale), C.double(yscale))
 	return imageError(out, e)
 }
 

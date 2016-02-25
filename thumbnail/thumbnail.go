@@ -66,7 +66,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	// Do a high-quality resize to scale to final size.
 	if iw < m.Width || ih < m.Height {
 		factor := scaleFactor(iw, ih, m.Width, m.Height)
-		out, err := image.Resize(float64(factor))
+		out, err := image.Resize(factor, factor)
 		if err != nil {
 			return nil, err
 		}
