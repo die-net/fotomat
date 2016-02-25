@@ -173,6 +173,47 @@ func TestImageConversion(t *testing.T) {
 	}
 }
 
+func TestImageScalingJpeg(t *testing.T) {
+	testImageScalingFormat(t, format.Jpeg)
+}
+
+func TestImageScalingPng(t *testing.T) {
+	testImageScalingFormat(t, format.Png)
+}
+
+func TestImageScalingWebp(t *testing.T) {
+	testImageScalingFormat(t, format.Webp)
+}
+
+func testImageScalingFormat(t *testing.T, f format.Format) {
+	blob, err := flowersFormat(f)
+	if !assert.Nil(t, err) {
+		return
+	}
+
+	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
+		thumb, err := Thumbnail(blob, Options{Width: size, Height: size}, format.SaveOptions{Format: f})
+		if assert.Nil(t, err) {
+			assert.Nil(t, isSize(thumb, f, size, (169*size+128)/256))
+		}
+	}
+}
+
+func TestImageBadSize(t *testing.T) {
+	for _, f := range []format.Format{format.Png, format.Jpeg, format.Webp} {
+		blob, err := flowersFormat(f)
+		if !assert.Nil(t, err, "format: %s", f) {
+			continue
+		}
+
+		for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
+			thumb, err := Thumbnail(blob, Options{Width: -1, Height: -1}, format.SaveOptions{Format: of})
+			assert.Error(t, err, "format: %s -> %s, size: %d", f, of)
+			assert.False(t, thumb != nil, "format: %s -> %s, size: %d", f, of)
+		}
+	}
+}
+
 func TestImageSwitchToLossy(t *testing.T) {
 	img := image("flowers.png")
 
@@ -198,13 +239,128 @@ func TestImageSwitchToLossy(t *testing.T) {
 	}
 }
 
+func BenchmarkThumbnailJpeg16(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 16, Height: 16})
+}
+
+func BenchmarkThumbnailJpeg32(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 32, Height: 32})
+}
+
+func BenchmarkThumbnailJpeg64(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 64, Height: 64})
+}
+
+func BenchmarkThumbnailJpeg127(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 127, Height: 127})
+}
+
+func BenchmarkThumbnailJpeg128(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 128, Height: 128})
+}
+
+func BenchmarkThumbnailJpeg129(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 129, Height: 129})
+}
+
+func BenchmarkThumbnailJpeg255(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 255, Height: 255})
+}
+
+func BenchmarkThumbnailJpeg256(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 256, Height: 256})
+}
+
+func BenchmarkThumbnailPng16(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 16, Height: 16})
+}
+
+func BenchmarkThumbnailPng32(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 32, Height: 32})
+}
+
+func BenchmarkThumbnailPng64(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 64, Height: 64})
+}
+
+func BenchmarkThumbnailPng127(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 127, Height: 127})
+}
+
+func BenchmarkThumbnailPng128(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 128, Height: 128})
+}
+
+func BenchmarkThumbnailPng129(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 129, Height: 129})
+}
+
+func BenchmarkThumbnailPng255(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 255, Height: 255})
+}
+
+func BenchmarkThumbnailPng256(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 256, Height: 256})
+}
+
+func BenchmarkThumbnailWebp16(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 16, Height: 16})
+}
+
+func BenchmarkThumbnailWebp32(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 32, Height: 32})
+}
+
+func BenchmarkThumbnailWebp64(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 64, Height: 64})
+}
+
+func BenchmarkThumbnailWebp127(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 127, Height: 127})
+}
+
+func BenchmarkThumbnailWebp128(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 128, Height: 128})
+}
+
+func BenchmarkThumbnailWebp129(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 129, Height: 129})
+}
+
+func BenchmarkThumbnailWebp255(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 255, Height: 255})
+}
+
+func BenchmarkThumbnailWebp256(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 256, Height: 256})
+}
+
+func benchThumbnail(b *testing.B, f format.Format, o Options) {
+	s := format.SaveOptions{Format: f}
+	blob, err := flowersFormat(f)
+	assert.Nil(b, err)
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_, err := Thumbnail(blob, o, s)
+			assert.Nil(b, err)
+		}
+	})
+}
+
+func flowersFormat(f format.Format) ([]byte, error) {
+	return Thumbnail(image("flowers.png"), Options{}, format.SaveOptions{Format: f})
+}
+
 func isSize(image []byte, f format.Format, width, height int) error {
 	m, err := format.MetadataBytes(image)
 	if err != nil {
 		return err
 	}
 	if m.Width != width || m.Height != height {
-		return fmt.Errorf("Width %d!=%d or height %d!=%d", m.Width, width, m.Height, height)
+		return fmt.Errorf("Got %dx%d != want %dx%d", m.Width, m.Height, width, height)
 	}
 	if m.Format != f {
 		return fmt.Errorf("Format %s!=%s", m.Format, f)
