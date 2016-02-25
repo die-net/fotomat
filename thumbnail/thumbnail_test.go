@@ -191,21 +191,28 @@ func testImageScalingFormat(t *testing.T, f format.Format) {
 		return
 	}
 
+	// Try scaling to some difficult sizes and make sure we get the expected size back.
+	// We have different code paths for different image formats, so we try for each.
 	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
 		thumb, err := Thumbnail(blob, Options{Width: size, Height: size}, format.SaveOptions{Format: f})
 		if assert.Nil(t, err) {
-			assert.Nil(t, isSize(thumb, f, size, (169*size+128)/256))
+			h := ((169 * size) + 128) / 256
+			if h < 1 {
+				h = 1
+			}
+			assert.Nil(t, isSize(thumb, f, size, h))
 		}
 	}
 }
 
-func TestImageBadSize(t *testing.T) {
+func TestImageBadOptions(t *testing.T) {
 	for _, f := range []format.Format{format.Png, format.Jpeg, format.Webp} {
 		blob, err := flowersFormat(f)
 		if !assert.Nil(t, err, "format: %s", f) {
 			continue
 		}
 
+		// Try feeding some bad options and make sure we get nothing back.
 		for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
 			thumb, err := Thumbnail(blob, Options{Width: -1, Height: -1}, format.SaveOptions{Format: of})
 			assert.Error(t, err, "format: %s -> %s, size: %d", f, of)

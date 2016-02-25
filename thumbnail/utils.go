@@ -15,15 +15,14 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
 		rh = (hp + ow/2) / ow
 	}
 
-	return rw, rh
-}
-
-func scaleFactor(iw, ih, mw, mh int) float64 {
-	sw := float64(iw) / float64(mw)
-	if sh := float64(ih) / float64(mh); sh > sw {
-		return sh
+	if rw < 1 {
+		rw = 1
 	}
-	return sw
+	if rh < 1 {
+		rh = 1
+	}
+
+	return rw, rh
 }
 
 func jpegShrink(shrink int) int {
