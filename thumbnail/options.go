@@ -57,7 +57,7 @@ func (o Options) Check(m format.Metadata) (Options, error) {
 	// If requested crop width or height are larger than original, scale
 	// request down to fit within original dimensions.
 	if o.Crop && (o.Width > m.Width || o.Height > m.Height) {
-		o.Width, o.Height = scaleAspect(o.Width, o.Height, m.Width, m.Height, true)
+		o.Width, o.Height, _ = scaleAspect(o.Width, o.Height, m.Width, m.Height, true)
 	}
 
 	// If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG

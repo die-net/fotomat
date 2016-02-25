@@ -1,18 +1,24 @@
 package thumbnail
 
+import (
+	"math"
+)
+
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.
 // If within=true, fit completely within result, leaving empty space if necessary.
-func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
+func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 	// Scale aspect ratio using integer math, avoiding floating point
 	// errors.
 
 	wp := ow * rh
 	hp := oh * rw
 
+	trustWidth := false
 	if within == (wp < hp) {
-		rw = (wp + oh/2) / oh
+		rw = (wp + oh - 1) / oh
 	} else {
-		rh = (hp + ow/2) / ow
+		rh = (hp + ow - 1) / ow
+		trustWidth = true
 	}
 
 	if rw < 1 {
@@ -22,10 +28,18 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int) {
 		rh = 1
 	}
 
-	return rw, rh
+	return rw, rh, trustWidth
 }
 
-func jpegShrink(shrink int) int {
+func jpegShrink(mw, mh, iw, ih int, trustWidth bool) int {
+	var shrink int
+	if trustWidth {
+		shrink = mw / iw
+	} else {
+		shrink = mh / ih
+	}
+
+	// Jpeg loader can quickly shrink by 2, 4, or 8.
 	switch {
 	case shrink >= 8:
 		return 8

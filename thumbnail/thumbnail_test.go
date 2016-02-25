@@ -64,13 +64,13 @@ func TestImageThumbnail(t *testing.T) {
 	// Verify scaling down to fit completely into box.
 	thumb, err := Thumbnail(img, Options{Width: 200, Height: 300}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 269))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270))
 	}
 
 	// Verify scaling down to have width fit.
 	thumb, err = Thumbnail(img, Options{Width: 200}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 269))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270))
 	}
 
 	// Verify scaling down to have height fit.
@@ -196,7 +196,7 @@ func testImageScalingFormat(t *testing.T, f format.Format) {
 	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
 		thumb, err := Thumbnail(blob, Options{Width: size, Height: size}, format.SaveOptions{Format: f})
 		if assert.Nil(t, err) {
-			h := ((169 * size) + 128) / 256
+			h := (169*size + 255) / 256
 			if h < 1 {
 				h = 1
 			}
@@ -246,100 +246,112 @@ func TestImageSwitchToLossy(t *testing.T) {
 	}
 }
 
-func BenchmarkThumbnailJpeg16(b *testing.B) {
+func BenchmarkThumbnailJpeg_16(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 16, Height: 16})
 }
 
-func BenchmarkThumbnailJpeg32(b *testing.B) {
+func BenchmarkThumbnailJpeg_32(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 32, Height: 32})
 }
 
-func BenchmarkThumbnailJpeg64(b *testing.B) {
+func BenchmarkThumbnailJpeg_64(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 64, Height: 64})
 }
 
-func BenchmarkThumbnailJpeg127(b *testing.B) {
-	benchThumbnail(b, format.Jpeg, Options{Width: 127, Height: 127})
-}
-
-func BenchmarkThumbnailJpeg128(b *testing.B) {
+func BenchmarkThumbnailJpeg_128(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 128, Height: 128})
 }
 
-func BenchmarkThumbnailJpeg129(b *testing.B) {
-	benchThumbnail(b, format.Jpeg, Options{Width: 129, Height: 129})
-}
-
-func BenchmarkThumbnailJpeg255(b *testing.B) {
-	benchThumbnail(b, format.Jpeg, Options{Width: 255, Height: 255})
-}
-
-func BenchmarkThumbnailJpeg256(b *testing.B) {
+func BenchmarkThumbnailJpeg_256(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 256, Height: 256})
 }
 
-func BenchmarkThumbnailPng16(b *testing.B) {
+func BenchmarkThumbnailJpeg_24(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 24, Height: 24})
+}
+
+func BenchmarkThumbnailJpeg_48(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 48, Height: 48})
+}
+
+func BenchmarkThumbnailJpeg_96(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 96, Height: 96})
+}
+
+func BenchmarkThumbnailJpeg_192(b *testing.B) {
+	benchThumbnail(b, format.Jpeg, Options{Width: 192, Height: 192})
+}
+
+func BenchmarkThumbnailPng_16(b *testing.B) {
 	benchThumbnail(b, format.Png, Options{Width: 16, Height: 16})
 }
 
-func BenchmarkThumbnailPng32(b *testing.B) {
+func BenchmarkThumbnailPng_32(b *testing.B) {
 	benchThumbnail(b, format.Png, Options{Width: 32, Height: 32})
 }
 
-func BenchmarkThumbnailPng64(b *testing.B) {
+func BenchmarkThumbnailPng_64(b *testing.B) {
 	benchThumbnail(b, format.Png, Options{Width: 64, Height: 64})
 }
 
-func BenchmarkThumbnailPng127(b *testing.B) {
-	benchThumbnail(b, format.Png, Options{Width: 127, Height: 127})
-}
-
-func BenchmarkThumbnailPng128(b *testing.B) {
+func BenchmarkThumbnailPng_128(b *testing.B) {
 	benchThumbnail(b, format.Png, Options{Width: 128, Height: 128})
 }
 
-func BenchmarkThumbnailPng129(b *testing.B) {
-	benchThumbnail(b, format.Png, Options{Width: 129, Height: 129})
-}
-
-func BenchmarkThumbnailPng255(b *testing.B) {
-	benchThumbnail(b, format.Png, Options{Width: 255, Height: 255})
-}
-
-func BenchmarkThumbnailPng256(b *testing.B) {
+func BenchmarkThumbnailPng_256(b *testing.B) {
 	benchThumbnail(b, format.Png, Options{Width: 256, Height: 256})
 }
 
-func BenchmarkThumbnailWebp16(b *testing.B) {
+func BenchmarkThumbnailPng_24(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 24, Height: 24})
+}
+
+func BenchmarkThumbnailPng_48(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 48, Height: 48})
+}
+
+func BenchmarkThumbnailPng_96(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 96, Height: 96})
+}
+
+func BenchmarkThumbnailPng_192(b *testing.B) {
+	benchThumbnail(b, format.Png, Options{Width: 192, Height: 192})
+}
+
+func BenchmarkThumbnailWebp_16(b *testing.B) {
 	benchThumbnail(b, format.Webp, Options{Width: 16, Height: 16})
 }
 
-func BenchmarkThumbnailWebp32(b *testing.B) {
+func BenchmarkThumbnailWebp_32(b *testing.B) {
 	benchThumbnail(b, format.Webp, Options{Width: 32, Height: 32})
 }
 
-func BenchmarkThumbnailWebp64(b *testing.B) {
+func BenchmarkThumbnailWebp_64(b *testing.B) {
 	benchThumbnail(b, format.Webp, Options{Width: 64, Height: 64})
 }
 
-func BenchmarkThumbnailWebp127(b *testing.B) {
-	benchThumbnail(b, format.Webp, Options{Width: 127, Height: 127})
-}
-
-func BenchmarkThumbnailWebp128(b *testing.B) {
+func BenchmarkThumbnailWebp_128(b *testing.B) {
 	benchThumbnail(b, format.Webp, Options{Width: 128, Height: 128})
 }
 
-func BenchmarkThumbnailWebp129(b *testing.B) {
-	benchThumbnail(b, format.Webp, Options{Width: 129, Height: 129})
-}
-
-func BenchmarkThumbnailWebp255(b *testing.B) {
-	benchThumbnail(b, format.Webp, Options{Width: 255, Height: 255})
-}
-
-func BenchmarkThumbnailWebp256(b *testing.B) {
+func BenchmarkThumbnailWebp_256(b *testing.B) {
 	benchThumbnail(b, format.Webp, Options{Width: 256, Height: 256})
+}
+
+func BenchmarkThumbnailWebp_24(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 24, Height: 24})
+}
+
+func BenchmarkThumbnailWebp_48(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 48, Height: 48})
+}
+
+func BenchmarkThumbnailWebp_96(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 96, Height: 96})
+}
+
+func BenchmarkThumbnailWebp_192(b *testing.B) {
+	benchThumbnail(b, format.Webp, Options{Width: 192, Height: 192})
 }
 
 func benchThumbnail(b *testing.B, f format.Format, o Options) {

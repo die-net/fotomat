@@ -32,14 +32,14 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	// Figure out size to scale image down to.  For crop, this is the
 	// intermediate size the original image would have to be scaled to
 	// be cropped to requested size.
-	iw, ih := scaleAspect(m.Width, m.Height, o.Width, o.Height, !o.Crop)
-
-	shrink := math.Min(float64(m.Width)/float64(iw), float64(m.Height)/float64(ih))
+	iw, ih, trustWidth := scaleAspect(m.Width, m.Height, o.Width, o.Height, !o.Crop)
 
 	// Are we shrinking by more than 2.5%?
-	shrank := shrink > 1.025
+	shrank := iw < m.Width-m.Width/40 && ih < m.Height-m.Height/40
 
-	image, err := load(blob, m.Format, int(shrink))
+	// Figure out the jpeg shrink factor and load image.  Jpeg rounds up
+	// the number of pixels.
+	image, err := load(blob, m.Format, jpegShrink(m.Width, m.Height, iw, ih, trustWidth))
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +52,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	m = format.MetadataImage(image)
 
 	// A box filter will quickly get us within 2x of the final size.
+	// Shrink rounds down the number of pixels.
 	xshrink := math.Floor(float64(m.Width) / float64(iw))
 	yshrink := math.Floor(float64(m.Height) / float64(ih))
 	if xshrink >= 2 || yshrink >= 2 {
@@ -105,7 +106,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 
 func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 	if f == format.Jpeg && shrink > 1 {
-		return vips.JpegloadBufferShrink(blob, jpegShrink(shrink))
+		return vips.JpegloadBufferShrink(blob, shrink)
 	}
 
 	return f.LoadBytes(blob)
