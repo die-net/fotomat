@@ -6,6 +6,7 @@ import (
 	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/thumbnail"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -198,7 +199,12 @@ func sendError(w http.ResponseWriter, err error, status int) {
 		case thumbnail.ErrTooBig:
 			status = http.StatusRequestEntityTooLarge
 		default:
-			status = http.StatusInternalServerError
+			if isTimeout(err) {
+				err = nil
+				status = http.StatusGatewayTimeout
+			} else {
+				status = http.StatusInternalServerError
+			}
 		}
 	default:
 		err = fmt.Errorf("Proxy received %d %s", status, http.StatusText(status))
@@ -208,4 +214,20 @@ func sendError(w http.ResponseWriter, err error, status int) {
 		err = fmt.Errorf(http.StatusText(status))
 	}
 	http.Error(w, err.Error(), status)
+}
+
+func isTimeout(err error) bool {
+	if err == nil {
+		return false
+	}
+	switch err := err.(type) {
+	case net.Error:
+		return err.Timeout()
+	case *url.Error:
+		// Only necessary for Go < 1.6.
+		if err, ok := err.Err.(net.Error); ok {
+			return err.Timeout()
+		}
+	}
+	return false
 }
