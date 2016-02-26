@@ -17,7 +17,8 @@ import (
 var (
 	maxOutputDimension      = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
 	maxBufferPixels         = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
-	sharpen                 = flag.Bool("sharpen", true, "Sharpen after resize.")
+	sharpen                 = flag.Bool("sharpen", false, "Sharpen after resize.")
+	alwaysInterpolate       = flag.Bool("always_interpolate", false, "Always use slower high-quality interpolator for final 2x shrink.")
 	losslessMaxBitsPerPixel = flag.Int("lossless_max_bits_per_pixel", 4, "If saving in lossless format exceeds this size, switch to lossy (0=always lossy).")
 	fetchTimeout            = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
 	maxProcessingDuration   = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
@@ -155,11 +156,12 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	}
 
 	options := thumbnail.Options{
-		Width:           width,
-		Height:          height,
-		MaxBufferPixels: *maxBufferPixels,
-		Crop:            crop,
-		Sharpen:         *sharpen,
+		Width:             width,
+		Height:            height,
+		MaxBufferPixels:   *maxBufferPixels,
+		Crop:              crop,
+		Sharpen:           *sharpen,
+		AlwaysInterpolate: *alwaysInterpolate,
 	}
 
 	saveOptions := format.SaveOptions{

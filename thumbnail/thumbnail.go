@@ -37,9 +37,11 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	// Are we shrinking by more than 2.5%?
 	shrank := iw < m.Width-m.Width/40 && ih < m.Height-m.Height/40
 
-	// Figure out the jpeg shrink factor and load image.  Jpeg rounds up
-	// the number of pixels.
-	image, err := load(blob, m.Format, jpegShrink(m.Width, m.Height, iw, ih, trustWidth))
+	// Figure out the jpeg shrink factor and load image.
+	// Jpeg shrink rounds up the number of pixels.
+	js := jpegShrink(m.Width, m.Height, iw, ih, trustWidth, o.AlwaysInterpolate)
+
+	image, err := load(blob, m.Format, js)
 	if err != nil {
 		return nil, err
 	}
@@ -53,16 +55,18 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 
 	// A box filter will quickly get us within 2x of the final size.
 	// Shrink rounds down the number of pixels.
-	xshrink := math.Floor(float64(m.Width) / float64(iw))
-	yshrink := math.Floor(float64(m.Height) / float64(ih))
-	if xshrink >= 2 || yshrink >= 2 {
-		out, err := image.Shrink(xshrink, yshrink)
-		if err != nil {
-			return nil, err
+	if !o.AlwaysInterpolate {
+		xshrink := math.Floor(float64(m.Width) / float64(iw))
+		yshrink := math.Floor(float64(m.Height) / float64(ih))
+		if xshrink >= 2 || yshrink >= 2 {
+			out, err := image.Shrink(xshrink, yshrink)
+			if err != nil {
+				return nil, err
+			}
+			image.Close()
+			image = out
+			m = format.MetadataImage(image)
 		}
-		image.Close()
-		image = out
-		m = format.MetadataImage(image)
 	}
 
 	// Do a high-quality resize to scale to final size.

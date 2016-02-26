@@ -17,13 +17,14 @@ const (
 )
 
 type Options struct {
-	Width           int
-	Height          int
-	Crop            bool
-	MaxBufferPixels int
-	Sharpen         bool
-	BlurSigma       float64
-	AutoContrast    bool
+	Width             int
+	Height            int
+	Crop              bool
+	MaxBufferPixels   int
+	Sharpen           bool
+	BlurSigma         float64
+	AutoContrast      bool
+	AlwaysInterpolate bool
 }
 
 func (o Options) Check(m format.Metadata) (Options, error) {
