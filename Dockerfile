@@ -25,11 +25,11 @@ RUN \
     curl -sS https://storage.googleapis.com/golang/go1.4.3.linux-amd64.tar.gz | \
         tar --strip-components=1 -C /usr/local/go -xzf - && \
 
-    # Fetch and build VIPS
+    # Fetch and build VIPS (enabling GCC's auto-vectorization)
     curl -sS http://www.vips.ecs.soton.ac.uk/supported/8.2/vips-8.2.2.tar.gz | \
         tar --strip-components=1 -C /usr/local/vips -xzf - && \
     cd /usr/local/vips && \
-    ./configure --enable-debug=no --without-python --without-orc --without-fftw --without-gsf && \
+    CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" CXXFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" ./configure --enable-debug=no --without-python --without-orc --without-fftw --without-gsf && \
     make && make install && ldconfig && \
 
     # Build, install, and test fotomat
