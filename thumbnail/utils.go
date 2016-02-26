@@ -1,9 +1,5 @@
 package thumbnail
 
-import (
-	"math"
-)
-
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.
 // If within=true, fit completely within result, leaving empty space if necessary.
 func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
