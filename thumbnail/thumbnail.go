@@ -45,9 +45,9 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
+	defer image.Close()
 
-	image, err = preProcess(image)
-	if err != nil {
+	if err = preProcess(image); err != nil {
 		return nil, err
 	}
 
@@ -59,25 +59,19 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		xshrink := math.Floor(float64(m.Width) / float64(iw))
 		yshrink := math.Floor(float64(m.Height) / float64(ih))
 		if xshrink >= 2 || yshrink >= 2 {
-			out, err := image.Shrink(xshrink, yshrink)
-			if err != nil {
+			if err := image.Shrink(xshrink, yshrink); err != nil {
 				return nil, err
 			}
-			image.Close()
-			image = out
 			m = format.MetadataImage(image)
 		}
 	}
 
 	// Do a high-quality resize to scale to final size.
 	if iw < m.Width || ih < m.Height {
-		out, err := image.Resize(float64(iw)/float64(m.Width), float64(ih)/float64(m.Height))
-		if err != nil {
+		if err := image.Resize(float64(iw)/float64(m.Width), float64(ih)/float64(m.Height)); err != nil {
 			return nil, err
 		}
 
-		image.Close()
-		image = out
 		m = format.MetadataImage(image)
 	}
 
@@ -88,24 +82,18 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		// Assume faces are higher up vertically
 		y := (m.Height - o.Height + 1) / 4
 
-		out, err := image.ExtractArea(m.Orientation.Crop(o.Width, o.Height, x, y, m.Width, m.Height))
-		if err != nil {
+		if err := image.ExtractArea(m.Orientation.Crop(o.Width, o.Height, x, y, m.Width, m.Height)); err != nil {
 			return nil, err
 		}
 
-		image.Close()
-		image = out
 		m = format.MetadataImage(image)
 	}
 
-	image, err = postProcess(image, m.Orientation, shrank, o)
-	if err != nil {
+	if err = postProcess(image, m.Orientation, shrank, o); err != nil {
 		return nil, err
 	}
 
-	thumb, err := format.Save(image, saveOptions)
-	image.Close()
-	return thumb, err
+	return format.Save(image, saveOptions)
 }
 
 func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
@@ -116,19 +104,14 @@ func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 	return f.LoadBytes(blob)
 }
 
-func preProcess(image *vips.Image) (*vips.Image, error) {
-	if out, err := image.IccImport(); err == nil {
-		image.Close()
-		image = out
-	}
+func preProcess(image *vips.Image) error {
+	_ = image.IccImport()
 
-	if image.ImageGuessInterpretation() != vips.InterpretationSRGB {
-		out, err := image.Colourspace(vips.InterpretationSRGB)
-		if err != nil {
-			return nil, err
+	space := image.ImageGuessInterpretation()
+	if space != vips.InterpretationSRGB && space != vips.InterpretationBW {
+		if err := image.Colourspace(vips.InterpretationSRGB); err != nil {
+			return err
 		}
-		image.Close()
-		image = out
 	}
 
 	if image.HasAlpha() {
@@ -138,71 +121,45 @@ func preProcess(image *vips.Image) (*vips.Image, error) {
 		// Interpolation of RGB values with an alpha channel isn't
 		// safe unless the values are pre-multiplied.  Undo this
 		// later.
-		out, err := image.Premultiply()
-		if err != nil {
-			return nil, err
+		if err := image.Premultiply(); err != nil {
+			return err
 		}
-		image.Close()
-		image = out
 	}
 
-	return image, nil
+	return nil
 }
 
-func postProcess(image *vips.Image, orientation format.Orientation, shrank bool, options Options) (*vips.Image, error) {
+func postProcess(image *vips.Image, orientation format.Orientation, shrank bool, options Options) error {
 	if options.BlurSigma > 0.0 {
-		out, err := image.Gaussblur(options.BlurSigma)
-		if err != nil {
-			return nil, err
+		if err := image.Gaussblur(options.BlurSigma); err != nil {
+			return err
 		}
-
-		image.Close()
-		image = out
 	}
 
 	if options.Sharpen && shrank {
-		out, err := image.MildSharpen()
-		if err != nil {
-			return nil, err
+		if err := image.MildSharpen(); err != nil {
+			return err
 		}
-
-		image.Close()
-		image = out
 	}
 
 	if image.HasAlpha() {
 		// Assume we pre-multiplied above and undo it after all
 		// operations that touch adjacent pixels.
-		out, err := image.Unpremultiply()
-		if err != nil {
-			return nil, err
+		if err := image.Unpremultiply(); err != nil {
+			return err
 		}
-		image.Close()
-		image = out
 	}
 
 	// Make sure we generate images with 8 bits per channel. Do this
 	// before the rotate to reduce the amount of data that needs to be
 	// copied.
 	if image.ImageGetBandFormat() != vips.BandFormatUchar {
-		out, err := image.Cast(vips.BandFormatUchar)
-		if err != nil {
-			return nil, err
+		if err := image.Cast(vips.BandFormatUchar); err != nil {
+			return err
 		}
-		image.Close()
-		image = out
 	}
 
 	// Before rotating this will also apply all operations above into a
 	// copy of the image.
-	out, err := orientation.Apply(image)
-	if err != nil {
-		return nil, err
-	}
-	if out != nil {
-		image.Close()
-		image = out
-	}
-
-	return image, nil
+	return orientation.Apply(image)
 }

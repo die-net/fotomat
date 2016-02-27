@@ -34,10 +34,10 @@ func (i Interpolate) Close() {
 //   Y = c * (x + idx ) + d * (y + idy ) + doy
 // x and y are the coordinates in input image. X and Y are the coordinates
 // in output image.  (0,0) is the upper left corner.
-func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) (*Image, error) {
+func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_affine(in.vi, &out, C.double(a), C.double(b), C.double(c), C.double(d), interpolate.interpolate)
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
 // Resize an image using the bicubic interpolator. When upsizing (scale >
@@ -45,18 +45,18 @@ func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) (*Image, e
 // image is block-shrunk with Shrink() to roughly half the interpolator
 // window size above the target size, then blurred with an anti-alias
 // filter, then resampled with Affine(), then sharpened.
-func (in *Image) Resize(xscale, yscale float64) (*Image, error) {
+func (in *Image) Resize(xscale, yscale float64) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_resize(in.vi, &out, C.double(xscale), C.double(yscale))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
 // Shrink in by a pair of factors with a simple box filter.  You will get
 // aliasing for non-integer shrinks.  In this case, shrink with this
 // function to the nearest integer size above the target shrink, then
 // downsample to the exact size with Affine().
-func (in *Image) Shrink(xshrink, yshrink float64) (*Image, error) {
+func (in *Image) Shrink(xshrink, yshrink float64) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_shrink(in.vi, &out, C.double(xshrink), C.double(yshrink))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }

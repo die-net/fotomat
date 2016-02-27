@@ -12,6 +12,7 @@ import (
 	"errors"
 )
 
+// btoi converts from Go boolean to int with value 0 or 1.
 func btoi(b bool) int {
 	if b {
 		return 1
@@ -20,7 +21,7 @@ func btoi(b bool) int {
 	return 0
 }
 
-// vipsError() converts from vips to Go errors.
+// vipsError converts from vips to Go errors.
 func vipsError(e C.int) error {
 	if e == 0 {
 		return nil
@@ -29,15 +30,4 @@ func vipsError(e C.int) error {
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
 	return errors.New(s)
-}
-
-// imageError() is a convenience wrapper around vipsError() for funcs that
-// call a vips function passing in an output C.struct__VipsImage and return
-// (Image, error).
-func imageError(out *C.struct__VipsImage, e C.int) (*Image, error) {
-	if err := vipsError(e); err != nil {
-		return nil, err
-	}
-
-	return imageFromVi(out), nil
 }

@@ -31,7 +31,7 @@ const (
 	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
 )
 
-func (in Image) ImageGetAsString(field string) (string, bool) {
+func (in *Image) ImageGetAsString(field string) (string, bool) {
 	var out *C.char
 	e := C.cgo_vips_image_get_as_string(in.vi, C.CString(field), &out)
 
@@ -41,19 +41,19 @@ func (in Image) ImageGetAsString(field string) (string, bool) {
 	return s, e == 0
 }
 
-func (in Image) ImageGetBands() int {
+func (in *Image) ImageGetBands() int {
 	return int(C.vips_image_get_bands(in.vi))
 }
 
-func (in Image) ImageGetBandFormat() BandFormat {
+func (in *Image) ImageGetBandFormat() BandFormat {
 	return BandFormat(C.vips_image_get_format(in.vi))
 }
 
-func (in Image) ImageGuessInterpretation() Interpretation {
+func (in *Image) ImageGuessInterpretation() Interpretation {
 	return Interpretation(C.vips_image_guess_interpretation(in.vi))
 }
 
-func (in Image) HasAlpha() bool {
+func (in *Image) HasAlpha() bool {
 	b := in.ImageGetBands()
 	i := in.ImageGuessInterpretation()
 
@@ -63,7 +63,7 @@ func (in Image) HasAlpha() bool {
 	return alpha
 }
 
-func (in Image) ImageRemove(field string) bool {
+func (in *Image) ImageRemove(field string) bool {
 	ok := C.vips_image_remove(in.vi, C.CString(field))
 
 	return ok != 0

@@ -34,16 +34,16 @@ const (
 )
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.
-func (in Image) Colourspace(space Interpretation) (*Image, error) {
+func (in *Image) Colourspace(space Interpretation) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_colourspace(in.vi, &out, C.VipsInterpretation(space))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
 // IccImport moves an image from device space to D65 LAB using the image's
 // embedded ICC profile.
-func (in Image) IccImport() (*Image, error) {
+func (in *Image) IccImport() error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_icc_import(in.vi, &out)
-	return imageError(out, e)
+	return in.imageError(out, e)
 }

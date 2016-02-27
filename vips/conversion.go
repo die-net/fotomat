@@ -33,50 +33,50 @@ const (
 	DirectionVertical   Direction = C.VIPS_DIRECTION_VERTICAL
 )
 
-func (in Image) Cast(format BandFormat) (*Image, error) {
+func (in *Image) Cast(format BandFormat) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_cast(in.vi, &out, C.VipsBandFormat(format))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Copy() (*Image, error) {
+func (in *Image) Copy() error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_copy(in.vi, &out)
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Embed(left, top, width, height int, extend Extend) (*Image, error) {
+func (in *Image) Embed(left, top, width, height int, extend Extend) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_embed(in.vi, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) ExtractArea(left, top, width, height int) (*Image, error) {
+func (in *Image) ExtractArea(left, top, width, height int) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_extract_area(in.vi, &out, C.int(left), C.int(top), C.int(width), C.int(height))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Flip(direction Direction) (*Image, error) {
+func (in *Image) Flip(direction Direction) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_flip(in.vi, &out, C.VipsDirection(direction))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Premultiply() (*Image, error) {
+func (in *Image) Premultiply() error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_premultiply(in.vi, &out)
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Rot(angle Angle) (*Image, error) {
+func (in *Image) Rot(angle Angle) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_rot(in.vi, &out, C.VipsAngle(angle))
-	return imageError(out, e)
+	return in.imageError(out, e)
 }
 
-func (in Image) Unpremultiply() (*Image, error) {
+func (in *Image) Unpremultiply() error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_unpremultiply(in.vi, &out)
-	return imageError(out, e)
+	return in.imageError(out, e)
 }

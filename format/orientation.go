@@ -23,7 +23,7 @@ var orientationInfo = []struct {
 	swapXY bool
 	flipX  bool
 	flipY  bool
-	apply  func(*vips.Image) (*vips.Image, error)
+	apply  func(*vips.Image) error
 }{
 	{swapXY: false, flipX: false, flipY: false, apply: nil}, // Unknown
 	{swapXY: false, flipX: false, flipY: false, apply: nil},
@@ -74,65 +74,58 @@ func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int,
 	return x, y, ow, oh
 }
 
-func (orientation Orientation) Apply(image *vips.Image) (*vips.Image, error) {
+func (orientation Orientation) Apply(image *vips.Image) error {
 	oi := &orientationInfo[orientation]
 
 	if oi.apply == nil {
-		return nil, nil
+		return nil
 	}
 
 	// We want to stay sequential, so we copy memory here and execute
 	// all work in the pipeline so far.
-	out, err := image.Write()
-	if err != nil {
-		return nil, err
+	if err := image.Write(); err != nil {
+		return err
 	}
 
-	rot, err := oi.apply(out)
-	out.Close()
-	if err != nil {
-		return nil, err
+	if err := oi.apply(image); err != nil {
+		return err
 	}
 
-	_ = rot.ImageRemove(vips.ExifOrientation)
+	_ = image.ImageRemove(vips.ExifOrientation)
 
-	return rot, nil
+	return nil
 }
 
-func flip(image *vips.Image) (*vips.Image, error) {
+func flip(image *vips.Image) error {
 	return image.Flip(vips.DirectionVertical)
 }
 
-func flop(image *vips.Image) (*vips.Image, error) {
+func flop(image *vips.Image) error {
 	return image.Flip(vips.DirectionHorizontal)
 }
 
-func rot90(image *vips.Image) (*vips.Image, error) {
+func rot90(image *vips.Image) error {
 	return image.Rot(vips.Angle90)
 }
 
-func rot180(image *vips.Image) (*vips.Image, error) {
+func rot180(image *vips.Image) error {
 	return image.Rot(vips.Angle180)
 }
 
-func rot270(image *vips.Image) (*vips.Image, error) {
+func rot270(image *vips.Image) error {
 	return image.Rot(vips.Angle270)
 }
 
-func transpose(image *vips.Image) (*vips.Image, error) {
-	flip, err := image.Flip(vips.DirectionVertical)
-	if err != nil {
-		return nil, err
+func transpose(image *vips.Image) error {
+	if err := image.Flip(vips.DirectionVertical); err != nil {
+		return err
 	}
-	defer flip.Close()
-	return flip.Rot(vips.Angle90)
+	return image.Rot(vips.Angle90)
 }
 
-func transverse(image *vips.Image) (*vips.Image, error) {
-	flip, err := image.Flip(vips.DirectionVertical)
-	if err != nil {
-		return nil, err
+func transverse(image *vips.Image) error {
+	if err := image.Flip(vips.DirectionVertical); err != nil {
+		return err
 	}
-	defer flip.Close()
-	return flip.Rot(vips.Angle270)
+	return image.Rot(vips.Angle270)
 }
