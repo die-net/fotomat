@@ -28,8 +28,8 @@ func Initialize() {
 	}
 
 	C.vips_concurrency_set(1)
-	C.vips_cache_set_max_mem(50 * 1024 * 1024)
-	C.vips_cache_set_max(200)
+	C.vips_cache_set_max_mem(0)
+	C.vips_cache_set_max(0)
 }
 
 func LeakSet(enable bool) {
