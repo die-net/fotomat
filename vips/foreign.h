@@ -4,12 +4,12 @@
 
 int
 cgo_vips_jpegload(const char *filename, VipsImage **out, int shrink) {
-    return vips_jpegload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL, "shrink", shrink, NULL);
+    return vips_jpegload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, "shrink", shrink, NULL);
 }
 
 int
 cgo_vips_jpegload_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
-    return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, "shrink", shrink, NULL);
+    return vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, "shrink", shrink, NULL);
 }
 
 int
@@ -29,12 +29,12 @@ cgo_vips_magickload_buffer(void *buf, size_t len, VipsImage **out) {
 
 int
 cgo_vips_pngload(const char *filename, VipsImage **out) {
-    return vips_pngload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+    return vips_pngload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, NULL);
 }
 
 int
 cgo_vips_pngload_buffer(void *buf, size_t len, VipsImage **out) {
-    return vips_pngload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL, NULL);
+    return vips_pngload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, NULL);
 }
 
 int
