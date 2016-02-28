@@ -20,33 +20,6 @@ func TestOptionsMetadata(t *testing.T) {
 	assert.Equal(t, err, nil)
 }
 
-/*
-func TestOptionsDefaults(t *testing.T) {
-	r, err := Options{}.Check(format.Metadata{Width: 2, Height: 2, Format: format.Jpeg})
-	assert.Equal(t, err, nil)
-	assert.Equal(t, r.Quality, 85)
-	assert.Equal(t, r.Compression, 6)
-}
-*/
-
-/*
-func TestOptionsFormats(t *testing.T) {
-	// Make sure Jpeg is written back as Jpeg by default.
-	r, err := Options{}.Check(format.Metadata{Width: 2, Height: 2, Format: format.Jpeg})
-	assert.Equal(t, err, nil)
-	assert.Equal(t, r.Format, format.Jpeg)
-
-	// Make sure Gif is written as Png by default.
-	r, err = Options{}.Check(format.Metadata{Width: 2, Height: 2, Format: format.Gif})
-	assert.Equal(t, err, nil)
-	assert.Equal(t, r.Format, Png)
-
-	// Disallow explicitly saving as Gif.
-	_, err = Options{Format: format.Gif}.Check(format.Metadata{Width: 2, Height: 2, Format: format.Gif})
-	assert.Equal(t, err, ErrUnknownFormat)
-}
-*/
-
 func TestOptionsCrop(t *testing.T) {
 	m := format.Metadata{Width: 640, Height: 480, Format: format.Jpeg}
 

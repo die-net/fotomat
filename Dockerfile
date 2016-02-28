@@ -36,8 +36,8 @@ RUN \
     make && make install && ldconfig && \
 
     # Build, install, and test fotomat
-    GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail && \
-    GOPATH=/app /usr/local/go/bin/go test github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail && \
+    GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
 
     # Mark fotomat's dependencies as needed, to avoid autoremoval
     ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \

@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 	os.Exit(r)
 }
 
-func TestImageValidation(t *testing.T) {
+func TestValidation(t *testing.T) {
 	// Return ErrUnknownFormat on a text file.
 	assert.Equal(t, tryNew("notimage.txt"), format.ErrUnknownFormat)
 
@@ -51,7 +51,7 @@ func tryNew(filename string) error {
 	return err
 }
 
-func TestImageThumbnail(t *testing.T) {
+func TestThumbnail(t *testing.T) {
 	img := image("watermelon.jpg")
 
 	m, err := format.MetadataBytes(img)
@@ -86,7 +86,7 @@ func TestImageThumbnail(t *testing.T) {
 	}
 }
 
-func TestImageCrop(t *testing.T) {
+func TestCrop(t *testing.T) {
 	img := image("watermelon.jpg")
 
 	m, err := format.MetadataBytes(img)
@@ -107,7 +107,7 @@ func TestImageCrop(t *testing.T) {
 	}
 }
 
-func TestImageRotation(t *testing.T) {
+func TestRotation(t *testing.T) {
 	for i := 1; i <= 8; i++ {
 		// Verify that New() correctly translates dimensions.
 		img := image("orient" + strconv.Itoa(i) + ".jpg")
@@ -129,7 +129,7 @@ func TestImageRotation(t *testing.T) {
 	}
 }
 
-func TestImageConversion(t *testing.T) {
+func TestConversion(t *testing.T) {
 	var formatTest = []struct {
 		filename    string
 		in          format.Format
@@ -173,19 +173,19 @@ func TestImageConversion(t *testing.T) {
 	}
 }
 
-func TestImageScalingJpeg(t *testing.T) {
-	testImageScalingFormat(t, format.Jpeg)
+func TestScalingJpeg(t *testing.T) {
+	testScalingFormat(t, format.Jpeg)
 }
 
-func TestImageScalingPng(t *testing.T) {
-	testImageScalingFormat(t, format.Png)
+func TestScalingPng(t *testing.T) {
+	testScalingFormat(t, format.Png)
 }
 
-func TestImageScalingWebp(t *testing.T) {
-	testImageScalingFormat(t, format.Webp)
+func TestScalingWebp(t *testing.T) {
+	testScalingFormat(t, format.Webp)
 }
 
-func testImageScalingFormat(t *testing.T, f format.Format) {
+func testScalingFormat(t *testing.T, f format.Format) {
 	blob, err := flowersFormat(f)
 	if !assert.Nil(t, err) {
 		return
@@ -205,7 +205,7 @@ func testImageScalingFormat(t *testing.T, f format.Format) {
 	}
 }
 
-func TestImageBadOptions(t *testing.T) {
+func TestBadOptions(t *testing.T) {
 	for _, f := range []format.Format{format.Png, format.Jpeg, format.Webp} {
 		blob, err := flowersFormat(f)
 		if !assert.Nil(t, err, "format: %s", f) {
@@ -221,7 +221,7 @@ func TestImageBadOptions(t *testing.T) {
 	}
 }
 
-func TestImageSwitchToLossy(t *testing.T) {
+func TestSwitchToLossy(t *testing.T) {
 	img := image("flowers.png")
 
 	m, err := format.MetadataBytes(img)
