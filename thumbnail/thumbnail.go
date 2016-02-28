@@ -35,61 +35,48 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	iw, ih, trustWidth := scaleAspect(m.Width, m.Height, o.Width, o.Height, !o.Crop)
 
 	// Are we shrinking by more than 2.5%?
-	shrank := iw < m.Width-m.Width/40 && ih < m.Height-m.Height/40
+	shrinking := iw < m.Width-m.Width/40 && ih < m.Height-m.Height/40
 
 	// Figure out the jpeg shrink factor and load image.
 	// Jpeg shrink rounds up the number of pixels.
-	js := jpegShrink(m.Width, m.Height, iw, ih, trustWidth, o.AlwaysInterpolate)
-
-	image, err := load(blob, m.Format, js)
+	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.AlwaysInterpolate)
+	image, err := load(blob, m.Format, psf)
 	if err != nil {
 		return nil, err
 	}
 	defer image.Close()
 
-	if err = preProcess(image); err != nil {
+	// Apply ICC profile if present. Ignore errors.
+	_ = image.IccImport()
+
+	space := image.ImageGuessInterpretation()
+	if space != vips.InterpretationSRGB && space != vips.InterpretationBW {
+		if err := image.Colourspace(vips.InterpretationSRGB); err != nil {
+			return nil, err
+		}
+	}
+
+	// TODO: Flatten() image if it has alpha channel set to 100% opaque.
+
+	if err := resize(image, iw, ih, o.AlwaysInterpolate, o.BlurSigma, o.Sharpen && shrinking); err != nil {
 		return nil, err
 	}
 
-	m = format.MetadataImage(image)
-
-	// A box filter will quickly get us within 2x of the final size.
-	// Shrink rounds down the number of pixels.
-	if !o.AlwaysInterpolate {
-		xshrink := math.Floor(float64(m.Width) / float64(iw))
-		yshrink := math.Floor(float64(m.Height) / float64(ih))
-		if xshrink >= 2 || yshrink >= 2 {
-			if err := image.Shrink(xshrink, yshrink); err != nil {
-				return nil, err
-			}
-			m = format.MetadataImage(image)
-		}
-	}
-
-	// Do a high-quality resize to scale to final size.
-	if iw < m.Width || ih < m.Height {
-		if err := image.Resize(float64(iw)/float64(m.Width), float64(ih)/float64(m.Height)); err != nil {
+	// Make sure we generate images with 8 bits per channel.  Do this before the
+	// rotate to reduce the amount of data that needs to be copied.
+	if image.ImageGetBandFormat() != vips.BandFormatUchar {
+		if err := image.Cast(vips.BandFormatUchar); err != nil {
 			return nil, err
 		}
-
-		m = format.MetadataImage(image)
 	}
 
-	// If necessary, crop to fit exact size.
-	if o.Crop && (o.Width < m.Width || o.Height < m.Height) {
-		// Center horizontally
-		x := (m.Width - o.Width + 1) / 2
-		// Assume faces are higher up vertically
-		y := (m.Height - o.Height + 1) / 4
-
-		if err := image.ExtractArea(m.Orientation.Crop(o.Width, o.Height, x, y, m.Width, m.Height)); err != nil {
+	if o.Crop {
+		if err = crop(image, o.Width, o.Height); err != nil {
 			return nil, err
 		}
-
-		m = format.MetadataImage(image)
 	}
 
-	if err = postProcess(image, m.Orientation, shrank, o); err != nil {
+	if err := m.Orientation.Apply(image); err != nil {
 		return nil, err
 	}
 
@@ -104,24 +91,56 @@ func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 	return f.LoadBytes(blob)
 }
 
-func preProcess(image *vips.Image) error {
-	_ = image.IccImport()
+func resize(image *vips.Image, iw, ih int, alwaysInterpolate bool, blurSigma float64, sharpen bool) error {
+	m := format.MetadataImage(image)
 
-	space := image.ImageGuessInterpretation()
-	if space != vips.InterpretationSRGB && space != vips.InterpretationBW {
-		if err := image.Colourspace(vips.InterpretationSRGB); err != nil {
+	// Interpolation of RGB values with an alpha channel isn't safe
+	// unless the values are pre-multiplied. Undo this later.
+	// This also flattens fully transparent pixels to black.
+	premultiply := image.HasAlpha()
+	if premultiply {
+		if err := image.Premultiply(); err != nil {
 			return err
 		}
 	}
 
-	if image.HasAlpha() {
-		// TODO: Check if image has alpha channel set to 100% opaque
-		// and Flatten() it instead.
+	// A box filter will quickly get us within 2x of the final size, at some quality cost.
+	if !alwaysInterpolate {
+		// Shrink factors can be passed independently here, but we
+		// don't because Resize()'s blur and sharpening steps expect
+		// a normal aspect ratio.
+		shrink := math.Min(math.Floor(float64(m.Width)/float64(iw)), math.Floor(float64(m.Height)/float64(ih)))
+		if shrink >= 2 {
+			// Shrink rounds down the number of pixels.
+			if err := image.Shrink(shrink, shrink); err != nil {
+				return err
+			}
+			m = format.MetadataImage(image)
+		}
+	}
 
-		// Interpolation of RGB values with an alpha channel isn't
-		// safe unless the values are pre-multiplied.  Undo this
-		// later.
-		if err := image.Premultiply(); err != nil {
+	// If necessary, do a high-quality resize to scale to final size.
+	if iw < m.Width || ih < m.Height {
+		if err := image.Resize(float64(iw)/float64(m.Width), float64(ih)/float64(m.Height)); err != nil {
+			return err
+		}
+	}
+
+	if blurSigma > 0.0 {
+		if err := image.Gaussblur(blurSigma); err != nil {
+			return err
+		}
+	}
+
+	if sharpen {
+		if err := image.MildSharpen(); err != nil {
+			return err
+		}
+	}
+
+	// Unpremultiply after all operations that touch adjacent pixels.
+	if premultiply {
+		if err := image.Unpremultiply(); err != nil {
 			return err
 		}
 	}
@@ -129,37 +148,22 @@ func preProcess(image *vips.Image) error {
 	return nil
 }
 
-func postProcess(image *vips.Image, orientation format.Orientation, shrank bool, options Options) error {
-	if options.BlurSigma > 0.0 {
-		if err := image.Gaussblur(options.BlurSigma); err != nil {
-			return err
-		}
+func crop(image *vips.Image, ow, oh int) error {
+	m := format.MetadataImage(image)
+
+	// If we have nothing to do, return.
+	if ow == m.Width && oh == m.Height {
+		return nil
 	}
 
-	if options.Sharpen && shrank {
-		if err := image.MildSharpen(); err != nil {
-			return err
-		}
+	// Center horizontally
+	x := (m.Width - ow + 1) / 2
+	// Assume faces are higher up vertically
+	y := (m.Height - oh + 1) / 4
+
+	if x < 0 || y < 0 {
+		panic("Bad crop offsets!")
 	}
 
-	if image.HasAlpha() {
-		// Assume we pre-multiplied above and undo it after all
-		// operations that touch adjacent pixels.
-		if err := image.Unpremultiply(); err != nil {
-			return err
-		}
-	}
-
-	// Make sure we generate images with 8 bits per channel. Do this
-	// before the rotate to reduce the amount of data that needs to be
-	// copied.
-	if image.ImageGetBandFormat() != vips.BandFormatUchar {
-		if err := image.Cast(vips.BandFormatUchar); err != nil {
-			return err
-		}
-	}
-
-	// Before rotating this will also apply all operations above into a
-	// copy of the image.
-	return orientation.Apply(image)
+	return image.ExtractArea(m.Orientation.Crop(ow, oh, x, y, m.Width, m.Height))
 }

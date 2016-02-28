@@ -27,7 +27,9 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 	return rw, rh, trustWidth
 }
 
-func jpegShrink(mw, mh, iw, ih int, trustWidth, alwaysInterpolate bool) int {
+func preShrinkFactor(mw, mh, iw, ih int, trustWidth, alwaysInterpolate bool) int {
+	// Jpeg shrink rounds up the number of pixels, so calculate
+	// pre-shrink based on side that matters more.
 	var shrink int
 	if trustWidth {
 		shrink = mw / iw
@@ -35,8 +37,8 @@ func jpegShrink(mw, mh, iw, ih int, trustWidth, alwaysInterpolate bool) int {
 		shrink = mh / ih
 	}
 
+	// If set, make sure high-quality Resize() can do the last 2x.
 	if alwaysInterpolate {
-		// Make sure high-quality Resize() can do the last 2x.
 		shrink = shrink / 2
 	}
 
