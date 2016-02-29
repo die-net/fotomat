@@ -29,7 +29,7 @@ RUN \
         tar --strip-components=1 -C /usr/local/vips -xzf - && \
     cd /usr/local/vips && \
     CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" CXXFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" \
-        ./configure --disable-debug --disable-dependency-tracking --disable-gtk-doc-html --disable-pyvips8 \
+        ./configure --disable-debug --disable-dependency-tracking --disable-gtk-doc-html --disable-pyvips8 --disable-static \
         --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick --with-tiff --with-libwebp --with-png \
         --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc \
         --without-pangoft2 --without-python --without-x --without-zip && \
@@ -38,6 +38,7 @@ RUN \
     # Build, install, and test fotomat
     GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
     GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    strip /app/bin/fotomat && \
 
     # Mark fotomat's dependencies as needed, to avoid autoremoval
     ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
