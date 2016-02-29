@@ -30,15 +30,31 @@ cgo_vips_extract_area(VipsImage *in, VipsImage **out, int left, int top, int wid
 }
 
 int
-cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction) {
-    return vips_flip(in, out, direction, NULL);
+cgo_vips_extract_band(VipsImage *in, VipsImage **out, int band, int n) {
+    return vips_extract_band(in, out, band, "n", n, NULL);
 }
 
-static double
+double
 cgo_max_alpha(VipsImage *in) {
-    if (in->BandFmt == VIPS_FORMAT_USHORT)
+    switch (in->BandFmt) {
+    case VIPS_FORMAT_USHORT:
         return 65535;
-    return 255;
+    case VIPS_FORMAT_FLOAT:
+    case VIPS_FORMAT_DOUBLE:
+        return 1.0;
+    default:
+        return 255;
+    }
+}
+
+int
+cgo_vips_flatten(VipsImage *in, VipsImage **out) {
+    return vips_flatten(in, out, "max_alpha", cgo_max_alpha(in), NULL);
+}
+
+int
+cgo_vips_flip(VipsImage *in, VipsImage **out, VipsDirection direction) {
+    return vips_flip(in, out, direction, NULL);
 }
 
 int
@@ -53,5 +69,6 @@ cgo_vips_rot(VipsImage *in, VipsImage **out, VipsAngle angle) {
 
 int
 cgo_vips_unpremultiply(VipsImage *in, VipsImage **out) {
-    return vips_unpremultiply(in, out, "max_alpha", cgo_max_alpha(in), NULL);
+    // Assumes we're converting to uchar and uses default max_alpha of 255.
+    return vips_unpremultiply(in, out, NULL);
 }

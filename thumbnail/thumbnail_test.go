@@ -64,25 +64,25 @@ func TestThumbnail(t *testing.T) {
 	// Verify scaling down to fit completely into box.
 	thumb, err := Thumbnail(img, Options{Width: 200, Height: 300}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270, false))
 	}
 
 	// Verify scaling down to have width fit.
 	thumb, err = Thumbnail(img, Options{Width: 200}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270, false))
 	}
 
 	// Verify scaling down to have height fit.
 	thumb, err = Thumbnail(img, Options{Height: 300}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 223, 300))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 223, 300, false))
 	}
 
 	// Verify that we don't scale up.
 	thumb, err = Thumbnail(img, Options{Width: 2048, Height: 2048}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 536))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 536, false))
 	}
 }
 
@@ -97,13 +97,33 @@ func TestCrop(t *testing.T) {
 	// Verify cropping to fit.
 	thumb, err := Thumbnail(img, Options{Width: 300, Height: 400, Crop: true}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 300, 400))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 300, 400, false))
 	}
 
 	// Verify cropping to fit, too big.
 	thumb, err = Thumbnail(img, Options{Width: 2000, Height: 1500, Crop: true}, format.SaveOptions{})
 	if assert.Nil(t, err) {
-		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 299))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 299, false))
+	}
+}
+
+func TestAlpha(t *testing.T) {
+	img := image("noalpha.png")
+	assert.Nil(t, isSize(img, format.Png, 100, 50, true))
+
+	// Test that we remove the alpha channel from an image that's not using it.
+	thumb, err := Thumbnail(img, Options{Width: 100, Height: 100}, format.SaveOptions{Format: format.Png})
+	if assert.Nil(t, err) {
+		assert.Nil(t, isSize(thumb, format.Png, 100, 50, false))
+	}
+
+	img = image("somealpha.png")
+	assert.Nil(t, isSize(img, format.Png, 100, 50, true))
+
+	// Test that we leave the alpha channel for an image that is using it.
+	thumb, err = Thumbnail(img, Options{Width: 100, Height: 100}, format.SaveOptions{Format: format.Png})
+	if assert.Nil(t, err) {
+		assert.Nil(t, isSize(thumb, format.Png, 100, 50, true))
 	}
 }
 
@@ -122,7 +142,7 @@ func TestRotation(t *testing.T) {
 		// Verify that img.Thumbnail() maintains orientation.
 		thumb, err := Thumbnail(img, Options{Width: 40, Height: 40}, format.SaveOptions{})
 		if assert.Nil(t, err) {
-			assert.Nil(t, isSize(thumb, format.Jpeg, 24, 40))
+			assert.Nil(t, isSize(thumb, format.Jpeg, 24, 40, false))
 		}
 
 		// TODO: Figure out how to test crop.
@@ -153,13 +173,13 @@ func TestConversion(t *testing.T) {
 			// With lossless disabled, verify that we rewrite in the lossy format.
 			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
 			if assert.Nil(t, err, "format: %s", f.in) {
-				assert.Nil(t, isSize(thumb, f.outLossy, 2, 3), "format: %s", f.in)
+				assert.Nil(t, isSize(thumb, f.outLossy, 2, 3, false), "format: %s", f.in)
 			}
 
 			// With lossless enabled, verify that we rewrite in the lossless format.
 			thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 4})
 			if assert.Nil(t, err) {
-				assert.Nil(t, isSize(thumb, f.outLossless, 2, 3), "format: %s", f.in)
+				assert.Nil(t, isSize(thumb, f.outLossless, 2, 3, false), "format: %s", f.in)
 			}
 		}
 
@@ -167,7 +187,7 @@ func TestConversion(t *testing.T) {
 			// If we ask for a specific format, it should return that.
 			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{Format: of})
 			if assert.Nil(t, err, "formats: %s -> %s", f.in, of) {
-				assert.Nil(t, isSize(thumb, of, 2, 3), "formats: %s -> %s", f.in, of)
+				assert.Nil(t, isSize(thumb, of, 2, 3, false), "formats: %s -> %s", f.in, of)
 			}
 		}
 	}
@@ -200,7 +220,7 @@ func testScalingFormat(t *testing.T, f format.Format) {
 			if h < 1 {
 				h = 1
 			}
-			assert.Nil(t, isSize(thumb, f, size, h))
+			assert.Nil(t, isSize(thumb, f, size, h, false))
 		}
 	}
 }
@@ -232,17 +252,17 @@ func TestSwitchToLossy(t *testing.T) {
 		// With lossless disabled, we should always return a JPEG.
 		thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{})
 		assert.Nil(t, err)
-		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169, false))
 
 		// With lossless set to a high value, we should return a PNG.
 		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 20})
 		assert.Nil(t, err)
-		assert.Nil(t, isSize(thumb, format.Png, 256, 169))
+		assert.Nil(t, isSize(thumb, format.Png, 256, 169, false))
 
 		// Otherwise, make sure that LosslessMaxBitsPerPixel works as expected.
 		thumb, err = Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{LosslessMaxBitsPerPixel: 4})
 		assert.Nil(t, err)
-		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169))
+		assert.Nil(t, isSize(thumb, format.Jpeg, 256, 169, false))
 	}
 }
 
@@ -373,7 +393,7 @@ func flowersFormat(f format.Format) ([]byte, error) {
 	return Thumbnail(image("flowers.png"), Options{}, format.SaveOptions{Format: f})
 }
 
-func isSize(image []byte, f format.Format, width, height int) error {
+func isSize(image []byte, f format.Format, width, height int, alpha bool) error {
 	m, err := format.MetadataBytes(image)
 	if err != nil {
 		return err
@@ -383,6 +403,9 @@ func isSize(image []byte, f format.Format, width, height int) error {
 	}
 	if m.Format != f {
 		return fmt.Errorf("Format %s!=%s", m.Format, f)
+	}
+	if m.HasAlpha != alpha {
+		return fmt.Errorf("HasAlpha %s!=%s", m.HasAlpha, alpha)
 	}
 	return nil
 }

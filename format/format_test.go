@@ -126,7 +126,7 @@ func BenchmarkMetadataWebp_3000(b *testing.B) {
 }
 
 func benchMetadata(b *testing.B, filename string, format Format) {
-	blob := convert(filename, format)
+	blob := convert(image(filename), SaveOptions{Format: format})
 
 	b.ResetTimer()
 
@@ -187,7 +187,7 @@ func BenchmarkLoadWebp_3000(b *testing.B) {
 }
 
 func benchLoad(b *testing.B, filename string, format Format) {
-	blob := convert(filename, format)
+	blob := convert(image(filename), SaveOptions{Format: format})
 
 	b.ResetTimer()
 
@@ -204,20 +204,15 @@ func benchLoad(b *testing.B, filename string, format Format) {
 	})
 }
 
-func convert(filename string, of Format) []byte {
-	blob := image(filename)
+func convert(blob []byte, so SaveOptions) []byte {
 	format := DetectFormat(blob)
-	if format == of {
-		return blob
-	}
-
 	img, err := format.LoadBytes(blob)
 	if err != nil {
 		panic(err)
 	}
 	defer img.Close()
 
-	blob, err = Save(img, SaveOptions{Format: of})
+	blob, err = Save(img, so)
 	if err != nil {
 		panic(err)
 	}
@@ -290,4 +285,64 @@ func benchSave(b *testing.B, filename string, so SaveOptions) {
 	})
 
 	img.Close()
+}
+
+func BenchmarkConvertJpeg_2(b *testing.B) {
+	benchConvert(b, "2px.jpg", SaveOptions{Format: Jpeg})
+}
+
+func BenchmarkConvertPng_2(b *testing.B) {
+	benchConvert(b, "2px.png", SaveOptions{Format: Png})
+}
+
+func BenchmarkConvertWebp_2(b *testing.B) {
+	benchConvert(b, "2px.webp", SaveOptions{Format: Webp})
+}
+
+func BenchmarkConvertJpeg_256(b *testing.B) {
+	benchConvert(b, "flowers.png", SaveOptions{Format: Jpeg})
+}
+
+func BenchmarkConvertPng_256(b *testing.B) {
+	benchConvert(b, "flowers.png", SaveOptions{Format: Png})
+}
+
+func BenchmarkConvertWebp_256(b *testing.B) {
+	benchConvert(b, "flowers.png", SaveOptions{Format: Webp})
+}
+
+func BenchmarkConvertJpeg_536(b *testing.B) {
+	benchConvert(b, "watermelon.jpg", SaveOptions{Format: Jpeg})
+}
+
+func BenchmarkConvertPng_536(b *testing.B) {
+	benchConvert(b, "watermelon.jpg", SaveOptions{Format: Png})
+}
+
+func BenchmarkConvertWebp_536(b *testing.B) {
+	benchConvert(b, "watermelon.jpg", SaveOptions{Format: Webp})
+}
+
+func BenchmarkConvertJpeg_3000(b *testing.B) {
+	benchConvert(b, "3000px.png", SaveOptions{Format: Jpeg})
+}
+
+func BenchmarkConvertPng_3000(b *testing.B) {
+	benchConvert(b, "3000px.png", SaveOptions{Format: Png})
+}
+
+func BenchmarkConvertWebp_3000(b *testing.B) {
+	benchConvert(b, "3000px.png", SaveOptions{Format: Webp})
+}
+
+func benchConvert(b *testing.B, filename string, so SaveOptions) {
+	blob := convert(image(filename), so)
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = convert(blob, so)
+		}
+	})
 }

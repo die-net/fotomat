@@ -25,7 +25,7 @@ const (
 	BandFormatShort     BandFormat = C.VIPS_FORMAT_SHORT
 	BandFormatUint      BandFormat = C.VIPS_FORMAT_UINT
 	BandFormatInt       BandFormat = C.VIPS_FORMAT_INT
-	BandFormatFloaT     BandFormat = C.VIPS_FORMAT_FLOAT
+	BandFormatFloat     BandFormat = C.VIPS_FORMAT_FLOAT
 	BandFormatComplex   BandFormat = C.VIPS_FORMAT_COMPLEX
 	BandFormatDouble    BandFormat = C.VIPS_FORMAT_DOUBLE
 	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX

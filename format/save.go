@@ -42,8 +42,12 @@ func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 
 func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 	// JPEG interlace saves 2-3%, but incurs a few hundred bytes of
-	// overhead.  This isn't usually beneficial on small images.
-	interlace := image.Xsize()*image.Ysize() >= 200*200
+	// overhead, requires buffering the image completely in RAM for
+	// encoding and decoding, and takes over 3x the CPU.  This isn't
+	// usually beneficial on small images and is too expensive for large
+	// images.
+	pixels := image.Xsize() * image.Ysize()
+	interlace := pixels >= 200*200 && pixels <= 1024*1024
 
 	// Strip and optimize both save space, enable them.
 	return image.JpegsaveBuffer(true, options.Quality, true, interlace)

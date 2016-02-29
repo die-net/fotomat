@@ -56,8 +56,6 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		}
 	}
 
-	// TODO: Flatten() image if it has alpha channel set to 100% opaque.
-
 	if err := resize(image, iw, ih, o.AlwaysInterpolate, o.BlurSigma, o.Sharpen && shrinking); err != nil {
 		return nil, err
 	}
@@ -73,6 +71,14 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	if o.Crop {
 		if err = crop(image, o.Width, o.Height); err != nil {
 			return nil, err
+		}
+	}
+
+	if image.HasAlpha() {
+		if min, err := minTransparency(image); err == nil && min >= 0.9 {
+			if err := image.Flatten(); err != nil {
+				return nil, err
+			}
 		}
 	}
 

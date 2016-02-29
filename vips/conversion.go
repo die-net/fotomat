@@ -39,10 +39,10 @@ func (in *Image) Cast(format BandFormat) error {
 	return in.imageError(out, e)
 }
 
-func (in *Image) Copy() error {
+func (in *Image) Copy() (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_copy(in.vi, &out)
-	return in.imageError(out, e)
+	err := vipsError(C.cgo_vips_copy(in.vi, &out))
+	return imageFromVi(out), err
 }
 
 func (in *Image) Embed(left, top, width, height int, extend Extend) error {
@@ -57,10 +57,26 @@ func (in *Image) ExtractArea(left, top, width, height int) error {
 	return in.imageError(out, e)
 }
 
+func (in *Image) ExtractBand(band, n int) error {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_extract_band(in.vi, &out, C.int(band), C.int(n))
+	return in.imageError(out, e)
+}
+
+func (in *Image) Flatten() error {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_flatten(in.vi, &out)
+	return in.imageError(out, e)
+}
+
 func (in *Image) Flip(direction Direction) error {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_flip(in.vi, &out, C.VipsDirection(direction))
 	return in.imageError(out, e)
+}
+
+func (in *Image) MaxAlpha() float64 {
+	return float64(C.cgo_max_alpha(in.vi))
 }
 
 func (in *Image) Premultiply() error {

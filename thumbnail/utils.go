@@ -1,5 +1,9 @@
 package thumbnail
 
+import (
+	"github.com/die-net/fotomat/vips"
+)
+
 // Scale original (width, height) to result (width, height), maintaining aspect ratio.
 // If within=true, fit completely within result, leaving empty space if necessary.
 func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
@@ -53,4 +57,28 @@ func preShrinkFactor(mw, mh, iw, ih int, trustWidth, alwaysInterpolate bool) int
 	default:
 		return 1
 	}
+}
+
+func minTransparency(image *vips.Image) (float64, error) {
+	if !image.HasAlpha() {
+		return 1.0, nil
+	}
+
+	band, err := image.Copy()
+	if err != nil {
+		return 0, err
+	}
+	defer band.Close()
+
+	if err := band.ExtractBand(band.ImageGetBands()-1, 1); err != nil {
+		return 0, err
+	}
+
+	// If all pixels are at least 90% opaque, we can flatten.
+	min, err := band.Min()
+	if err != nil {
+		return 0, err
+	}
+
+	return min / band.MaxAlpha(), nil
 }

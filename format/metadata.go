@@ -11,6 +11,7 @@ type Metadata struct {
 	Height      int
 	Format      Format
 	Orientation Orientation
+	HasAlpha    bool
 }
 
 func MetadataBytes(blob []byte) (Metadata, error) {
@@ -60,7 +61,7 @@ func MetadataImage(image *vips.Image) Metadata {
 	if w <= 0 || h <= 0 {
 		panic("Invalid image dimensions.")
 	}
-	return Metadata{Width: w, Height: h, Orientation: o}
+	return Metadata{Width: w, Height: h, Orientation: o, HasAlpha: image.HasAlpha()}
 }
 
 // vips.MagickloadBuffer completely decodes the image, which is slow and
