@@ -12,6 +12,10 @@ import (
 	"errors"
 )
 
+var (
+	ErrImageOp = errors.New("Image operation error")
+)
+
 // btoi converts from Go boolean to int with value 0 or 1.
 func btoi(b bool) int {
 	if b {
@@ -27,7 +31,17 @@ func vipsError(e C.int) error {
 		return nil
 	}
 
+	// The VIPS error buffer is global, and checking and clearing it are
+	// not atomic. If errors are infrequent, this will probably return
+	// our error. It may also return nothing or unrelated errors.
+	// TODO: Consider vips_error_freeze() and skipping this.
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
-	return errors.New(s)
+
+	if s != "" {
+		return errors.New(s)
+	}
+
+	// At least return something generic.
+	return ErrImageOp
 }
