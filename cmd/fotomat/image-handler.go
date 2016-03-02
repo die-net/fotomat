@@ -15,17 +15,19 @@ import (
 )
 
 var (
-	maxOutputDimension      = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
-	maxBufferPixels         = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
-	sharpen                 = flag.Bool("sharpen", false, "Sharpen after resize.")
-	alwaysInterpolate       = flag.Bool("always_interpolate", false, "Always use slower high-quality interpolator for final 2x shrink.")
-	losslessMaxBitsPerPixel = flag.Int("lossless_max_bits_per_pixel", 4, "If saving in lossless format exceeds this size, switch to lossy (0=always lossy).")
-	fetchTimeout            = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
-	maxProcessingDuration   = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
-	localImageDirectory     = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
-	pool                    chan bool
-	transport               http.Transport
-	client                  http.Client
+	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
+	maxBufferPixels       = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
+	sharpen               = flag.Bool("sharpen", false, "Sharpen after resize.")
+	alwaysInterpolate     = flag.Bool("always_interpolate", false, "Always use slower high-quality interpolator for final 2x shrink.")
+	lossless              = flag.Bool("lossless", true, "Allow saving as PNG even without transparency.")
+	lossyIfPhoto          = flag.Bool("lossy_if_photo", true, "Save as lossy if image is detected as a photo.")
+	losslessWebp          = flag.Bool("lossless_webp", false, "When saving in WebP, allow lossless encoding.")
+	fetchTimeout          = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
+	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
+	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
+	pool                  chan bool
+	transport             http.Transport
+	client                http.Client
 )
 
 func init() {
@@ -165,7 +167,8 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	}
 
 	saveOptions := format.SaveOptions{
-		LosslessMaxBitsPerPixel: *losslessMaxBitsPerPixel,
+		Lossless:     *lossless,
+		LossyIfPhoto: *lossyIfPhoto,
 	}
 
 	// Preview images are tiny, blurry JPEGs.
@@ -177,8 +180,11 @@ func processImage(url string, orig []byte, preview, webp, crop bool, width, heig
 	}
 
 	if webp {
-		saveOptions.Format = format.Webp
-		saveOptions.LosslessMaxBitsPerPixel = 0 // Always use lossy
+		saveOptions.AllowWebp = true
+		if saveOptions.Format != format.Unknown {
+			saveOptions.Format = format.Webp
+		}
+		saveOptions.Lossless = *losslessWebp
 	}
 
 	return thumbnail.Thumbnail(orig, options, saveOptions)

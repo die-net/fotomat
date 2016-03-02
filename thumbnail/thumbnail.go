@@ -24,9 +24,9 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		return nil, err
 	}
 
-	// If output format is not set, pick one.
-	if saveOptions.Format == format.Unknown {
-		saveOptions.Format = m.Format.SaveAs(saveOptions.LosslessMaxBitsPerPixel > 0)
+	// If source image is lossy, disable lossless.
+	if m.Format == format.Jpeg {
+		saveOptions.Lossless = false
 	}
 
 	// Figure out size to scale image down to.  For crop, this is the

@@ -31,10 +31,10 @@ func TestMetadataValidation(t *testing.T) {
 	assert.Equal(t, metadataError("bad.jpg"), ErrUnknownFormat)
 
 	// Load a 2x3 pixel image of each type.
-	assert.Nil(t, isSize("2px.jpg", Jpeg, 2, 3))
-	assert.Nil(t, isSize("2px.png", Png, 2, 3))
-	assert.Nil(t, isSize("2px.gif", Gif, 2, 3))
-	assert.Nil(t, isSize("2px.webp", Webp, 2, 3))
+	assert.Nil(t, isSize(image("2px.jpg"), Jpeg, 2, 3))
+	assert.Nil(t, isSize(image("2px.png"), Png, 2, 3))
+	assert.Nil(t, isSize(image("2px.gif"), Gif, 2, 3))
+	assert.Nil(t, isSize(image("2px.webp"), Webp, 2, 3))
 }
 
 func metadataError(filename string) error {
@@ -51,8 +51,8 @@ func image(filename string) []byte {
 	return bytes
 }
 
-func isSize(filename string, f Format, width, height int) error {
-	m, err := MetadataBytes(image(filename))
+func isSize(blob []byte, f Format, width, height int) error {
+	m, err := MetadataBytes(blob)
 	if err != nil {
 		return err
 	}
@@ -74,6 +74,28 @@ func TestFormatOrientation(t *testing.T) {
 			assert.Equal(t, m.Width, 48)
 			assert.Equal(t, m.Height, 80)
 		}
+	}
+}
+
+func TestSwitchToLossy(t *testing.T) {
+	img := image("flowers.png")
+
+	m, err := MetadataBytes(img)
+	if assert.Nil(t, err) {
+		assert.Equal(t, m.Width, 256)
+		assert.Equal(t, m.Height, 169)
+
+		// With lossless disabled, we should always return a JPEG.
+		thumb := convert(img, SaveOptions{})
+		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
+
+		// With lossless enabled, we should return a PNG.
+		thumb = convert(img, SaveOptions{Lossless: true})
+		assert.Nil(t, isSize(thumb, Png, 256, 169))
+
+		// With lossless and lossIfPhoto enabled, we should return a Jpeg.
+		thumb = convert(img, SaveOptions{Lossless: true, LossyIfPhoto: true})
+		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
 	}
 }
 
@@ -281,6 +303,41 @@ func benchSave(b *testing.B, filename string, so SaveOptions) {
 		for pb.Next() {
 			_, err := Save(img, so)
 			assert.Nil(b, err)
+		}
+	})
+
+	img.Close()
+}
+
+func BenchmarkUseLossless_2(b *testing.B) {
+	benchUseLossless(b, "2px.png", SaveOptions{Format: Png, Lossless: true, LossyIfPhoto: true})
+}
+
+func BenchmarkUseLossless_256(b *testing.B) {
+	benchUseLossless(b, "flowers.png", SaveOptions{Format: Png, Lossless: true, LossyIfPhoto: true})
+}
+
+func BenchmarkUseLossless_536(b *testing.B) {
+	benchUseLossless(b, "watermelon.jpg", SaveOptions{Format: Png, Lossless: true, LossyIfPhoto: true})
+}
+
+func BenchmarkUseLossless_3000(b *testing.B) {
+	benchUseLossless(b, "3000px.png", SaveOptions{Format: Png, Lossless: true, LossyIfPhoto: true})
+}
+
+func benchUseLossless(b *testing.B, filename string, so SaveOptions) {
+	blob := image(filename)
+	format := DetectFormat(blob)
+	img, err := format.LoadBytes(blob)
+	if !assert.Nil(b, err) || !assert.Nil(b, img.Write()) {
+		return
+	}
+
+	b.ResetTimer()
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			_ = useLossless(img, so)
 		}
 	})
 

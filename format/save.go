@@ -13,10 +13,12 @@ const (
 var ErrInvalidSaveFormat = errors.New("Invalid save format")
 
 type SaveOptions struct {
-	Format                  Format
-	Quality                 int
-	Compression             int
-	LosslessMaxBitsPerPixel int
+	Format       Format
+	Quality      int
+	Compression  int
+	AllowWebp    bool
+	Lossless     bool
+	LossyIfPhoto bool
 }
 
 func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
@@ -26,6 +28,19 @@ func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 
 	if options.Compression < 1 || options.Compression > 9 {
 		options.Compression = DefaultCompression
+	}
+
+	// Make a decision on image format and whether we're using lossless.
+	if options.Format == Unknown {
+		if options.AllowWebp {
+			options.Format = Webp
+		} else if image.HasAlpha() || useLossless(image, options) {
+			options.Format = Png
+		} else {
+			options.Format = Jpeg
+		}
+	} else if options.Format == Webp && !useLossless(image, options) {
+		options.Lossless = false
 	}
 
 	switch options.Format {
@@ -55,39 +70,31 @@ func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 
 func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 	// PNG interlace is larger; don't use it.
-	blob, err := image.PngsaveBuffer(options.Compression, false)
-	if err != nil {
-		return nil, err
-	}
-
-	// If PNG has transparency, keep it.
-	if image.HasAlpha() {
-		return blob, nil
-	}
-
-	// If LosslessMaxBitsPerPixel is suppled, and the image is not
-	// larger than that, keep it.
-	if options.LosslessMaxBitsPerPixel <= 0 || (len(blob)-256)*8 <= image.Xsize()*image.Ysize()*options.LosslessMaxBitsPerPixel {
-		return blob, nil
-	}
-
-	// Return a Jpeg instead.
-	return jpegSave(image, options)
+	return image.PngsaveBuffer(options.Compression, false)
 }
 
 func webpSave(image *vips.Image, options SaveOptions) ([]byte, error) {
-	// Shall we try using lossless?
-	if options.LosslessMaxBitsPerPixel > 0 {
-		blob, err := image.WebpsaveBuffer(options.Quality, true)
-		if err != nil {
-			return nil, err
-		}
+	return image.WebpsaveBuffer(options.Quality, options.Lossless)
+}
 
-		// If the image is not more than PngMaxBitsPerPixel, keep it.
-		if (len(blob)-256)*8 <= image.Xsize()*image.Ysize()*options.LosslessMaxBitsPerPixel {
-			return blob, nil
-		}
+func useLossless(image *vips.Image, options SaveOptions) bool {
+	if !options.Lossless {
+		return false
 	}
 
-	return image.WebpsaveBuffer(options.Quality, false)
+	if !options.LossyIfPhoto {
+		return true
+	}
+
+	// Mobile devices start being unwilling to load >= 3 megapixel PNGs.
+	// Also we don't want to bother to edge detect on large images.
+	if image.Xsize()*image.Ysize() >= 3*1024*1024 {
+		return false
+	}
+
+	// Take a histogram of a Sobel edge detect of our image.  What's the
+	// highest number of histogram values in a row that are more than 1%
+	// of the maximum value? Above 16 indicates a photo.
+	metric, err := image.PhotoMetric(0.01)
+	return err != nil || metric < 16
 }
