@@ -13,6 +13,7 @@ Also see:
 
 * [Godoc API documentation](https://godoc.org/github.com/die-net/fotomat/vips) for this API
 * The original [libvips API documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html)
+* Fotomat's [format](https://github.com/die-net/fotomat/tree/master/format) and [thumbnail](https://github.com/die-net/fotomat/tree/master/thumbnail) libraries and the Fotomat [server](https://github.com/die-net/fotomat), which use this API.
 
 #### Limitations
 

@@ -9,7 +9,11 @@ Fotomat aims to generate high-quality, compact images using available performanc
 
 * [Lanczos](http://en.wikipedia.org/wiki/Lanczos_resampling)-like resampling: Better-looking thumbnails with fewer artifacts.
 
-* Sharpening: Remove some of the blurriness caused by resampling.
+* Sharpening: Optionally remove some of the blurriness caused by resampling.
+
+* Photo detection: Converts PNG to much smaller JPEGs if it detects that the PNG is a photo.
+
+* Optional WebP: Serve WebP images to capable browsers (Chrome, Android Browser, and Opera) that are 20% smaller than JPEG.
 
 * Metadata stripping: Remove potentially large metadata from each image; particularly useful for images saved by Photoshop.
 

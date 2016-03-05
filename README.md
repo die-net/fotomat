@@ -3,6 +3,13 @@ Fotomat
 
 Fotomat is an extremely fast image resizing proxy, enabling on-the-fly resizing and cropping of JPEG, PNG, GIF, and WebP images. Written in [Go](https://golang.org/doc/) and using the fast and flexible [VIPS](http://www.vips.ecs.soton.ac.uk/index.php?title=Libvips) image library, it aims to deliver beautiful images in the shortest time and at the smallest file size possible.
 
+Documentation
+-------------
+
+See [features](https://github.com/die-net/fotomat/blob/master/doc/features.md), [building instructions](https://github.com/die-net/fotomat/blob/master/doc/building.md), and [command-line flags](https://github.com/die-net/fotomat/blob/master/doc/flags.md).
+
+There's also API detail for Fotomat's [thumbnail](https://godoc.org/github.com/die-net/fotomat/thumbnail), [format](https://godoc.org/github.com/die-net/fotomat/format), and [vips wrapper](https://godoc.org/github.com/die-net/fotomat/vips) libraries.
+
 
 License
 -------
