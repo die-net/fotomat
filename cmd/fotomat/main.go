@@ -16,6 +16,10 @@ var (
 func main() {
 	flag.Parse()
 
+	if *version {
+		showVersion()
+	}
+
 	// Up to max_threads will be allowed to be blocked in ImageMagick.
 	poolInit(*maxImageThreads)
 

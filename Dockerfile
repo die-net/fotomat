@@ -40,6 +40,10 @@ RUN \
     GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
     strip /app/bin/fotomat && \
 
+    # Add a fotomat user for it to run as, and make filesystem read-only to that user.
+    useradd -m fotomat -s /bin/bash && \
+    find / -type d -perm +002 -print0 | xargs -0 chmod o-w && \
+
     # Mark fotomat's dependencies as needed, to avoid autoremoval
     ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
         xargs dpkg -S | cut -d: -f1 | sort -u | xargs apt-get install && \
@@ -51,3 +55,6 @@ RUN \
     apt-get autoclean && \
     apt-get clean && \
     rm -rf /usr/local/go /usr/local/vips /app/pkg /var/lib/apt/lists/*
+
+# Start by default as a non-root user.
+USER fotomat

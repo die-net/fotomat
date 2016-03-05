@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Updates the patchlevel of FotomatVersion with the count of git commits.
+# Enable in the root of the repo: ln -s ../../git-hooks/pre-commit .git/hooks/
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+file="cmd/fotomat/version.go"
+
+if [ ! -f "$file" ]; then
+    echo "pre-commit: Can't find ${file}."
+    exit 1
+fi
+
+version=$(( $( git log --pretty=format:'' | wc -l | tr -d ' ' ) + 1 ))
+sed "s/FotomatVersion = \"\([0-9.]*\)\.[0-9]*\"/FotomatVersion = \"\1.${version}\"/" $file > $file.tmp
+mv $file.tmp $file
+git add $file
+echo "Updated $file FotomatVersion to: ${version}"
