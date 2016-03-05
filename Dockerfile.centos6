@@ -1,0 +1,51 @@
+FROM centos:6
+
+ADD . /app/src/github.com/die-net/fotomat
+
+ENTRYPOINT ["/app/bin/fotomat"]
+
+CMD ["-listen=:3520"]
+
+EXPOSE 3520
+
+RUN \
+    # Apply updates and install our dependencies
+    yum -y install epel-release && \
+    yum -y update && \
+    yum -y upgrade && \
+    yum -y install automake gcc gcc-c++ git glib2-devel \
+        ImageMagick-devel libexif-devel libjpeg-turbo-devel \
+        libpng-devel libtiff-devel libwebp-devel libxml2-devel && \
+    yum clean all && \
+
+    # Create a few directories
+    mkdir -p /usr/local/go /usr/local/vips /app/pkg /app/bin && \
+
+    # Fetch and install Go
+    curl -sS https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz | \
+        tar --strip-components=1 -C /usr/local/go -xzf - && \
+
+    # Fetch and build VIPS (enabling GCC's auto-vectorization)
+    curl -sS http://www.vips.ecs.soton.ac.uk/supported/8.2/vips-8.2.2.tar.gz | \
+        tar --strip-components=1 -C /usr/local/vips -xzf - && \
+    cd /usr/local/vips && \
+    CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" CXXFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" \
+        ./configure --disable-debug --disable-dependency-tracking --disable-gtk-doc-html --disable-pyvips8 --disable-static \
+        --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick --with-tiff --with-libwebp --with-png \
+        --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc \
+        --without-pangoft2 --without-python --without-x --without-zip && \
+    make && make install && \
+    echo /usr/local/lib > /etc/ld.so.conf.d/local.conf && ldconfig && \
+
+    # Build, install, and test fotomat
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    strip /app/bin/fotomat && \
+
+    # Remove unnecessary build tools and artifacts.
+    # TODO: Figure out how to do a better job of this.
+    yum -y remove automake gcc cpp gcc-c++ git glib2-devel \
+        ImageMagick-devel libexif-devel libjpeg-turbo-devel \
+        libpng-devel libtiff-devel libwebp-devel libxml2-devel \
+        perl openssh && \
+    rm -rf /usr/local/go /usr/local/vips /app/pkg
