@@ -1,3 +1,15 @@
+# Fotomat as a Docker image meant to be used directly on Docker-based
+# production systems.
+#
+# Automatically built by Docker Hub and available as dienet/fotomat:latest.
+# To rebuild locally: docker build -t dienet/fotomat:latest .
+#
+# To run serving local images from /path/to/images:
+#   docker run -v /path/to/images:/images dienet/fotomat:latest -listen=:3520 -local_image_directory=/images
+#
+# To run as an HTTP image proxy, trusting the host header:
+#   docker run dienet/fotomat:latest -listen=:3520
+
 FROM debian:jessie
 
 ADD . /app/src/github.com/die-net/fotomat

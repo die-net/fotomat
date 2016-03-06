@@ -1,9 +1,12 @@
+# Build Fotomat RPM for CentOS 6 using Docker.
+#
 # Run:
 #    docker build -f Dockerfile.rpm-centos6 -t dienet/fotomat:rpm-centos6 .
 #    docker run --name fotomat-rpm-centos6 dienet/fotomat:rpm-centos6 /bin/true
 #    docker export fotomat-rpm-centos6 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
 #    docker rm fotomat-rpm-centos6
 #    docker rmi dienet/fotomat:rpm-centos6
+#
 # And you'll end up with a fotomat*.rpm in the current directory.
 
 FROM centos:6

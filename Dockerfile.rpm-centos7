@@ -1,9 +1,12 @@
+# Build Fotomat RPM for CentOS 7 using Docker.
+#
 # Run:
 #    docker build -f Dockerfile.rpm-centos7 -t dienet/fotomat:rpm-centos7 .
 #    docker run --name fotomat-rpm-centos7 dienet/fotomat:rpm-centos7 /bin/true
 #    docker export fotomat-rpm-centos7 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
 #    docker rm fotomat-rpm-centos7
 #    docker rmi dienet/fotomat:rpm-centos7
+#
 # And you'll end up with a fotomat*.rpm in the current directory.
 
 FROM centos:7
