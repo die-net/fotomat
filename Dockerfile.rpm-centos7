@@ -1,12 +1,12 @@
 # Run:
-#    docker build -f Dockerfile.rpm-centos6 -t dienet/fotomat:rpm-centos6 .
-#    docker run --name fotomat-rpm-centos6 dienet/fotomat:rpm-centos6 /bin/true
-#    docker export fotomat-rpm-centos6 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
-#    docker rm fotomat-rpm-centos6
-#    docker rmi dienet/fotomat:rpm-centos6
+#    docker build -f Dockerfile.rpm-centos7 -t dienet/fotomat:rpm-centos7 .
+#    docker run --name fotomat-rpm-centos7 dienet/fotomat:rpm-centos7 /bin/true
+#    docker export fotomat-rpm-centos7 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
+#    docker rm fotomat-rpm-centos7
+#    docker rmi dienet/fotomat:rpm-centos7
 # And you'll end up with a fotomat*.rpm in the current directory.
 
-FROM centos:6
+FROM centos:7
 
 ADD . /app/src/github.com/die-net/fotomat
 
@@ -19,7 +19,7 @@ RUN \
     yum -y install automake make gcc gcc-c++ git glib2-devel \
         ImageMagick-devel libexif-devel libjpeg-turbo-devel \
         libpng-devel libtiff-devel libwebp-devel libxml2-devel \
-        rpm-build && \
+        rpm-build libffi-devel jbigkit-devel && \
     yum clean all && \
 
     # Fetch and install Go
@@ -53,4 +53,4 @@ RUN \
 
     # Remove almost everything we've installed, leaving just binary RPM.
     rm -rf /usr/local/go /usr/local/vips /app/pkg /app/bin && \
-    (rpm -qa; cat /var/log/rpms) | sort | uniq -u | xargs rpm -e
+    (rpm -qa; cat /var/log/rpms) | sort | uniq -u | grep -v ffi | xargs rpm -e
