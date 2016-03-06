@@ -1,0 +1,56 @@
+# Run:
+#    docker build -f Dockerfile.rpm-centos6 -t dienet/fotomat:rpm-centos6 .
+#    docker run --name fotomat-rpm-centos6 dienet/fotomat:rpm-centos6 /bin/true
+#    docker export fotomat-rpm-centos6 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
+#    docker rm fotomat-rpm-centos6
+#    docker rmi dienet/fotomat:rpm-centos6
+# And you'll end up with a fotomat*.rpm in the current directory.
+
+FROM centos:6
+
+ADD . /app/src/github.com/die-net/fotomat
+
+RUN \
+    # Apply updates and install our dependencies
+    yum -y install epel-release && \
+    yum -y update && \
+    yum -y upgrade && \
+    rpm -qa > /var/log/rpms && \
+    yum -y install automake gcc gcc-c++ git glib2-devel \
+        ImageMagick-devel libexif-devel libjpeg-turbo-devel \
+        libpng-devel libtiff-devel libwebp-devel libxml2-devel \
+        rpm-build && \
+    yum clean all && \
+
+    # Fetch and install Go
+    # TODO: Switch this to RPM when Go 1.6 RPM available
+    mkdir -p /usr/local/go && \
+    curl -sS https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz | \
+        tar --strip-components=1 -C /usr/local/go -xzf - && \
+    ln -s ../go/bin/go /usr/local/bin && \
+
+    # Fetch and build VIPS (enabling GCC's auto-vectorization)
+    # TODO: Switch this to RPM when VIPS 8.2.2 RPM available
+    mkdir -p /usr/local/vips && \
+    curl -sS http://www.vips.ecs.soton.ac.uk/supported/8.2/vips-8.2.2.tar.gz | \
+        tar --strip-components=1 -C /usr/local/vips -xzf - && \
+    cd /usr/local/vips && \
+    CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" CXXFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" LDFLAGS="-lstdc++" \
+        ./configure --disable-debug --disable-dependency-tracking --disable-gtk-doc-html --disable-pyvips8 --disable-shared \
+        --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick --with-tiff --with-libwebp --with-png \
+        --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc \
+        --without-pangoft2 --without-python --without-x --without-zip && \
+    make && make install && \
+
+    # Build, install, and test fotomat
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+
+    # Update specfile version and use it to build binary RPM.
+    perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "$1\n"' /app/src/github.com/die-net/fotomat/cmd/fotomat/version.go | \
+        xargs -i{} perl -p -i~ -e 's/(^Version:\s+)\d+\.\d+\.\d+/${1}{}/' /app/src/github.com/die-net/fotomat/pkg/rpm/fotomat.spec && \
+    rpmbuild -bb /app/src/github.com/die-net/fotomat/pkg/rpm/fotomat.spec && \
+
+    # Remove almost everything we've installed, leaving just binary RPM.
+    rm -rf /usr/local/go /usr/local/vips /app/pkg /app/bin && \
+    (rpm -qa; cat /var/log/rpms) | sort | uniq -u | xargs rpm -e

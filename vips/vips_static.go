@@ -1,12 +1,13 @@
-// Add appropriate linker flags for VIPS dependencies for making a static
-// binary if the "static" build tag is used, such as: go run -tags static
+// Add appropriate flags for linking VIPS statically into Fotomat if the
+// "-tags vips_static" build flag is used.  Configure VIPS with:
+// CFLAGS="-fPIC" CXXFLAGS="-fPIC" LDFLAGS="-lstdc++"
 
-// +build static
+// +build vips_static
 
 package vips
 
 /*
 #cgo pkg-config: --static vips
-#cgo LDFLAGS: -static
+#cgo LDFLAGS: -lstdc++
 */
 import "C"
