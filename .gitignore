@@ -21,7 +21,7 @@ _testmain.go
 
 *.exe
 *.rpm
-*.dpkg
+*.deb
 /fotomat
 /cmd/fotomat/fotomat
 *~
