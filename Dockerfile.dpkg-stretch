@@ -1,11 +1,6 @@
 # Build Fotomat RPM for Debian stretch using Docker.
 #
-# Run:
-#    docker build -f Dockerfile.dpkg-stretch -t dienet/fotomat:dpkg-stretch .
-#    docker run --name fotomat-dpkg-stretch dienet/fotomat:dpkg-stretch /bin/true
-#    docker export fotomat-dpkg-stretch | tar --strip-components=7 -xvf - app/src/github.com/die-net/fotomat/pkg/dpkg/fotomat.deb
-#    docker rm fotomat-dpkg-stretch
-#    docker rmi dienet/fotomat:dpkg-stretch
+# Run: dist/build dpkg-stretch
 #
 # And you'll end up with a fotomat*.dpkg in the current directory.
 
@@ -49,10 +44,10 @@ RUN \
     (perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "Version: ${1}-1\n"' cmd/fotomat/version.go; \
      ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
         xargs dpkg -S | cut -d: -f1 | sort -u | xargs echo "Depends:" | sed 's/ /, /g;s/:,/:/' \
-    ) >> pkg/dpkg/fotomat/DEBIAN/control && \
-    install -d -m 755 pkg/dpkg/fotomat/usr/sbin/ && \
-    install -s -m 755 /app/bin/fotomat pkg/dpkg/fotomat/usr/sbin/ && \
-    fakeroot dpkg-deb --build pkg/dpkg/fotomat && \
+    ) >> dist/dpkg/fotomat/DEBIAN/control && \
+    install -d -m 755 dist/dpkg/fotomat/usr/sbin/ && \
+    install -s -m 755 /app/bin/fotomat dist/dpkg/fotomat/usr/sbin/ && \
+    fakeroot dpkg-deb --build dist/dpkg/fotomat && \
 
     # And remove almost everything else that we installed
     apt-get remove -y fakeroot git automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev \

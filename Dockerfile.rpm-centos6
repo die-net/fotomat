@@ -1,11 +1,6 @@
 # Build Fotomat RPM for CentOS 6 using Docker.
 #
-# Run:
-#    docker build -f Dockerfile.rpm-centos6 -t dienet/fotomat:rpm-centos6 .
-#    docker run --name fotomat-rpm-centos6 dienet/fotomat:rpm-centos6 /bin/true
-#    docker export fotomat-rpm-centos6 | tar --strip-components=4 -xvf - root/rpmbuild/RPMS/*/fotomat*.rpm
-#    docker rm fotomat-rpm-centos6
-#    docker rmi dienet/fotomat:rpm-centos6
+# Run: dist/build rpm-centos6
 #
 # And you'll end up with a fotomat*.rpm in the current directory.
 
@@ -51,8 +46,8 @@ RUN \
 
     # Update specfile version and use it to build binary RPM.
     perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "$1\n"' /app/src/github.com/die-net/fotomat/cmd/fotomat/version.go | \
-        xargs -i{} perl -p -i~ -e 's/(^Version:\s+)\d+\.\d+\.\d+/${1}{}/' /app/src/github.com/die-net/fotomat/pkg/rpm/fotomat.spec && \
-    rpmbuild -bb /app/src/github.com/die-net/fotomat/pkg/rpm/fotomat.spec && \
+        xargs -i{} perl -p -i~ -e 's/(^Version:\s+)\d+\.\d+\.\d+/${1}{}/' /app/src/github.com/die-net/fotomat/dist/rpm/fotomat.spec && \
+    rpmbuild -bb /app/src/github.com/die-net/fotomat/dist/rpm/fotomat.spec && \
 
     # Remove almost everything we've installed, leaving just binary RPM.
     rm -rf /usr/local/go /usr/local/vips /app/pkg /app/bin && \

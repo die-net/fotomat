@@ -1,0 +1,62 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o pipefail
+
+cd $( dirname $0 )/..
+
+version=$( perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "${1}-1"' cmd/fotomat/version.go )
+
+build() {
+    local tag="$1"
+    local path=""
+    local final=""
+
+    if [ ! -f Dockerfile.$tag ]; then
+        echo "Dockerfile.$tag doesn't exist!"
+        return
+    fi
+
+    case "$tag" in
+    dpkg-*)
+        path="app/src/github.com/die-net/fotomat/dist/dpkg/fotomat.deb"
+        final="fotomat-${version}.${tag/dpkg-/}.amd64.deb"
+        ;;
+    rpm-*)
+        path="root/rpmbuild/RPMS/*/fotomat*.rpm"
+        ;;
+    *)
+        echo "Don't understand how to parse tag $tag"
+        exit 1
+        ;;
+    esac
+
+    local slashes=$(( 0 + $( echo "$path" | tr -cd / | wc -c ) ))
+
+    docker build -f Dockerfile.$tag -t dienet/fotomat:$tag .
+    docker rm fotomat-$tag || true
+    docker run --name fotomat-$tag dienet/fotomat:$tag /bin/true
+    docker export fotomat-$tag | tar --strip-components=$slashes -xvf - "$path" || true
+    docker rm fotomat-$tag
+    docker rmi dienet/fotomat:$tag
+    if [ ! -z "$final" ]; then
+        mv "$( basename "$path" )" "$final"
+    fi
+}
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <tag> [<tag> ...]    - Build one or more package tags via Docker"
+    echo "       $0 all                  - Build all available tags"
+    exit 1
+fi
+
+if [ "$1" = "all" ]; then
+    ls -1 Dockerfile.dpkg-* Dockerfile.rpm-* | while read file; do
+        tag=${file/Dockerfile./}
+        build "$tag"
+    done
+else 
+    for tag in "$@"; do
+        build "$tag"
+    done    
+fi
