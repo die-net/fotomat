@@ -96,6 +96,9 @@ func parsePath(path string) (string, bool, bool, bool, int, int, bool) {
 	return g[1], (g[2] == "p"), (g[3] == "w"), (g[4] == "c"), int(width), int(height), true
 }
 
+
+var userAgent = "Fotomat/"+FotomatVersion+" (https://github.com/die-net/fotomat)"
+
 func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
@@ -104,7 +107,7 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 		sendError(w, err, 0)
 	}
 
-	req.Header.Set("User-Agent", "Fotomat/1.0 (https://github.com/die-net/fotomat)")
+	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := client.Do(req)
 	if err != nil {
