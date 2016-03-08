@@ -6,6 +6,10 @@ package vips
 */
 import "C"
 
+import (
+	"unsafe"
+)
+
 // Potential values for ImageGetAsString.
 const (
 	ExifOrientation = "exif-ifd0-Orientation"
@@ -33,7 +37,9 @@ const (
 
 func (in *Image) ImageGetAsString(field string) (string, bool) {
 	var out *C.char
-	e := C.cgo_vips_image_get_as_string(in.vi, C.CString(field), &out)
+	cf := C.CString(field)
+	e := C.cgo_vips_image_get_as_string(in.vi, cf, &out)
+	C.free(unsafe.Pointer(cf))
 
 	s := C.GoString(out)
 	// TODO: Leak? Crash if I follow docs and: C.g_free(C.gpointer(out))
@@ -64,7 +70,9 @@ func (in *Image) HasAlpha() bool {
 }
 
 func (in *Image) ImageRemove(field string) bool {
-	ok := C.vips_image_remove(in.vi, C.CString(field))
+	cf := C.CString(field)
+	ok := C.vips_image_remove(in.vi, cf)
+	C.free(unsafe.Pointer(cf))
 
 	return ok != 0
 }

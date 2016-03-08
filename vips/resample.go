@@ -6,6 +6,10 @@ package vips
 */
 import "C"
 
+import (
+	"unsafe"
+)
+
 // Interpolate is an instance of an interpolator used by Affine.
 type Interpolate struct {
 	interpolate *C.struct__VipsInterpolate
@@ -15,7 +19,9 @@ type Interpolate struct {
 // bilinear, bicubic, lbb, nohalo, or vsqbs) and makes one.  Must be closed
 // when you're done with it.
 func NewInterpolate(name string) *Interpolate {
-	interpolate := C.vips_interpolate_new(C.CString(name))
+	cn := C.CString(name)
+	interpolate := C.vips_interpolate_new(cn)
+	C.free(unsafe.Pointer(cn))
 	if interpolate == nil {
 		return nil
 	}

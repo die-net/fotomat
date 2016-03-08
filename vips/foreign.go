@@ -12,13 +12,17 @@ import (
 
 func Jpegload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload(C.CString(filename), &out, 1)
+	cf := C.CString(filename)
+	e := C.cgo_vips_jpegload(cf, &out, 1)
+	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
 func JpegloadShrink(filename string, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_jpegload(C.CString(filename), &out, C.int(shrink))
+	cf := C.CString(filename)
+	e := C.cgo_vips_jpegload(cf, &out, C.int(shrink))
+	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
@@ -45,7 +49,9 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 
 func Magickload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_magickload(C.CString(filename), &out)
+	cf := C.CString(filename)
+	e := C.cgo_vips_magickload(cf, &out)
+	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
@@ -57,7 +63,9 @@ func MagickloadBuffer(buf []byte) (*Image, error) {
 
 func Pngload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_pngload(C.CString(filename), &out)
+	cf := C.CString(filename)
+	e := C.cgo_vips_pngload(cf, &out)
+	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
@@ -78,7 +86,9 @@ func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) 
 
 func Webpload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_webpload(C.CString(filename), &out)
+	cf := C.CString(filename)
+	e := C.cgo_vips_webpload(cf, &out)
+	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
