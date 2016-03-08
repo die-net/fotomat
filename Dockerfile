@@ -33,7 +33,7 @@ RUN \
     mkdir -p /usr/local/go /usr/local/vips /app/pkg /app/bin && \
 
     # Fetch and install Go
-    curl -sS https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz | \
+    curl -sS https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz | \
         tar --strip-components=1 -C /usr/local/go -xzf - && \
 
     # Fetch and build VIPS (enabling GCC's auto-vectorization)

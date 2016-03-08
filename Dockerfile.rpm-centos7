@@ -23,7 +23,7 @@ RUN \
     # Fetch and install Go
     # TODO: Switch this to RPM when Go 1.6 RPM available
     mkdir -p /usr/local/go && \
-    curl -sS https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz | \
+    curl -sS https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz | \
         tar --strip-components=1 -C /usr/local/go -xzf - && \
     ln -s ../go/bin/go /usr/local/bin && \
 
