@@ -16,6 +16,12 @@ var (
 )
 
 func showVersion() {
-	fmt.Println("Fotomat v" + FotomatVersion)
-	os.Exit(0)
+	if *version {
+		fmt.Println("Fotomat v" + FotomatVersion)
+		os.Exit(0)
+	}
+}
+
+func init() {
+	post(showVersion)
 }

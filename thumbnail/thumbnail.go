@@ -51,14 +51,8 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 	}
 	defer image.Close()
 
-	// Apply ICC profile if present. Ignore errors.
-	_ = image.IccImport()
-
-	space := image.ImageGuessInterpretation()
-	if space != vips.InterpretationSRGB && space != vips.InterpretationBW {
-		if err := image.Colourspace(vips.InterpretationSRGB); err != nil {
-			return nil, err
-		}
+	if err := srgb(image, o.IccProfileFilename); err != nil {
+		return nil, err
 	}
 
 	if err := resize(image, iw, ih, o.AlwaysInterpolate, o.BlurSigma, o.Sharpen && shrinking); err != nil {
@@ -100,6 +94,22 @@ func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 	}
 
 	return f.LoadBytes(blob)
+}
+
+func srgb(image *vips.Image, iccFilename string) error {
+	// Transform from embedded ICC profile if present. Ignore errors.
+	if iccFilename != "" && image.ImageFieldExists(vips.MetaIccName) {
+		_ = image.IccTransform(iccFilename, vips.IntentRelative)
+	}
+
+	space := image.ImageGuessInterpretation()
+	if space != vips.InterpretationSRGB && space != vips.InterpretationBW {
+		if err := image.Colourspace(vips.InterpretationSRGB); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func resize(image *vips.Image, iw, ih int, alwaysInterpolate bool, blurSigma float64, sharpen bool) error {

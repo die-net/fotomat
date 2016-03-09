@@ -35,6 +35,14 @@ const (
 	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
 )
 
+func (in *Image) ImageFieldExists(field string) bool {
+	cf := C.CString(field)
+	e := C.vips_image_get_typeof(in.vi, cf)
+	C.free(unsafe.Pointer(cf))
+
+	return e != 0
+}
+
 func (in *Image) ImageGetAsString(field string) (string, bool) {
 	var out *C.char
 	cf := C.CString(field)

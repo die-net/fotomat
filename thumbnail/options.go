@@ -24,6 +24,7 @@ type Options struct {
 	MaxBufferPixels       int
 	Sharpen               bool
 	BlurSigma             float64
+	IccProfileFilename    string
 	AutoContrast          bool
 	AlwaysInterpolate     bool
 	MaxProcessingDuration time.Duration

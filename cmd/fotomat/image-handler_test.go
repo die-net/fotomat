@@ -30,7 +30,8 @@ func init() {
 	// Initialize flags with default values, enable local serving.
 	flag.Parse()
 	*localImageDirectory = "../../testdata/"
-	poolInit(1, 1)
+	setupTempdir()
+	postRun()
 	runtime.GOMAXPROCS(2)
 
 	// Listen on an ephemeral localhost port.
