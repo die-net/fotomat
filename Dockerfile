@@ -65,7 +65,7 @@ RUN \
     apt-get autoremove -y && \
     apt-get autoclean && \
     apt-get clean && \
-    rm -rf /usr/local/go /usr/local/vips /app/pkg /var/lib/apt/lists/*
+    rm -rf /usr/local/go /usr/local/vips /app/pkg /var/lib/apt/lists/* /tmp/*
 
 # Start by default as a non-root user.
 USER fotomat

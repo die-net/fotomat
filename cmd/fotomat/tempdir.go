@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 )
 
 var (
@@ -13,8 +14,9 @@ var (
 
 func setupTempdir() {
 	// Make sure we don't accidentally destroy things if someone passes
-	// in / or ~ as tempDir.
-	*tempDir = path.Join(*tempDir, "fotomat_temp")
+	// in / or ~ as tempDir.  Include uid in path to avoid permissions
+	// problems.
+	*tempDir = path.Join(*tempDir, "fotomat_temp-"+strconv.Itoa(os.Getuid()))
 
 	if err := os.RemoveAll(*tempDir); err != nil {
 		log.Fatalln("Can't remove directory", *tempDir, err)
