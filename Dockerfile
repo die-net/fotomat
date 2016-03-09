@@ -54,7 +54,6 @@ RUN \
 
     # Add a fotomat user for it to run as, and make filesystem read-only to that user.
     useradd -m fotomat -s /bin/bash && \
-    find / -type d -perm +002 -print0 | xargs -0 chmod o-w && \
 
     # Mark fotomat's dependencies as needed, to avoid autoremoval
     ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
