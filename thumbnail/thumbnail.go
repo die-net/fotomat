@@ -1,15 +1,20 @@
 package thumbnail
 
 import (
+	"fmt"
 	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/vips"
 	"math"
-	"runtime"
+	"time"
 )
 
 func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, error) {
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
+	if o.MaxProcessingDuration > 0 {
+		timer := time.AfterFunc(o.MaxProcessingDuration, func() {
+			panic(fmt.Sprintf("Thumbnail took longer than %v", o.MaxProcessingDuration))
+		})
+		defer timer.Stop()
+	}
 
 	// Free some thread-local caches. Safe to call unnecessarily.
 	defer vips.ThreadShutdown()

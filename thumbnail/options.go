@@ -3,6 +3,7 @@ package thumbnail
 import (
 	"errors"
 	"github.com/die-net/fotomat/format"
+	"time"
 )
 
 var (
@@ -17,14 +18,15 @@ const (
 )
 
 type Options struct {
-	Width             int
-	Height            int
-	Crop              bool
-	MaxBufferPixels   int
-	Sharpen           bool
-	BlurSigma         float64
-	AutoContrast      bool
-	AlwaysInterpolate bool
+	Width                 int
+	Height                int
+	Crop                  bool
+	MaxBufferPixels       int
+	Sharpen               bool
+	BlurSigma             float64
+	AutoContrast          bool
+	AlwaysInterpolate     bool
+	MaxProcessingDuration time.Duration
 }
 
 func (o Options) Check(m format.Metadata) (Options, error) {

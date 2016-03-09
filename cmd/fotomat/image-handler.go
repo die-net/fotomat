@@ -25,7 +25,8 @@ var (
 	fetchTimeout          = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
 	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
-	pool                  chan bool
+	pool                  *thumbnail.Pool
+	fetchSemaphore        chan bool
 	transport             http.Transport
 	client                http.Client
 )
@@ -34,7 +35,7 @@ func init() {
 	http.HandleFunc("/", imageProxyHandler)
 }
 
-func poolInit(limit int) {
+func poolInit(workers, fetchLimit int) {
 	transport = http.Transport{Proxy: http.ProxyFromEnvironment}
 	if *localImageDirectory != "" {
 		transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(*localImageDirectory)))
@@ -42,10 +43,13 @@ func poolInit(limit int) {
 
 	client = http.Client{Transport: http.RoundTripper(&transport), Timeout: *fetchTimeout}
 
-	pool = make(chan bool, limit)
-	for i := 0; i < limit; i++ {
-		pool <- true
+	pool = thumbnail.NewPool(workers, 1)
+
+	fetchSemaphore = make(chan bool, fetchLimit)
+	for i := 0; i < fetchLimit; i++ {
+		fetchSemaphore <- true
 	}
+
 }
 
 func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +58,7 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, preview, webp, crop, width, height, ok := parsePath(r.URL.Path)
+	path, options, saveOptions, ok := parsePath(r.URL.Path)
 	if !ok {
 		sendError(w, nil, 400)
 		return
@@ -67,39 +71,70 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		u = &url.URL{Scheme: "file", Host: "localhost", Path: path}
 	}
 
-	fetchAndProcessImage(w, u.String(), preview, webp, crop, width, height)
+	fetchAndProcessImage(w, u.String(), options, saveOptions)
 }
 
 var matchPath = regexp.MustCompile(`^(/.*)=(p?)(w?)([sc])(\d{1,5})x(\d{1,5})$`)
 
-func parsePath(path string) (string, bool, bool, bool, int, int, bool) {
+func parsePath(path string) (string, thumbnail.Options, format.SaveOptions, bool) {
 	g := matchPath.FindStringSubmatch(path)
 	if len(g) != 7 {
-		return "", false, false, false, 0, 0, false
+		return "", thumbnail.Options{}, format.SaveOptions{}, false
 	}
+
+	path = g[1]
+	preview := g[2] == "p"
+	webp := g[3] == "w"
+	crop := g[4] == "c"
+	width, _ := strconv.Atoi(g[5])
+	height, _ := strconv.Atoi(g[6])
 
 	// Disallow repeated scaling parameters.
-	if matchPath.MatchString(g[1]) {
-		return "", false, false, false, 0, 0, false
+	if matchPath.MatchString(path) {
+		return "", thumbnail.Options{}, format.SaveOptions{}, false
 	}
 
-	width, err := strconv.Atoi(g[5])
-	if err != nil || width <= 0 || width > *maxOutputDimension {
-		return "", false, false, false, 0, 0, false
+	if width <= 0 || height <= 0 || width > *maxOutputDimension || height > *maxOutputDimension {
+		return "", thumbnail.Options{}, format.SaveOptions{}, false
 	}
 
-	height, err := strconv.Atoi(g[6])
-	if err != nil || height <= 0 || height > *maxOutputDimension {
-		return "", false, false, false, 0, 0, false
+	o := thumbnail.Options{
+		Width:             width,
+		Height:            height,
+		MaxBufferPixels:   *maxBufferPixels,
+		Sharpen:           *sharpen,
+		Crop:              crop,
+		AlwaysInterpolate: *alwaysInterpolate,
 	}
 
-	return g[1], (g[2] == "p"), (g[3] == "w"), (g[4] == "c"), int(width), int(height), true
+	so := format.SaveOptions{
+		Lossless:     *lossless,
+		LossyIfPhoto: *lossyIfPhoto,
+	}
+
+	// Preview images are tiny, blurry JPEGs.
+	if preview {
+		o.Sharpen = false
+		o.BlurSigma = 0.8
+		so.Format = format.Jpeg
+		so.Quality = 40
+	}
+
+	if webp {
+		so.AllowWebp = true
+		if so.Format != format.Unknown {
+			so.Format = format.Webp
+		}
+		so.Lossless = *losslessWebp
+	}
+
+	return path, o, so, true
+
 }
 
+var userAgent = "Fotomat/" + FotomatVersion + " (https://github.com/die-net/fotomat)"
 
-var userAgent = "Fotomat/"+FotomatVersion+" (https://github.com/die-net/fotomat)"
-
-func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop bool, width, height int) {
+func fetchAndProcessImage(w http.ResponseWriter, url string, options thumbnail.Options, saveOptions format.SaveOptions) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -109,19 +144,20 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 
 	req.Header.Set("User-Agent", userAgent)
 
+	// Wait for our turn to fetch and hold the original image.
+	<-fetchSemaphore
+
 	resp, err := client.Do(req)
 	if err != nil {
+		fetchSemaphore <- true // Free up ASAP.
 		sendError(w, err, 0)
 		return
 	}
 
-	// Wait for an image thread to be available.
-	<-pool
-
 	// Has client closed connection while we were waiting?
 	select {
 	case <-aborted:
-		pool <- true // Free up image thread ASAP.
+		fetchSemaphore <- true // Free up ASAP.
 		sendError(w, nil, http.StatusRequestTimeout)
 		return
 	default:
@@ -129,7 +165,7 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 
 	orig, err := ioutil.ReadAll(resp.Body)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		pool <- true // Free up image thread ASAP.
+		fetchSemaphore <- true // Free up ASAP.
 		resp.Body.Close()
 		sendError(w, err, resp.StatusCode)
 		return
@@ -137,10 +173,10 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 
 	resp.Body.Close()
 
-	thumb, err := processImage(url, orig, preview, webp, crop, width, height)
+	thumb, err := pool.Thumbnail(orig, options, saveOptions, aborted)
 	orig = nil // Free up image memory ASAP.
 
-	pool <- true // Free up image thread ASAP.
+	fetchSemaphore <- true // Free up ASAP.
 
 	if err != nil {
 		sendError(w, err, 0)
@@ -150,47 +186,6 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, preview, webp, crop
 	w.Header().Set("Server", "Fotomat")
 	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
 	w.Write(thumb)
-}
-
-func processImage(url string, orig []byte, preview, webp, crop bool, width, height int) ([]byte, error) {
-	if *maxProcessingDuration > 0 {
-		timer := time.AfterFunc(*maxProcessingDuration, func() {
-			panic(fmt.Sprintf("Processing %v longer than %v", url, *maxProcessingDuration))
-		})
-		defer timer.Stop()
-	}
-
-	options := thumbnail.Options{
-		Width:             width,
-		Height:            height,
-		MaxBufferPixels:   *maxBufferPixels,
-		Crop:              crop,
-		Sharpen:           *sharpen,
-		AlwaysInterpolate: *alwaysInterpolate,
-	}
-
-	saveOptions := format.SaveOptions{
-		Lossless:     *lossless,
-		LossyIfPhoto: *lossyIfPhoto,
-	}
-
-	// Preview images are tiny, blurry JPEGs.
-	if preview {
-		options.Sharpen = false
-		options.BlurSigma = 0.8
-		saveOptions.Format = format.Jpeg
-		saveOptions.Quality = 40
-	}
-
-	if webp {
-		saveOptions.AllowWebp = true
-		if saveOptions.Format != format.Unknown {
-			saveOptions.Format = format.Webp
-		}
-		saveOptions.Lossless = *losslessWebp
-	}
-
-	return thumbnail.Thumbnail(orig, options, saveOptions)
 }
 
 func sendError(w http.ResponseWriter, err error, status int) {
