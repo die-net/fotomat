@@ -6,7 +6,7 @@ package imager
 
 import (
 	"fmt"
-	"github.com/gographics/imagick/imagick"
+	"gopkg.in/gographics/imagick.v2/imagick"
 )
 
 type Result struct {

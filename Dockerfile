@@ -1,6 +1,6 @@
 FROM debian:jessie
 
-ADD . /app/src/github.com/die-net
+ADD . /app/src/github.com/die-net/fotomat
 
 ENTRYPOINT ["/app/bin/fotomat"]
 
