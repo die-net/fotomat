@@ -20,7 +20,7 @@ func numCpuCores() int {
 
 	// Assume non-Linux amd64 has 2 virtual cores per physical core.
 	if runtime.GOARCH == "amd64" {
-		cores = (cores + 1) / 2
+		cpus = (cpus + 1) / 2
 	}
 
 	return cpus
