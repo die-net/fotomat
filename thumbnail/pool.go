@@ -25,6 +25,10 @@ type Pool struct {
 func NewPool(workers, queueLen int) *Pool {
 	p := &Pool{RequestCh: make(chan *Request, queueLen)}
 
+	if workers <= 0 {
+		workers = runtime.NumCPU()
+	}
+
 	for i := 0; i < workers; i++ {
 		go p.worker()
 	}

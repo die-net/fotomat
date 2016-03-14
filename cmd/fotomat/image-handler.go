@@ -6,18 +6,18 @@ import (
 	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/thumbnail"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strconv"
 	"time"
 )
 
 var (
 	fetchTimeout        = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
-	localImageDirectory = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\" = proxy instead).")
-	maxImageThreads     = flag.Int("max_image_threads", runtime.NumCPU(), "Maximum number of threads simultaneously processing images.")
-	maxPrefetch         = flag.Int("max_prefetch", runtime.NumCPU(), "Maximum number of images to prefetch before thread is available.")
+	localImageDirectory = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\"=proxy instead).")
+	maxImageThreads     = flag.Int("max_image_threads", numCpuCores(), "Maximum number of threads simultaneously processing images (0=all CPUs).")
+	maxPrefetch         = flag.Int("max_prefetch", numCpuCores(), "Maximum number of images to prefetch before thread is available.")
 
 	transport      http.Transport
 	client         http.Client
@@ -154,6 +154,22 @@ func sendError(w http.ResponseWriter, err error, status int) {
 		err = fmt.Errorf(http.StatusText(status))
 	}
 	http.Error(w, err.Error(), status)
+}
+
+func isTimeout(err error) bool {
+	if err == nil {
+		return false
+	}
+	switch err := err.(type) {
+	case net.Error:
+		return err.Timeout()
+	case *url.Error:
+		// Only necessary for Go < 1.6.
+		if err, ok := err.Err.(net.Error); ok {
+			return err.Timeout()
+		}
+	}
+	return false
 }
 
 func init() {
