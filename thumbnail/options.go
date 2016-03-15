@@ -25,8 +25,7 @@ type Options struct {
 	Sharpen               bool
 	BlurSigma             float64
 	IccProfileFilename    string
-	AutoContrast          bool
-	AlwaysInterpolate     bool
+	FastResize            bool
 	MaxProcessingDuration time.Duration
 }
 

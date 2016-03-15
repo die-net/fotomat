@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	alwaysInterpolate     = flag.Bool("always_interpolate", false, "Always use slower high-quality interpolator for final 2x shrink.")
+	fastResize            = flag.Bool("fast_resize", false, "Allow faster resizing, at lower image quality in some cases.")
 	lossless              = flag.Bool("lossless", true, "Allow saving as PNG even without transparency.")
 	lossyIfPhoto          = flag.Bool("lossy_if_photo", true, "Save as lossy if image is detected as a photo.")
 	losslessWebp          = flag.Bool("lossless_webp", false, "When saving in WebP, allow lossless encoding.")
@@ -50,7 +50,7 @@ func pathParse(path string) (string, thumbnail.Options, format.SaveOptions, bool
 		MaxBufferPixels:    *maxBufferPixels,
 		Sharpen:            *sharpen,
 		Crop:               crop,
-		AlwaysInterpolate:  *alwaysInterpolate,
+		FastResize:         *fastResize,
 		IccProfileFilename: sRgbFile,
 	}
 
@@ -62,7 +62,7 @@ func pathParse(path string) (string, thumbnail.Options, format.SaveOptions, bool
 	// Preview images are tiny, blurry JPEGs.
 	if preview {
 		o.Sharpen = false
-		o.BlurSigma = 0.8
+		o.BlurSigma = 0.4
 		so.Format = format.Jpeg
 		so.Quality = 40
 	}

@@ -31,19 +31,20 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 	return rw, rh, trustWidth
 }
 
-func preShrinkFactor(mw, mh, iw, ih int, trustWidth, alwaysInterpolate bool) int {
+func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize bool) int {
 	// Jpeg shrink rounds up the number of pixels, so calculate
 	// pre-shrink based on side that matters more.
-	var shrink int
+	var shrink float64
 	if trustWidth {
-		shrink = mw / iw
+		shrink = float64(mw) / float64(iw)
 	} else {
-		shrink = mh / ih
+		shrink = float64(mh) / float64(ih)
 	}
 
-	// If set, make sure high-quality Resize() can do the last 2x.
-	if alwaysInterpolate {
-		shrink = shrink / 2
+	// Unless FastResize is enabled, let the high-quality Resize() do
+	// the final at least 1.4x scaling of the image to avoid aliasing.
+	if !fastResize {
+		shrink = shrink / 1.4
 	}
 
 	// Jpeg loader can quickly shrink by 2, 4, or 8.

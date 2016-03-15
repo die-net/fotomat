@@ -44,7 +44,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 
 	// Figure out the jpeg shrink factor and load image.
 	// Jpeg shrink rounds up the number of pixels.
-	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.AlwaysInterpolate)
+	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.FastResize)
 	image, err := load(blob, m.Format, psf)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		return nil, err
 	}
 
-	if err := resize(image, iw, ih, o.AlwaysInterpolate, o.BlurSigma, o.Sharpen && shrinking); err != nil {
+	if err := resize(image, iw, ih, o.FastResize, o.BlurSigma, o.Sharpen && shrinking); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func srgb(image *vips.Image, iccFilename string) error {
 	return nil
 }
 
-func resize(image *vips.Image, iw, ih int, alwaysInterpolate bool, blurSigma float64, sharpen bool) error {
+func resize(image *vips.Image, iw, ih int, fastResize bool, blurSigma float64, sharpen bool) error {
 	m := format.MetadataImage(image)
 
 	// Interpolation of RGB values with an alpha channel isn't safe
@@ -126,14 +126,15 @@ func resize(image *vips.Image, iw, ih int, alwaysInterpolate bool, blurSigma flo
 	}
 
 	// A box filter will quickly get us within 2x of the final size, at some quality cost.
-	if !alwaysInterpolate {
-		// Shrink factors can be passed independently here, but we
-		// don't because Resize()'s blur and sharpening steps expect
-		// a normal aspect ratio.
-		shrink := math.Min(math.Floor(float64(m.Width)/float64(iw)), math.Floor(float64(m.Height)/float64(ih)))
-		if shrink >= 2 {
+	if fastResize {
+		// Shrink factors can be passed independently here, which
+		// may not be sane since Resize()'s blur and sharpening
+		// steps expect a normal aspect ratio.
+		wshrink := math.Floor(float64(m.Width) / float64(iw))
+		hshrink := math.Floor(float64(m.Height) / float64(ih))
+		if wshrink >= 2 || hshrink >= 2 {
 			// Shrink rounds down the number of pixels.
-			if err := image.Shrink(shrink, shrink); err != nil {
+			if err := image.Shrink(wshrink, hshrink); err != nil {
 				return err
 			}
 			m = format.MetadataImage(image)
