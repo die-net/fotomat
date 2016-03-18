@@ -27,6 +27,7 @@ type Options struct {
 	IccProfileFilename    string
 	FastResize            bool
 	MaxProcessingDuration time.Duration
+	Save                  format.SaveOptions
 }
 
 func (o Options) Check(m format.Metadata) (Options, error) {

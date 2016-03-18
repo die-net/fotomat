@@ -50,7 +50,7 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, options, saveOptions, ok := pathParse(r.URL.Path)
+	path, options, ok := pathParse(r.URL.Path)
 	if !ok {
 		sendError(w, nil, 400)
 		return
@@ -63,12 +63,12 @@ func imageProxyHandler(w http.ResponseWriter, r *http.Request) {
 		u = &url.URL{Scheme: "file", Host: "localhost", Path: path}
 	}
 
-	fetchAndProcessImage(w, u.String(), options, saveOptions)
+	fetchAndProcessImage(w, u.String(), options)
 }
 
 var userAgent = "Fotomat/" + FotomatVersion + " (https://github.com/die-net/fotomat)"
 
-func fetchAndProcessImage(w http.ResponseWriter, url string, options thumbnail.Options, saveOptions format.SaveOptions) {
+func fetchAndProcessImage(w http.ResponseWriter, url string, options thumbnail.Options) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -107,7 +107,7 @@ func fetchAndProcessImage(w http.ResponseWriter, url string, options thumbnail.O
 
 	resp.Body.Close()
 
-	thumb, err := pool.Thumbnail(orig, options, saveOptions, aborted)
+	thumb, err := pool.Thumbnail(orig, options, aborted)
 	orig = nil // Free up image memory ASAP.
 
 	fetchSemaphore <- true // Free up ASAP.

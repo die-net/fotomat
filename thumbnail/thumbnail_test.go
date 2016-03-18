@@ -38,16 +38,16 @@ func TestValidation(t *testing.T) {
 
 	// Refuse to load a 213328 pixel JPEG image into 1000 pixel buffer.
 	// TODO: Add back MaxBufferPixels.
-	_, err := Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 1000}, format.SaveOptions{})
+	_, err := Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 1000})
 	assert.Equal(t, err, ErrTooBig)
 
 	// Succeed in loading a 213328 pixel JPEG image into 10000 pixel buffer.
-	_, err = Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 10000}, format.SaveOptions{})
+	_, err = Thumbnail(image("watermelon.jpg"), Options{Width: 200, Height: 300, MaxBufferPixels: 10000})
 	assert.Nil(t, err)
 }
 
 func tryNew(filename string) error {
-	_, err := Thumbnail(image(filename), Options{Width: 200, Height: 200}, format.SaveOptions{})
+	_, err := Thumbnail(image(filename), Options{Width: 200, Height: 200})
 	return err
 }
 
@@ -62,25 +62,25 @@ func TestThumbnail(t *testing.T) {
 	assert.Equal(t, m.Height, 536)
 
 	// Verify scaling down to fit completely into box.
-	thumb, err := Thumbnail(img, Options{Width: 200, Height: 300}, format.SaveOptions{})
+	thumb, err := Thumbnail(img, Options{Width: 200, Height: 300})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270, false))
 	}
 
 	// Verify scaling down to have width fit.
-	thumb, err = Thumbnail(img, Options{Width: 200}, format.SaveOptions{})
+	thumb, err = Thumbnail(img, Options{Width: 200})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 200, 270, false))
 	}
 
 	// Verify scaling down to have height fit.
-	thumb, err = Thumbnail(img, Options{Height: 300}, format.SaveOptions{})
+	thumb, err = Thumbnail(img, Options{Height: 300})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 223, 300, false))
 	}
 
 	// Verify that we don't scale up.
-	thumb, err = Thumbnail(img, Options{Width: 2048, Height: 2048}, format.SaveOptions{})
+	thumb, err = Thumbnail(img, Options{Width: 2048, Height: 2048})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 536, false))
 	}
@@ -95,13 +95,13 @@ func TestCrop(t *testing.T) {
 	assert.Equal(t, m.Height, 536)
 
 	// Verify cropping to fit.
-	thumb, err := Thumbnail(img, Options{Width: 300, Height: 400, Crop: true}, format.SaveOptions{})
+	thumb, err := Thumbnail(img, Options{Width: 300, Height: 400, Crop: true})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 300, 400, false))
 	}
 
 	// Verify cropping to fit, too big.
-	thumb, err = Thumbnail(img, Options{Width: 2000, Height: 1500, Crop: true}, format.SaveOptions{})
+	thumb, err = Thumbnail(img, Options{Width: 2000, Height: 1500, Crop: true})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 299, false))
 	}
@@ -112,7 +112,7 @@ func TestAlpha(t *testing.T) {
 	assert.Nil(t, isSize(img, format.Png, 100, 50, true))
 
 	// Test that we remove the alpha channel from an image that's not using it.
-	thumb, err := Thumbnail(img, Options{Width: 100, Height: 100}, format.SaveOptions{Format: format.Png})
+	thumb, err := Thumbnail(img, Options{Width: 100, Height: 100, Save: format.SaveOptions{Format: format.Png}})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Png, 100, 50, false))
 	}
@@ -121,7 +121,7 @@ func TestAlpha(t *testing.T) {
 	assert.Nil(t, isSize(img, format.Png, 100, 50, true))
 
 	// Test that we leave the alpha channel for an image that is using it.
-	thumb, err = Thumbnail(img, Options{Width: 100, Height: 100}, format.SaveOptions{Format: format.Png})
+	thumb, err = Thumbnail(img, Options{Width: 100, Height: 100, Save: format.SaveOptions{Format: format.Png}})
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Png, 100, 50, true))
 	}
@@ -140,7 +140,7 @@ func TestRotation(t *testing.T) {
 		assert.Equal(t, m.Height, 80)
 
 		// Verify that img.Thumbnail() maintains orientation.
-		thumb, err := Thumbnail(img, Options{Width: 40, Height: 40}, format.SaveOptions{})
+		thumb, err := Thumbnail(img, Options{Width: 40, Height: 40})
 		if assert.Nil(t, err) {
 			assert.Nil(t, isSize(thumb, format.Jpeg, 24, 40, false))
 		}
@@ -171,7 +171,7 @@ func TestConversion(t *testing.T) {
 
 			for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
 				// If we ask for a specific format, it should return that.
-				thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024}, format.SaveOptions{Format: of})
+				thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, Save: format.SaveOptions{Format: of}})
 				if assert.Nil(t, err, "formats: %s -> %s", f.in, of) {
 					assert.Nil(t, isSize(thumb, of, 2, 3, false), "formats: %s -> %s", f.in, of)
 				}
@@ -202,7 +202,7 @@ func testScalingFormat(t *testing.T, f format.Format) {
 	// Try scaling to some difficult sizes and make sure we get the expected size back.
 	// We have different code paths for different image formats, so we try for each.
 	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
-		thumb, err := Thumbnail(blob, Options{Width: size, Height: size}, format.SaveOptions{Format: f})
+		thumb, err := Thumbnail(blob, Options{Width: size, Height: size, Save: format.SaveOptions{Format: f}})
 		if assert.Nil(t, err) {
 			h := (169*size + 255) / 256
 			if h < 1 {
@@ -222,7 +222,7 @@ func TestBadOptions(t *testing.T) {
 
 		// Try feeding some bad options and make sure we get nothing back.
 		for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
-			thumb, err := Thumbnail(blob, Options{Width: -1, Height: -1}, format.SaveOptions{Format: of})
+			thumb, err := Thumbnail(blob, Options{Width: -1, Height: -1, Save: format.SaveOptions{Format: of}})
 			assert.Error(t, err, "format: %s -> %s, size: %d", f, of)
 			assert.False(t, thumb != nil, "format: %s -> %s, size: %d", f, of)
 		}
@@ -338,7 +338,7 @@ func BenchmarkThumbnailWebp_192(b *testing.B) {
 }
 
 func benchThumbnail(b *testing.B, f format.Format, o Options) {
-	s := format.SaveOptions{Format: f}
+	o.Save.Format = f
 	blob, err := flowersFormat(f)
 	assert.Nil(b, err)
 
@@ -346,14 +346,14 @@ func benchThumbnail(b *testing.B, f format.Format, o Options) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			_, err := Thumbnail(blob, o, s)
+			_, err := Thumbnail(blob, o)
 			assert.Nil(b, err)
 		}
 	})
 }
 
 func flowersFormat(f format.Format) ([]byte, error) {
-	return Thumbnail(image("flowers.png"), Options{}, format.SaveOptions{Format: f})
+	return Thumbnail(image("flowers.png"), Options{Save: format.SaveOptions{Format: f}})
 }
 
 func isSize(image []byte, f format.Format, width, height int, alpha bool) error {

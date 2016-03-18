@@ -2,7 +2,6 @@ package thumbnail
 
 import (
 	"errors"
-	"github.com/die-net/fotomat/format"
 	"github.com/die-net/fotomat/vips"
 	"runtime"
 	"sync"
@@ -38,11 +37,10 @@ func NewPool(workers, queueLen int) *Pool {
 
 // Request to be sent to Pool.RequestCh to queue a Thumbnail operation.
 type Request struct {
-	Blob        []byte
-	Options     Options
-	SaveOptions format.SaveOptions
-	Aborted     <-chan bool
-	ResponseCh  chan<- *Response
+	Blob       []byte
+	Options    Options
+	Aborted    <-chan bool
+	ResponseCh chan<- *Response
 }
 
 // Response sent to Request.ResponseCh when the Thumbnail operation is done.
@@ -54,10 +52,10 @@ type Response struct {
 // Thumbnail is a blocking wrapper that executes thumbnail.Thumbnail
 // requests in a pool of worker threads.  Work is skipped if aborted is
 // closed while the request is queued.
-func (p *Pool) Thumbnail(blob []byte, options Options, saveOptions format.SaveOptions, aborted <-chan bool) ([]byte, error) {
+func (p *Pool) Thumbnail(blob []byte, options Options, aborted <-chan bool) ([]byte, error) {
 	rc := make(chan *Response)
 
-	r := &Request{Blob: blob, Options: options, SaveOptions: saveOptions, Aborted: aborted, ResponseCh: rc}
+	r := &Request{Blob: blob, Options: options, Aborted: aborted, ResponseCh: rc}
 	p.RequestCh <- r
 
 	s := <-rc
@@ -83,7 +81,7 @@ func (p *Pool) worker() {
 		case <-q.Aborted:
 			s.Error = ErrAborted
 		default:
-			s.Blob, s.Error = Thumbnail(q.Blob, q.Options, q.SaveOptions)
+			s.Blob, s.Error = Thumbnail(q.Blob, q.Options)
 		}
 
 		q.ResponseCh <- s

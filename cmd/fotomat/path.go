@@ -22,10 +22,10 @@ var (
 	matchPath = regexp.MustCompile(`^(/.*)=(p?)(w?)([sc])(\d{1,5})x(\d{1,5})$`)
 )
 
-func pathParse(path string) (string, thumbnail.Options, format.SaveOptions, bool) {
+func pathParse(path string) (string, thumbnail.Options, bool) {
 	g := matchPath.FindStringSubmatch(path)
 	if len(g) != 7 {
-		return "", thumbnail.Options{}, format.SaveOptions{}, false
+		return "", thumbnail.Options{}, false
 	}
 
 	path = g[1]
@@ -37,11 +37,11 @@ func pathParse(path string) (string, thumbnail.Options, format.SaveOptions, bool
 
 	// Disallow repeated scaling parameters.
 	if matchPath.MatchString(path) {
-		return "", thumbnail.Options{}, format.SaveOptions{}, false
+		return "", thumbnail.Options{}, false
 	}
 
 	if width <= 0 || height <= 0 || width > *maxOutputDimension || height > *maxOutputDimension {
-		return "", thumbnail.Options{}, format.SaveOptions{}, false
+		return "", thumbnail.Options{}, false
 	}
 
 	o := thumbnail.Options{
@@ -52,29 +52,28 @@ func pathParse(path string) (string, thumbnail.Options, format.SaveOptions, bool
 		Crop:               crop,
 		FastResize:         *fastResize,
 		IccProfileFilename: sRgbFile,
-	}
-
-	so := format.SaveOptions{
-		Lossless:     *lossless,
-		LossyIfPhoto: *lossyIfPhoto,
+		Save: format.SaveOptions{
+			Lossless:     *lossless,
+			LossyIfPhoto: *lossyIfPhoto,
+		},
 	}
 
 	// Preview images are tiny, blurry JPEGs.
 	if preview {
 		o.Sharpen = false
 		o.BlurSigma = 0.4
-		so.Format = format.Jpeg
-		so.Quality = 40
+		o.Save.Format = format.Jpeg
+		o.Save.Quality = 40
 	}
 
 	if webp {
-		so.AllowWebp = true
-		if so.Format != format.Unknown {
-			so.Format = format.Webp
+		o.Save.AllowWebp = true
+		if o.Save.Format != format.Unknown {
+			o.Save.Format = format.Webp
 		}
-		so.Lossless = *losslessWebp
+		o.Save.Lossless = *losslessWebp
 	}
 
-	return path, o, so, true
+	return path, o, true
 
 }

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, error) {
+func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	if o.MaxProcessingDuration > 0 {
 		timer := time.AfterFunc(o.MaxProcessingDuration, func() {
 			panic(fmt.Sprintf("Thumbnail took longer than %v", o.MaxProcessingDuration))
@@ -31,7 +31,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 
 	// If source image is lossy, disable lossless.
 	if m.Format == format.Jpeg {
-		saveOptions.Lossless = false
+		o.Save.Lossless = false
 	}
 
 	// Figure out size to scale image down to.  For crop, this is the
@@ -85,7 +85,7 @@ func Thumbnail(blob []byte, o Options, saveOptions format.SaveOptions) ([]byte, 
 		return nil, err
 	}
 
-	return format.Save(image, saveOptions)
+	return format.Save(image, o.Save)
 }
 
 func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
