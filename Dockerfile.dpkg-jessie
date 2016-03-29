@@ -6,53 +6,24 @@
 
 FROM debian:jessie
 
-ADD . /app/src/github.com/die-net/fotomat
+ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 
 RUN \
-    # Apply updates and install our dependencies
-    apt-get -q update && \
-    apt-get -y -q dist-upgrade && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
-       ca-certificates curl \
-       fakeroot git automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev \
-       libwebp-dev libtiff5-dev libexif-dev libmagickwand-dev libfftw3-dev libffi-dev && \
+    # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
+    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" VIPS_OPTIONS="--disable-shared --enable-static" \
+        /app/src/github.com/die-net/fotomat/preinstall.sh && \
+    # Add dpkg build tool.
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends fakeroot && \
 
     # Create a few directories
-    mkdir -p /usr/local/go /usr/local/vips /app/pkg /app/bin && \
+    mkdir -p /app/pkg /app/bin
 
-    # Fetch and install Go
-    curl -sS https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz | \
-        tar --strip-components=1 -C /usr/local/go -xzf - && \
+ADD . /app/src/github.com/die-net/fotomat/
 
-    # Fetch and build VIPS (enabling GCC's auto-vectorization)
-    curl -sS http://www.vips.ecs.soton.ac.uk/supported/8.2/vips-8.2.2.tar.gz | \
-        tar --strip-components=1 -C /usr/local/vips -xzf - && \
-    cd /usr/local/vips && \
-    CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" CXXFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" LDFLAGS="-lstdc++" \
-        ./configure --disable-debug --disable-dependency-tracking --disable-gtk-doc-html --disable-pyvips8 --disable-shared \
-        --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick --with-tiff --with-libwebp --with-png \
-        --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc \
-        --without-pangoft2 --without-python --without-x --without-zip && \
-    make && make install && \
-
+RUN \
     # Build, install, and test fotomat
-    GOPATH=/app /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
-    GOPATH=/app /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/cmd/fotomat github.com/die-net/fotomat/thumbnail github.com/die-net/fotomat/format && \
+    GOPATH=/app /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/... && \
+    GOPATH=/app /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/... && \
 
     # Build the dpkg.
-    cd /app/src/github.com/die-net/fotomat/ && \
-    (perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "Version: ${1}-1\n"' cmd/fotomat/version.go; \
-     ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
-        xargs dpkg -S | cut -d: -f1 | sort -u | xargs echo "Depends:" | sed 's/ /, /g;s/:,/:/' \
-    ) >> dist/dpkg/fotomat/DEBIAN/control && \
-    install -d -m 755 dist/dpkg/fotomat/usr/sbin/ && \
-    install -s -m 755 /app/bin/fotomat dist/dpkg/fotomat/usr/sbin/ && \
-    fakeroot dpkg-deb --build dist/dpkg/fotomat && \
-
-    # And remove almost everything else that we installed
-    apt-get remove -y fakeroot git automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev \
-       libwebp-dev libtiff5-dev libexif-dev libmagickwand-dev libfftw3-dev libffi-dev && \
-    apt-get autoremove -y && \
-    apt-get autoclean && \
-    apt-get clean && \
-    rm -rf /usr/local/go /usr/local/vips /app/pkg /var/lib/apt/lists/*
+    /app/src/github.com/die-net/fotomat/dist/build-dpkg /app/bin/fotomat

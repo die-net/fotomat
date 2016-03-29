@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+set -o pipefail
+
+if ! type dpkg 2> /dev/null || ! type fakeroot 2> /dev/null; then
+    echo "$0 must be run on Debian with fakeroot installed."
+    exit 1
+fi
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <path to fotomat binary>"
+    exit 1
+fi
+fotomat="$1"
+
+if [ ! -x "$fotomat" ]; then
+    echo "$fotomat doesn't appear to be Fotomat."
+    exit 1
+fi
+
+dir="$(dirname $0)"
+
+(
+    perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "Version: ${1}-1\n"' $dir/../cmd/fotomat/version.go
+    ldd $fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
+      xargs dpkg -S | cut -d: -f1 | sort -u | xargs echo "Depends:" | sed 's/ /, /g;s/:,/:/'
+) >> $dir/dpkg/fotomat/DEBIAN/control
+
+install -d -m 755 $dir/dpkg/fotomat/usr/sbin/
+install -s -m 755 $fotomat $dir/dpkg/fotomat/usr/sbin/
+
+fakeroot dpkg-deb --build $dir/dpkg/fotomat
