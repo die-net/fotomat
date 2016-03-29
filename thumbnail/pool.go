@@ -76,11 +76,9 @@ func (p *Pool) worker() {
 		}
 
 		s := &Response{}
-
-		select {
-		case <-q.Aborted:
+		if hasAborted(q.Aborted) {
 			s.Error = ErrAborted
-		default:
+		} else {
 			s.Blob, s.Error = Thumbnail(q.Blob, q.Options)
 		}
 
@@ -97,4 +95,13 @@ func (p *Pool) worker() {
 func (p *Pool) Close() {
 	close(p.RequestCh)
 	p.wg.Wait()
+}
+
+func hasAborted(aborted <-chan bool) bool {
+	select {
+	case <-aborted:
+		return true
+	default:
+		return false
+	}
 }

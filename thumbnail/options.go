@@ -1,6 +1,8 @@
 package thumbnail
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"github.com/die-net/fotomat/format"
 	"time"
@@ -76,6 +78,31 @@ func (o Options) Check(m format.Metadata) (Options, error) {
 
 	if o.BlurSigma < 0.0 || o.BlurSigma > 8.0 {
 		return Options{}, ErrBadOption
+	}
+
+	return o, nil
+}
+
+// ToJSON returns a compact JSON representation of Options.
+func (o Options) ToJSON() ([]byte, error) {
+	j, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := bytes.Buffer{}
+	if err := json.Compact(&buf, j); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// FromJSON returns Options from a JSON representation of it.
+func OptionsFromJSON(j []byte) (Options, error) {
+	o := Options{}
+	if err := json.Unmarshal(j, &o); err != nil {
+		return Options{}, err
 	}
 
 	return o, nil
