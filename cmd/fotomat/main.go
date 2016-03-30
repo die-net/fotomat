@@ -20,8 +20,6 @@ func main() {
 	// Allow more threads than that for networking, etc.
 	runtime.GOMAXPROCS(*maxImageThreads * 2)
 
-	setupTempdir()
-
 	postRun()
 
 	log.Fatal(http.ListenAndServe(*listenAddr, nil))

@@ -26,7 +26,6 @@ type Options struct {
 	MaxBufferPixels       int
 	Sharpen               bool
 	BlurSigma             float64
-	IccProfileFilename    string
 	FastResize            bool
 	MaxProcessingDuration time.Duration
 	Save                  format.SaveOptions

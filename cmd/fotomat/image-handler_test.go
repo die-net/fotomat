@@ -30,7 +30,6 @@ func init() {
 	// Initialize flags with default values, enable local serving.
 	flag.Parse()
 	*localImageDirectory = "../../testdata/"
-	setupTempdir()
 	postRun()
 	runtime.GOMAXPROCS(2)
 

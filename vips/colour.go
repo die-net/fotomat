@@ -64,10 +64,15 @@ func (in *Image) IccImport() error {
 // IccTransform transform an image with a pair of ICC profiles. The input
 // image is moved to profile-connection space with the input profile and
 // then to the output space with the output profile and intent.
-func (in *Image) IccTransform(outputProfileFilename string, intent Intent) error {
+func (in *Image) IccTransform(outputProfileFilename string, inputProfileFilename string, intent Intent) error {
 	var out *C.struct__VipsImage
-	cf := C.CString(outputProfileFilename)
-	e := C.cgo_vips_icc_transform(in.vi, &out, cf, C.VipsIntent(intent))
-	C.free(unsafe.Pointer(cf))
+	co := C.CString(outputProfileFilename)
+	var ci *C.char
+	if inputProfileFilename != "" {
+		ci = C.CString(inputProfileFilename)
+	}
+	e := C.cgo_vips_icc_transform(in.vi, &out, co, ci, C.VipsIntent(intent))
+	C.free(unsafe.Pointer(ci))
+	C.free(unsafe.Pointer(co))
 	return in.imageError(out, e)
 }

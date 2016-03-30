@@ -68,13 +68,12 @@ func director(req *http.Request) (thumbnail.Options, int) {
 	}
 
 	o := thumbnail.Options{
-		Width:              width,
-		Height:             height,
-		MaxBufferPixels:    *maxBufferPixels,
-		Sharpen:            *sharpen,
-		Crop:               crop,
-		FastResize:         *fastResize,
-		IccProfileFilename: sRgbFile,
+		Width:           width,
+		Height:          height,
+		MaxBufferPixels: *maxBufferPixels,
+		Sharpen:         *sharpen,
+		Crop:            crop,
+		FastResize:      *fastResize,
 		Save: format.SaveOptions{
 			Lossless:     *lossless,
 			LossyIfPhoto: *lossyIfPhoto,

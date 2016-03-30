@@ -51,7 +51,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 	defer image.Close()
 
-	if err := srgb(image, o.IccProfileFilename); err != nil {
+	if err := srgb(image); err != nil {
 		return nil, err
 	}
 
@@ -96,10 +96,13 @@ func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 	return f.LoadBytes(blob)
 }
 
-func srgb(image *vips.Image, iccFilename string) error {
-	// Transform from embedded ICC profile if present. Ignore errors.
-	if iccFilename != "" && image.ImageFieldExists(vips.MetaIccName) {
-		_ = image.IccTransform(iccFilename, vips.IntentRelative)
+func srgb(image *vips.Image) error {
+	// Transform from embedded ICC profile if present or default profile
+	// if CMYK.  Ignore errors.
+	if image.ImageFieldExists(vips.MetaIccName) {
+		_ = image.IccTransform(sRgbFile, "", vips.IntentRelative)
+	} else if image.ImageGuessInterpretation() == vips.InterpretationCMYK {
+		_ = image.IccTransform(sRgbFile, cmykFile, vips.IntentRelative)
 	}
 
 	space := image.ImageGuessInterpretation()

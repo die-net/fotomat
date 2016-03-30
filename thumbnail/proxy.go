@@ -75,7 +75,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	}
 
-        orig, header, status, err := p.get(or.URL.String(), or.Header)
+	orig, header, status, err := p.get(or.URL.String(), or.Header)
 	if err != nil || (status != http.StatusOK && status != http.StatusNotModified) {
 		p.active <- true // Release semaphore ASAP.
 		proxyError(w, err, status)
@@ -84,14 +84,14 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 
 	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Etag", "Expires", "Last-Modified"})
 
-        if status == http.StatusNotModified || isNotModified(or.Header, header) {
+	if status == http.StatusNotModified || isNotModified(or.Header, header) {
 		p.active <- true // Release semaphore ASAP.
-        	w.WriteHeader(http.StatusNotModified)
-        	return
-        }
+		w.WriteHeader(http.StatusNotModified)
+		return
+	}
 
 	thumb, err := p.pool.Thumbnail(orig, options, aborted)
-	orig = nil // Free up image memory ASAP.
+	orig = nil       // Free up image memory ASAP.
 	p.active <- true // Release semaphore ASAP.
 
 	if err != nil {
@@ -134,17 +134,17 @@ func copyHeaders(src http.Header, dest http.Header, keys []string) {
 }
 
 func isNotModified(req http.Header, resp http.Header) bool {
-        etag := resp.Get("Etag")
-        match := req.Get("If-None-Match")
-        // TODO: Support the multi-valued form of If-None-Match.
-        if etag != "" && (match == etag || match == "*") {
-                return true
-        }
+	etag := resp.Get("Etag")
+	match := req.Get("If-None-Match")
+	// TODO: Support the multi-valued form of If-None-Match.
+	if etag != "" && (match == etag || match == "*") {
+		return true
+	}
 
-        // TODO: String compare of time is sub-optimal.
-        lastMod := resp.Get("Last-Modified")
-        since := req.Get("If-Modified-Since")
-        return lastMod != "" && since == lastMod
+	// TODO: String compare of time is sub-optimal.
+	lastMod := resp.Get("Last-Modified")
+	since := req.Get("If-Modified-Since")
+	return lastMod != "" && since == lastMod
 }
 
 func proxyError(w http.ResponseWriter, err error, status int) {
@@ -181,7 +181,6 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 
 	http.Error(w, err.Error(), status)
 }
-
 
 func isTimeout(err error) bool {
 	if err == nil {

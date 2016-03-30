@@ -13,6 +13,9 @@ cgo_vips_icc_import(VipsImage *in, VipsImage **out) {
 }
 
 int
-cgo_vips_icc_transform(VipsImage *in, VipsImage **out, const char *output_profile, VipsIntent intent) {
+cgo_vips_icc_transform(VipsImage *in, VipsImage **out, const char *output_profile, const char *input_profile, VipsIntent intent) {
+    if (input_profile != NULL) {
+        return vips_icc_transform(in, out, output_profile, "intent", intent, "input_profile", input_profile, "embedded", FALSE, NULL);
+    }
     return vips_icc_transform(in, out, output_profile, "intent", intent, "embedded", TRUE, NULL);
 }
