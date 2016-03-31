@@ -15,7 +15,12 @@ install:
   - # Do nothing.
 
 script:
-  - go get -t -v ./...
-  - go test -v -short -cover -race ./...
+  - go get -t -v ./... github.com/mattn/goveralls
+  - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
   - go vet ./...
+
+after_success:
+  - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done
+  - (echo mode:\ count; find ./ -name profile.out | xargs grep -vh mode:\ count ) > all.out
+  - goveralls -coverprofile=all.out -service=travis-ci
