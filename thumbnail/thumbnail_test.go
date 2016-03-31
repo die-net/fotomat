@@ -368,7 +368,7 @@ func isSize(image []byte, f format.Format, width, height int, alpha bool) error 
 		return fmt.Errorf("Format %s!=%s", m.Format, f)
 	}
 	if m.HasAlpha != alpha {
-		return fmt.Errorf("HasAlpha %s!=%s", m.HasAlpha, alpha)
+		return fmt.Errorf("HasAlpha %t!=%t", m.HasAlpha, alpha)
 	}
 	return nil
 }
