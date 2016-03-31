@@ -1,18 +1,13 @@
-language: go
+sudo: required
+dist: trusty
 
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      sudo: required
-    - os: osx
+language: go
 
 go:
   - 1.5.3
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ./preinstall.sh; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/vips; fi
+  - sudo ./preinstall.sh
 
 install:
   - # Do nothing.
