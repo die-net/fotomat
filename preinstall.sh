@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-vips_version=8.2.3
-go_version=1.5.3
+VIPS_VERSION=${VIPS_VERSION:-8.2.3}
+GO_VERSION=${GO_VERSION:-1.5.3}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -70,28 +70,32 @@ if ! type pkg-config >/dev/null; then
   echo "Sorry, I don't yet know how to install on a system without pkg-config"
 fi
 
-if pkg-config --exists vips && pkg-config --atleast-version=$vips_version vips; then
+if pkg-config --exists vips && pkg-config --atleast-version=$VIPS_VERSION vips; then
   echo "Found libvips $(pkg-config --modversion vips) installed"
+elif [ "$VIPS_VERSION" = "skip" ]; then
+  echo "Skipping VIPS installation"
 else
-  echo "Compiling libvips $vips_version from source"
-  rm -rf vips-$vips_version || true
-  mkdir vips-$vips_version
-  curl -sS http://www.vips.ecs.soton.ac.uk/supported/${vips_version%.*}/vips-${vips_version}.tar.gz | \
-    tar --strip-components=1 -C vips-$vips_version -xzf -
-  cd vips-$vips_version
+  echo "Compiling libvips $VIPS_VERSION from source"
+  rm -rf vips-$VIPS_VERSION || true
+  mkdir vips-$VIPS_VERSION
+  curl -sS http://www.vips.ecs.soton.ac.uk/supported/${VIPS_VERSION%.*}/vips-${VIPS_VERSION}.tar.gz | \
+    tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
+  cd vips-$VIPS_VERSION
   ./configure --disable-debug --disable-dependency-tracking --disable-static --without-orc \
       --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick \
       --with-tiff --with-libwebp --with-png ${VIPS_OPTIONS:-}
   make
   make install
   cd ..
-  rm -rf vips-$vips_version
+  rm -rf vips-$VIPS_VERSION
   ldconfig
   echo "Installed libvips $(pkg-config --modversion vips)"
 fi
 
 if type go 2>/dev/null; then
   echo "Found $(go version) installed"
+elif [ "$GO_VERSION" = "skip" ]; then
+  echo "Skipping Go installation"
 else
   arch="$( uname -sm | tr '[A-Z ]' '[a-z-]' | sed 's/i[3-6]86/386/;s/x86_64/amd64/' )"
   if [ "$arch" != "linux-386" -a "$arch" != "linux-amd64" ]; then
@@ -100,7 +104,7 @@ else
   fi
 
   mkdir -p /usr/local/go && \
-  curl -sS https://storage.googleapis.com/golang/go${go_version}.${arch}.tar.gz | \
+  curl -sS https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz | \
       tar --strip-components=1 -C /usr/local/go -xzf -
   ln -s ../go/bin/go /usr/local/bin
   echo "Installed $(go version)"
