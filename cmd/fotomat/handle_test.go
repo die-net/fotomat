@@ -49,8 +49,8 @@ func TestSuccess(t *testing.T) {
 	// Load a 2x3 pixel image.
 	assert.Nil(t, isSize("2px.png=s2048x2048", format.Png, 2, 3))
 
-	// Crop JPEG to 200x100.
-	assert.Nil(t, isSize("watermelon.jpg=c200x100", format.Jpeg, 200, 100))
+	// Crop JPEG to 200x100 and convert to WebP.
+	assert.Nil(t, isSize("watermelon.jpg=wc200x100", format.Webp, 200, 100))
 
 	// Scale preview JPEG.
 	assert.Nil(t, isSize("watermelon.jpg=ps100x100", format.Jpeg, 75, 100))

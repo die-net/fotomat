@@ -107,6 +107,25 @@ func TestCrop(t *testing.T) {
 	}
 }
 
+func TestBlurSharpen(t *testing.T) {
+	img := image("watermelon.jpg")
+
+	thumb, err := Thumbnail(img, Options{Width: 300, Height: 400})
+	assert.Nil(t, err)
+	l := len(thumb)
+
+	thumb, err = Thumbnail(img, Options{Width: 300, Height: 400, BlurSigma: 0.5})
+	if assert.Nil(t, err) {
+		assert.True(t, len(thumb) < l) // Blurry photos will be smaller
+	}
+
+	thumb, err = Thumbnail(img, Options{Width: 300, Height: 400, Sharpen: true})
+	assert.Nil(t, err)
+	if assert.Nil(t, err) {
+		assert.True(t, len(thumb) > l) // Sharpened photos will be larger
+	}
+}
+
 func TestAlpha(t *testing.T) {
 	img := image("noalpha.png")
 	assert.Nil(t, isSize(img, format.Png, 100, 50, true))
@@ -202,7 +221,7 @@ func testScalingFormat(t *testing.T, f format.Format) {
 	// Try scaling to some difficult sizes and make sure we get the expected size back.
 	// We have different code paths for different image formats, so we try for each.
 	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
-		thumb, err := Thumbnail(blob, Options{Width: size, Height: size, Save: format.SaveOptions{Format: f}})
+		thumb, err := Thumbnail(blob, Options{Width: size, Height: size, FastResize: true, Save: format.SaveOptions{Format: f}})
 		if assert.Nil(t, err) {
 			h := (169*size + 255) / 256
 			if h < 1 {
@@ -227,6 +246,21 @@ func TestBadOptions(t *testing.T) {
 			assert.False(t, thumb != nil, "format: %s -> %s, size: %d", f, of)
 		}
 	}
+}
+
+func TestOptionsJson(t *testing.T) {
+	o := Options{Width: 400, Height: 300, BlurSigma: 0.5, Save: format.SaveOptions{Format: format.Webp, Lossless: true}}
+
+	j, err := o.ToJSON()
+	assert.Nil(t, err)
+
+	v, err := OptionsFromJSON(j)
+	if assert.Nil(t, err) {
+		assert.Equal(t, o, v)
+	}
+
+	_, err = OptionsFromJSON([]byte(""))
+	assert.Error(t, err)
 }
 
 func BenchmarkThumbnailJpeg_16(b *testing.B) {

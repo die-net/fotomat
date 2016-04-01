@@ -65,16 +65,49 @@ func isSize(blob []byte, f Format, width, height int) error {
 	return nil
 }
 
+func TestFormatCanLoad(t *testing.T) {
+	assert.Equal(t, "image/jpeg", Jpeg.String())
+	assert.True(t, Jpeg.CanLoadBytes())
+	assert.True(t, Jpeg.CanLoadFile())
+
+	assert.Equal(t, "application/octet-stream", Unknown.String())
+
+	assert.False(t, Unknown.CanLoadBytes())
+	_, err := Unknown.LoadBytes([]byte("foo"))
+	assert.Equal(t, ErrInvalidOperation, err)
+
+	assert.False(t, Unknown.CanLoadFile())
+	_, err = Unknown.LoadFile("foo")
+	assert.Equal(t, ErrInvalidOperation, err)
+}
+
 func TestFormatOrientation(t *testing.T) {
 	for i := 1; i <= 8; i++ {
 		filename := "orient" + strconv.Itoa(i) + ".jpg"
 
-		m, err := MetadataBytes(image(filename))
+		m, err := Jpeg.MetadataFile(TestdataPath + filename)
 		if assert.Nil(t, err) {
 			assert.Equal(t, m.Width, 48)
 			assert.Equal(t, m.Height, 80)
 		}
+
+		thumb := convert(image(filename), SaveOptions{})
+		assert.Nil(t, isSize(thumb, Jpeg, 48, 80))
 	}
+}
+
+func TestFormatCrop(t *testing.T) {
+	// TopLeft requires no correction
+	x, y, ow, oh := TopLeft.Crop(800, 600, 88, 42, 1024, 768)
+	assert.Equal(t, []int{88, 42, 800, 600}, []int{x, y, ow, oh})
+
+	// BottomRight is rotate=180: x=1024-800-88, y=768-600-42
+	x, y, ow, oh = BottomRight.Crop(800, 600, 88, 42, 1024, 768)
+	assert.Equal(t, []int{136, 126, 800, 600}, []int{x, y, ow, oh})
+
+	// LeftBottom is rotate=270: swap ow, oh. x=768-600-42
+	x, y, ow, oh = LeftBottom.Crop(800, 600, 88, 42, 1024, 768)
+	assert.Equal(t, []int{126, 88, 600, 800}, []int{x, y, ow, oh})
 }
 
 func TestSwitchToLossy(t *testing.T) {
@@ -96,7 +129,41 @@ func TestSwitchToLossy(t *testing.T) {
 		// With lossless and lossIfPhoto enabled, we should return a Jpeg.
 		thumb = convert(img, SaveOptions{Lossless: true, LossyIfPhoto: true})
 		assert.Nil(t, isSize(thumb, Jpeg, 256, 169))
+
+		// Try saving as lossy webp.
+		thumb = convert(img, SaveOptions{AllowWebp: true})
+		if assert.Nil(t, isSize(thumb, Webp, 256, 169)) {
+			lossyLen := len(thumb)
+
+			// And make sure that lossless webp is larger.
+			thumb = convert(img, SaveOptions{AllowWebp: true, Lossless: true})
+			assert.Nil(t, isSize(thumb, Webp, 256, 169))
+			// TODO: https://github.com/jcupitt/libvips/issues/410
+			// assert.NotEqual(t, len(thumb), lossyLen)  // Lossless should be larger
+
+			// Make sure LossyIfPhoto returns lossy.
+			thumb = convert(img, SaveOptions{Format: Webp, Lossless: true, LossyIfPhoto: true})
+			assert.Nil(t, isSize(thumb, Webp, 256, 169))
+			assert.Equal(t, lossyLen, len(thumb))
+		}
 	}
+}
+
+func convert(blob []byte, so SaveOptions) []byte {
+	format := DetectFormat(blob)
+	img, err := format.LoadBytes(blob)
+	if err != nil {
+		panic(err)
+	}
+	defer img.Close()
+
+	DetectOrientation(img).Apply(img)
+
+	blob, err = Save(img, so)
+	if err != nil {
+		panic(err)
+	}
+	return blob
 }
 
 func BenchmarkMetadataJpeg_2(b *testing.B) {
@@ -224,21 +291,6 @@ func benchLoad(b *testing.B, filename string, format Format) {
 			}
 		}
 	})
-}
-
-func convert(blob []byte, so SaveOptions) []byte {
-	format := DetectFormat(blob)
-	img, err := format.LoadBytes(blob)
-	if err != nil {
-		panic(err)
-	}
-	defer img.Close()
-
-	blob, err = Save(img, so)
-	if err != nil {
-		panic(err)
-	}
-	return blob
 }
 
 func BenchmarkSaveJpeg_2(b *testing.B) {

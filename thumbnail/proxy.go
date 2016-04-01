@@ -125,6 +125,12 @@ func (p *Proxy) get(url string, header http.Header) ([]byte, http.Header, int, e
 	return orig, resp.Header, resp.StatusCode, err
 }
 
+func (p *Proxy) Close() {
+	close(p.active)
+	p.pool.Close()
+	*p = Proxy{}
+}
+
 func copyHeaders(src http.Header, dest http.Header, keys []string) {
 	for _, key := range keys {
 		if value, ok := src[key]; ok {
