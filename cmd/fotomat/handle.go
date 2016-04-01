@@ -49,6 +49,9 @@ func director(req *http.Request) (thumbnail.Options, int) {
 	if *localImageDirectory != "" {
 		req.URL.Scheme = "file"
 		req.URL.Host = "localhost"
+	} else {
+		req.URL.Scheme = "http"
+		req.URL.Host = req.Host
 	}
 
 	req.URL.Path = g[1]
