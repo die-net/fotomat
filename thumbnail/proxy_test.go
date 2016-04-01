@@ -1,9 +1,9 @@
 package thumbnail
 
 import (
+	"fmt"
 	"github.com/die-net/fotomat/format"
 	"github.com/stretchr/testify/assert"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -31,24 +31,24 @@ func TestErrors(t *testing.T) {
 	ps := newProxyServer()
 	defer ps.close()
 
-        // Return StatusNotFound on a textfile that doesn't exist.
-        assert.Equal(t, ps.getStatus("notfound.txt"), http.StatusNotFound)
+	// Return StatusNotFound on a textfile that doesn't exist.
+	assert.Equal(t, ps.getStatus("notfound.txt"), http.StatusNotFound)
 
-        // Return StatusUnsupportedMediaType on a text file.
-        assert.Equal(t, ps.getStatus("notimage.txt"), http.StatusUnsupportedMediaType)
+	// Return StatusUnsupportedMediaType on a text file.
+	assert.Equal(t, ps.getStatus("notimage.txt"), http.StatusUnsupportedMediaType)
 
-        // Return StatusUnsupportedMediaType on a truncated image.
-        assert.Equal(t, ps.getStatus("bad.jpg"), http.StatusUnsupportedMediaType)
+	// Return StatusUnsupportedMediaType on a truncated image.
+	assert.Equal(t, ps.getStatus("bad.jpg"), http.StatusUnsupportedMediaType)
 
-        // Return StatusUnsupportedMediaType on a 1x1 pixel image.
-        assert.Equal(t, ps.getStatus("1px.png"), http.StatusUnsupportedMediaType)
+	// Return StatusUnsupportedMediaType on a 1x1 pixel image.
+	assert.Equal(t, ps.getStatus("1px.png"), http.StatusUnsupportedMediaType)
 
-        // Return StatusRequestEntityTooLarge on a 34000px image.
-        assert.Equal(t, ps.getStatus("34000px.png"), http.StatusRequestEntityTooLarge)
+	// Return StatusRequestEntityTooLarge on a 34000px image.
+	assert.Equal(t, ps.getStatus("34000px.png"), http.StatusRequestEntityTooLarge)
 
-        // Make sure director return status is working
-        ps.status = 403
-        assert.Equal(t, ps.getStatus("2px.png"), 403)
+	// Make sure director return status is working
+	ps.status = 403
+	assert.Equal(t, ps.getStatus("2px.png"), 403)
 }
 
 type proxyServer struct {
@@ -96,8 +96,8 @@ func (ps *proxyServer) get(filename string) ([]byte, int) {
 }
 
 func (ps *proxyServer) getStatus(filename string) int {
-        _, code := ps.get(filename)
-        return code
+	_, code := ps.get(filename)
+	return code
 }
 
 func (ps *proxyServer) isSize(filename string, f format.Format, width, height int) error {
