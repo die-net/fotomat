@@ -18,9 +18,9 @@ var (
 	lossyIfPhoto          = flag.Bool("lossy_if_photo", true, "Save as lossy if image is detected as a photo.")
 	losslessWebp          = flag.Bool("lossless_webp", false, "When saving in WebP, allow lossless encoding.")
 	maxBufferPixels       = flag.Int("max_buffer_pixels", 6500000, "Maximum number of pixels to allocate for an intermediate image buffer.")
-	maxImageThreads       = flag.Int("max_image_threads", numCpuCores(), "Maximum number of threads simultaneously processing images (0=all CPUs).")
+	maxImageThreads       = flag.Int("max_image_threads", numCPUCores(), "Maximum number of threads simultaneously processing images (0=all CPUs).")
 	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
-	maxPrefetch           = flag.Int("max_prefetch", numCpuCores(), "Maximum number of images to prefetch before thread is available.")
+	maxPrefetch           = flag.Int("max_prefetch", numCPUCores(), "Maximum number of images to prefetch before thread is available.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
 	sharpen               = flag.Bool("sharpen", false, "Sharpen after resize.")
 
@@ -83,20 +83,17 @@ func director(req *http.Request) (thumbnail.Options, int) {
 		},
 	}
 
-	// Preview images are tiny, blurry JPEGs.
+	if webp {
+		o.Save.AllowWebp = true
+		o.Save.Lossless = *losslessWebp
+	}
+
+	// Preview images are tiny, blurry JPEGs/lossy WebPs.
 	if preview {
 		o.Sharpen = false
 		o.BlurSigma = 0.4
-		o.Save.Format = format.Jpeg
+		o.Save.Lossless = false
 		o.Save.Quality = 40
-	}
-
-	if webp {
-		o.Save.AllowWebp = true
-		if o.Save.Format != format.Unknown {
-			o.Save.Format = format.Webp
-		}
-		o.Save.Lossless = *losslessWebp
 	}
 
 	return o, 0

@@ -25,7 +25,7 @@ RUN \
     apt-get -q update && \
     apt-get -y -q dist-upgrade && \
     # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
-    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math" VIPS_OPTIONS="--disable-gtk-doc-html --disable-pyvips8 --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-python --without-x --without-zip" \
+    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math" VIPS_OPTIONS="--disable-gtk-doc-html --disable-pyvips8 --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-python --without-x --without-zip" \
         /app/src/github.com/die-net/fotomat/preinstall.sh && \
 
     # Create a few directories

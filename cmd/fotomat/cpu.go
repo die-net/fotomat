@@ -10,7 +10,7 @@ import (
 // Attempt to guess the number of physical (non-hyperthread) cores
 // available.  If that doesn't work, return Go's count of virtual cores that
 // we can be scheduled on.
-func numCpuCores() int {
+func numCPUCores() int {
 	cpus := runtime.NumCPU()
 
 	cores := procCpuinfoCores()

@@ -10,7 +10,7 @@ ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 
 RUN \
     # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
-    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" VIPS_OPTIONS="--disable-shared --enable-static" \
+    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" VIPS_OPTIONS="--disable-shared --enable-static" \
         /app/src/github.com/die-net/fotomat/preinstall.sh && \
     # Add dpkg build tool.
     DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends fakeroot && \

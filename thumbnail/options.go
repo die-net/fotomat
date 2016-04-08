@@ -97,7 +97,7 @@ func (o Options) ToJSON() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// FromJSON returns Options from a JSON representation of it.
+// OptionsFromJSON returns Options from a JSON representation of it.
 func OptionsFromJSON(j []byte) (Options, error) {
 	o := Options{}
 	if err := json.Unmarshal(j, &o); err != nil {

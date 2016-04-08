@@ -10,7 +10,7 @@ ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 
 RUN \
     # Install our dependencies. Download, build, and install VIPS. Download and install Go.
-    CFLAGS="-O2 -ftree-vectorize -msse4.2 -ffast-math -fPIC" LDFLAGS="-lstdc++" VIPS_OPTIONS="--disable-shared --enable-static" \
+    CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" LDFLAGS="-lstdc++" VIPS_OPTIONS="--disable-shared --enable-static" \
         /app/src/github.com/die-net/fotomat/preinstall.sh && \
     # Add a tool for building RPMs.
     yum -y install rpm-build
