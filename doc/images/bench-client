@@ -1,0 +1,62 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <bench-server URL>"
+    exit 1
+fi
+server="$1"
+
+srcsizes=($( seq 128 64 1023 ) $( seq 1024 256 4724 ))
+
+for s in 128 256 512 1024 2048; do
+    for t in 1 2 4 8 12 24; do
+        echo "Resizing to ${s}px with concurrency ${t}" 1>&2
+        for o in ${srcsizes[@]}; do
+	    [ $s -le $o ] && echo $server/rusty-${o}.jpg=s${s}x${s}
+        done | xargs -n 1 wrk --latency -c $t -t $t -d 5s | perl -x -S $0 $t
+    done
+done
+
+exit $?
+
+#!/usr/bin/perl
+use strict;
+use warnings;
+use vars qw ( $t $s $l50 $l75 $l90 );
+
+$t=shift @ARGV or die;
+$s="";
+$l50="";
+$l75="";
+$l90="";
+while (<>) {
+    if (/^Running.*-(\d+)\.\w+=[a-z]+(\d+)/) {
+    	$s="$1\t$2";
+    } elsif (/50%\s+([\d.]+)([a-z]+)/) {
+        $l50=join "\t", sec($1, $2);
+    } elsif (/75%\s+([\d.]+)([a-z]+)/) {
+        $l75=join "\t", sec($1, $2);
+    } elsif (/90%\s+([\d.]+)([a-z]+)/) {
+        $l90=join "\t", sec($1, $2);
+    } elsif (/^Requests.*?([\d.]+)/) {
+        print "$t\t$s\t$1\t$l50\t$l75\t$l90\n";
+        $s="";
+        $l50="";
+        $l75="";
+        $l90="";
+    }
+}
+
+sub sec {
+    my ($val, $unit) = @_;
+
+    if ($unit eq "ms") {
+	return $val/1000;
+    } elsif ($unit eq "us") {
+	return $val/1000000;
+    }
+    return 0+$val;
+}

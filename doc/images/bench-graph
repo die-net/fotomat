@@ -1,0 +1,97 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o pipefail
+
+dir=$( dirname "$0" )
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <path to bench-run data>"
+    exit 1
+elif [ ! -f "$1" ]; then
+    echo "$1 doesn't exist."
+    exit 1
+fi
+data="$1"
+
+tmp=$( mktemp -d -t bench-graph-XXXXXXXX )
+trap "rm -rf $tmp" INT TERM EXIT
+
+concurrency=($( awk -F'\t' '{print $1}' $data | sort -nu ))
+sizedst=($( awk -F'\t' '{print $3}' $data | sort -nu ))
+
+for t in ${concurrency[@]}; do
+    for s in ${sizedst[@]}; do
+	awk -F'\t' "(\$1==$t&&\$3==$s&&\$2>\$3)" $data > "$tmp/$t-$s"
+    done
+done
+
+# Reduce the number of generated graphs to the ones we use right now. 
+# Comment these out for the full set.
+concurrency=( 8 )
+sizedst=( 256 )
+
+for s in ${sizedst[@]}; do
+    gnuplot << EOF
+set terminal png large
+set key bottom right
+set output "$dir/latency-s${s}.png"
+set xlabel "input width (px) being resized to ${s}px"
+set ylabel "request latency (seconds)"
+set xrange [${s}:3072]
+plot \
+	"$tmp/1-${s}" using 2:5 title "concurrency 1" with lines linewidth 2, \
+	"$tmp/2-${s}" using 2:5 title "2" with lines linewidth 2, \
+	"$tmp/4-${s}" using 2:5 title "4" with lines linewidth 2, \
+	"$tmp/8-${s}" using 2:5 title "8" with lines linewidth 2, \
+	"$tmp/12-${s}" using 2:5 title "12" with lines linewidth 2
+EOF
+
+    gnuplot << EOF
+set terminal png large
+set key top right
+set output "$dir/throughput-s${s}.png"
+set xlabel "input width (px) resized to ${s}px"
+set ylabel "requests per second"
+set xrange [${s}:3072]
+plot \
+	"$tmp/1-${s}" using 2:4 title "concurrency 1" with lines linewidth 2, \
+	"$tmp/2-${s}" using 2:4 title "2" with lines linewidth 2, \
+	"$tmp/4-${s}" using 2:4 title "4" with lines linewidth 2, \
+	"$tmp/8-${s}" using 2:4 title "8" with lines linewidth 2, \
+	"$tmp/12-${s}" using 2:4 title "12" with lines linewidth 2, \
+	"$tmp/24-${s}" using 2:4 title "24" with lines linewidth 2
+EOF
+done
+
+for t in ${concurrency[@]}; do
+    gnuplot << EOF
+set terminal png large
+set key top left
+set output "$dir/latency-t${t}.png"
+set xlabel "input width (px)"
+set ylabel "request latency (seconds) at concurrency ${t}"
+set xrange [192:3072]
+plot \
+	"$tmp/${t}-128" using 2:5 title "output width 128px" with lines linewidth 2, \
+	"$tmp/${t}-256" using 2:5 title "256px" with lines linewidth 2, \
+	"$tmp/${t}-512" using 2:5 title "512px" with lines linewidth 2, \
+	"$tmp/${t}-1024" using 2:5 title "1024px" with lines linewidth 2, \
+	"$tmp/${t}-2048" using 2:5 title "2048px" with lines linewidth 2
+EOF
+
+    gnuplot << EOF
+set terminal png large
+set key bottom left
+set output "$dir/throughput-t${t}.png"
+set xlabel "input width (px)"
+set ylabel "requests per second at concurrency ${t}"
+set xrange [192:3072]
+plot \
+	"$tmp/${t}-128" using 2:4 title "output width 128px" with lines linewidth 2, \
+	"$tmp/${t}-256" using 2:4 title "256px" with lines linewidth 2, \
+	"$tmp/${t}-512" using 2:4 title "512px" with lines linewidth 2, \
+	"$tmp/${t}-1024" using 2:4 title "1024px" with lines linewidth 2, \
+	"$tmp/${t}-2048" using 2:4 title "2048px" with lines linewidth 2
+EOF
+done

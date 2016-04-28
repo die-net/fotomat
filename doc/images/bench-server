@@ -1,0 +1,44 @@
+#!/bin/bash
+set -o nounset
+set -o errexit
+set -o pipefail
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <path to fotomat binary>"
+    exit 1
+elif [ ! -x "$1" ]; then
+    echo "$1 doesn't exist."
+    exit 1
+fi
+fotomat="$1"
+server="http://$( hostname -f ):3528"
+
+tempdir=$( mktemp -d -t bench-server-XXXXXXXX )
+pid=1
+cleanup() {
+    rm -rf "$tempdir"
+    kill -TERM $pid 2> /dev/null || true
+}
+trap cleanup INT TERM EXIT
+
+echo "Fetching rusty.jpg"
+curl -sSL -o $tempdir/rusty.jpg https://upload.wikimedia.org/wikipedia/commons/a/a7/Rusty_long_construction_tubes_of_the_large_excavation_for_project_De_Hallen%2C_Amsterdam-West%2C_2014_-_Lange_stempels_in_de_bouwput_omringd_door_damwanden_-Hallen-project_in_de_Kinkerbuurt.jpg
+
+echo "Starting fotomat"
+$fotomat -listen=:3528 -local_image_directory="$tempdir" -max_output_dimension=5000 &
+pid=$!
+
+sleep 1
+
+echo -n "Generating source sizes:"
+srcsizes=($( seq 128 64 1023 ) $( seq 1024 256 4724 ))
+for s in ${srcsizes[@]}; do
+    echo -n " ${s}"
+    curl -sSL -o $tempdir/rusty-${s}.jpg $server/rusty.jpg=s${s}x${s}
+done
+echo ""
+
+echo "Listening for bench-client. Run: ./bench-client $server"
+echo "(control-C when done)"
+
+wait $pid
