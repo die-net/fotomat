@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-VIPS_VERSION=${VIPS_VERSION:-8.2.3}
-GO_VERSION=${GO_VERSION:-1.5.3}
+VIPS_VERSION=${VIPS_VERSION:-8.3.0}
+GO_VERSION=${GO_VERSION:-1.6.2}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -42,23 +42,23 @@ case "$release" in
 debian-[89]|debian-unknown|ubuntu-1[456].*|mint-17.*)
   # Debian 8-9 or sid, Ubuntu 14-16, Mint 17
   apt-get -q update
-  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libtiff5-dev libexif-dev libmagickwand-dev libfftw3-dev libffi-dev
+  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libgif-dev libtiff5-dev libexif-dev libfftw3-dev libffi-dev
   ;;
 centos-7*|rhel-7*)
   # RHEL/CentOS/SL 7
   yum -y install epel-release
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel ImageMagick-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel libxml2-devel libffi-devel jbigkit-devel 
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel libxml2-devel libffi-devel jbigkit-devel
   ;;
 fedora-2[1-3])
   # Fedora 21-23
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel ImageMagick-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel libxml2-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel libxml2-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel
   ;;
 "Red Hat Enterprise Linux release 6."*|"CentOS release 6."*|"Scientific Linux release 6."*)
   # RHEL/CentOS/SL 6
   yum -y install epel-release
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel ImageMagick-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel libxml2-devel
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel libxml2-devel
   ;;
 *)
   echo "Sorry, I don't yet know how to install on $release ($(uname -a))."
@@ -81,10 +81,10 @@ else
   curl -sS http://www.vips.ecs.soton.ac.uk/supported/${VIPS_VERSION%.*}/vips-${VIPS_VERSION}.tar.gz | \
     tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
   cd vips-$VIPS_VERSION
-  ./configure --disable-debug --disable-dependency-tracking --disable-static --without-orc \
-      --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-magick \
+  ./configure --disable-debug --disable-dependency-tracking --disable-static --without-orc --without-magick \
+      --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-giflib \
       --with-tiff --with-libwebp --with-png ${VIPS_OPTIONS:-}
-  make
+  make -j $( getconf _NPROCESSORS_ONLN 2> /dev/null || echo 1 )
   make install
   cd ..
   rm -rf vips-$VIPS_VERSION
@@ -106,7 +106,7 @@ else
   mkdir -p /usr/local/go && \
   curl -sS https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz | \
       tar --strip-components=1 -C /usr/local/go -xzf -
-  ln -s ../go/bin/go /usr/local/bin
+  ln -sf ../go/bin/go /usr/local/bin
   echo "Installed $(go version)"
 fi
 

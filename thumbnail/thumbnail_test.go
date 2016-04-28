@@ -114,7 +114,7 @@ func TestBlurSharpen(t *testing.T) {
 	assert.Nil(t, err)
 	l := len(thumb)
 
-	thumb, err = Thumbnail(img, Options{Width: 300, Height: 400, BlurSigma: 0.5})
+	thumb, err = Thumbnail(img, Options{Width: 300, Height: 400, BlurSigma: 0.8})
 	if assert.Nil(t, err) {
 		assert.True(t, len(thumb) < l) // Blurry photos will be smaller
 	}

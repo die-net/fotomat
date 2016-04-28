@@ -45,7 +45,7 @@ RUN \
 
     # And remove almost everything else that we installed
     apt-get remove -y git automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev \
-       libwebp-dev libtiff5-dev libexif-dev libmagickwand-dev libfftw3-dev libffi-dev && \
+       libwebp-dev libtiff5-dev libexif-dev libgif-dev libfftw3-dev libffi-dev && \
     apt-get autoremove -y && \
     apt-get autoclean && \
     apt-get clean && \

@@ -42,9 +42,9 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	// Are we shrinking by more than 2.5%?
 	shrinking := iw < m.Width-m.Width/40 && ih < m.Height-m.Height/40
 
-	// Figure out the jpeg shrink factor and load image.
+	// Figure out the jpeg/webp shrink factor and load image.
 	// Jpeg shrink rounds up the number of pixels.
-	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.FastResize)
+	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.FastResize, m.Format == format.Jpeg)
 	image, err := load(blob, m.Format, psf)
 	if err != nil {
 		return nil, err
@@ -89,8 +89,12 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 }
 
 func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
-	if f == format.Jpeg && shrink > 1 {
-		return vips.JpegloadBufferShrink(blob, shrink)
+	if shrink > 1 {
+		if f == format.Jpeg {
+			return vips.JpegloadBufferShrink(blob, shrink)
+		} else if f == format.Webp {
+			return vips.WebploadBufferShrink(blob, shrink)
+		}
 	}
 
 	return f.LoadBytes(blob)
@@ -146,7 +150,8 @@ func resize(image *vips.Image, iw, ih int, fastResize bool, blurSigma float64, s
 
 	// If necessary, do a high-quality resize to scale to final size.
 	if iw < m.Width || ih < m.Height {
-		if err := image.Resize(float64(iw)/float64(m.Width), float64(ih)/float64(m.Height)); err != nil {
+                // Vips 8.3 sometimes produces 1px smaller images than desired without the rounding help here.
+		if err := image.Resize((float64(iw)+0.5)/float64(m.Width), (float64(ih)+0.5)/float64(m.Height)); err != nil {
 			return err
 		}
 	}

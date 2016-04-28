@@ -3,6 +3,16 @@
 #include <vips/vips7compat.h>
 
 int
+cgo_vips_gifload(const char *filename, VipsImage **out) {
+    return vips_gifload(filename, out, NULL);
+}
+
+int
+cgo_vips_gifload_buffer(void *buf, size_t len, VipsImage **out) {
+    return vips_gifload_buffer(buf, len, out, NULL);
+}
+
+int
 cgo_vips_jpegload(const char *filename, VipsImage **out, int shrink) {
     return vips_jpegload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL, "shrink", shrink, NULL);
 }
@@ -15,16 +25,6 @@ cgo_vips_jpegload_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
 int
 cgo_vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int q, int optimize_coding, int interlace) {
     return vips_jpegsave_buffer(in, buf, len, "strip", strip, "Q", q, "optimize_coding", optimize_coding, "interlace", interlace, NULL);
-}
-
-int
-cgo_vips_magickload(const char *filename, VipsImage **out) {
-    return vips_magickload(filename, out, NULL);
-}
-
-int
-cgo_vips_magickload_buffer(void *buf, size_t len, VipsImage **out) {
-    return vips_magickload_buffer(buf, len, out, NULL);
 }
 
 int
@@ -43,13 +43,13 @@ cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int compression,
 }
 
 int
-cgo_vips_webpload(const char *filename, VipsImage **out) {
-    return vips_webpload(filename, out, NULL);
+cgo_vips_webpload(const char *filename, VipsImage **out, int shrink) {
+    return vips_webpload(filename, out, "shrink", shrink, NULL);
 }
 
 int
-cgo_vips_webpload_buffer(void *buf, size_t len, VipsImage **out) {
-    return vips_webpload_buffer(buf, len, out, NULL);
+cgo_vips_webpload_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
+    return vips_webpload_buffer(buf, len, out, "shrink", shrink, NULL);
 }
 
 int

@@ -31,11 +31,11 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 	return rw, rh, trustWidth
 }
 
-func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize bool) int {
+func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize, jpeg bool) int {
 	// Jpeg shrink rounds up the number of pixels, so calculate
-	// pre-shrink based on side that matters more.
+	// pre-shrink based on side that matters more.  Webp rounds down.
 	var shrink float64
-	if trustWidth {
+	if trustWidth == jpeg {
 		shrink = float64(mw) / float64(iw)
 	} else {
 		shrink = float64(mh) / float64(ih)
@@ -48,13 +48,24 @@ func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize bool) int {
 	}
 
 	// Jpeg loader can quickly shrink by 2, 4, or 8.
+	if jpeg {
+		switch {
+		case shrink >= 8:
+			return 8
+		case shrink >= 4:
+			return 4
+		case shrink >= 2:
+			return 2
+		default:
+			return 1
+		}
+	}
+
 	switch {
-	case shrink >= 8:
-		return 8
-	case shrink >= 4:
-		return 4
+	case shrink >= 1024:
+		return 1024
 	case shrink >= 2:
-		return 2
+		return int(shrink)
 	default:
 		return 1
 	}

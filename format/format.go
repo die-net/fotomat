@@ -25,13 +25,12 @@ var formatInfo = []struct {
 	mime      string
 	loadFile  func(filename string) (*vips.Image, error)
 	loadBytes func([]byte) (*vips.Image, error)
-	metadata  func([]byte) (Metadata, error)
 }{
-	{mime: "application/octet-stream", loadFile: nil, loadBytes: nil, metadata: nil},
-	{mime: "image/jpeg", loadFile: vips.Jpegload, loadBytes: vips.JpegloadBuffer, metadata: nil},
-	{mime: "image/png", loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer, metadata: nil},
-	{mime: "image/gif", loadFile: vips.Magickload, loadBytes: vips.MagickloadBuffer, metadata: metadataGif},
-	{mime: "image/webp", loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer, metadata: nil},
+	{mime: "application/octet-stream", loadFile: nil, loadBytes: nil},
+	{mime: "image/jpeg", loadFile: vips.Jpegload, loadBytes: vips.JpegloadBuffer},
+	{mime: "image/png", loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer},
+	{mime: "image/gif", loadFile: vips.Gifload, loadBytes: vips.GifloadBuffer},
+	{mime: "image/webp", loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer},
 }
 
 func DetectFormat(blob []byte) Format {

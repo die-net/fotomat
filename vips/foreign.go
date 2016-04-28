@@ -10,6 +10,20 @@ import (
 	"unsafe"
 )
 
+func Gifload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	cf := C.CString(filename)
+	e := C.cgo_vips_gifload(cf, &out)
+	C.free(unsafe.Pointer(cf))
+	return loadError(out, e)
+}
+
+func GifloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_gifload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	return loadError(out, e)
+}
+
 func Jpegload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -47,20 +61,6 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 	return saveError(ptr, length, e)
 }
 
-func Magickload(filename string) (*Image, error) {
-	var out *C.struct__VipsImage
-	cf := C.CString(filename)
-	e := C.cgo_vips_magickload(cf, &out)
-	C.free(unsafe.Pointer(cf))
-	return loadError(out, e)
-}
-
-func MagickloadBuffer(buf []byte) (*Image, error) {
-	var out *C.struct__VipsImage
-	e := C.cgo_vips_magickload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
-	return loadError(out, e)
-}
-
 func Pngload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -87,14 +87,28 @@ func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) 
 func Webpload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
-	e := C.cgo_vips_webpload(cf, &out)
+	e := C.cgo_vips_webpload(cf, &out, 1)
+	C.free(unsafe.Pointer(cf))
+	return loadError(out, e)
+}
+
+func WebploadShrink(filename string, shrink int) (*Image, error) {
+	var out *C.struct__VipsImage
+	cf := C.CString(filename)
+	e := C.cgo_vips_webpload(cf, &out, C.int(shrink))
 	C.free(unsafe.Pointer(cf))
 	return loadError(out, e)
 }
 
 func WebploadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
-	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
+	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1)
+	return loadError(out, e)
+}
+
+func WebploadBufferShrink(buf []byte, shrink int) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
 	return loadError(out, e)
 }
 
