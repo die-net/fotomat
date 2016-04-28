@@ -150,7 +150,7 @@ func resize(image *vips.Image, iw, ih int, fastResize bool, blurSigma float64, s
 
 	// If necessary, do a high-quality resize to scale to final size.
 	if iw < m.Width || ih < m.Height {
-                // Vips 8.3 sometimes produces 1px smaller images than desired without the rounding help here.
+		// Vips 8.3 sometimes produces 1px smaller images than desired without the rounding help here.
 		if err := image.Resize((float64(iw)+0.5)/float64(m.Width), (float64(ih)+0.5)/float64(m.Height)); err != nil {
 			return err
 		}
