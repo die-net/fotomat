@@ -5,5 +5,5 @@
 
 int
 cgo_vips_init() {
-    return vips_init("fotomat");
+    return VIPS_INIT("fotomat");
 }
