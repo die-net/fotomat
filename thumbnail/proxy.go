@@ -67,12 +67,11 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	}
 
 	// Wait for our turn to fetch and hold the original image.
-	<-p.active
-
-	if hasAborted(aborted) {
-		p.active <- true // Release semaphore ASAP.
+	select {
+	case <-aborted:
 		proxyError(w, ErrAborted, 0)
 		return
+	case <-p.active:
 	}
 
 	orig, header, status, err := p.get(or.URL.String(), or.Header)
