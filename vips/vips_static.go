@@ -8,6 +8,6 @@ package vips
 
 /*
 #cgo pkg-config: --static vips
-#cgo LDFLAGS: -lstdc++
+#cgo LDFLAGS: -lstdc++ -lgif -ltiff
 */
 import "C"
