@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 const (
@@ -66,10 +67,17 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	}
 
+	if options.MaxQueueDuration <= 0 {
+		options.MaxQueueDuration = time.Hour // "Forever" for an http request
+	}
+
 	// Wait for our turn to fetch and hold the original image.
 	select {
 	case <-aborted:
 		proxyError(w, ErrAborted, 0)
+		return
+	case <-time.After(options.MaxQueueDuration):
+		proxyError(w, nil, http.StatusRequestTimeout)
 		return
 	case <-p.active:
 	}

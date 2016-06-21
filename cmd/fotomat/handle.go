@@ -22,6 +22,7 @@ var (
 	maxOutputDimension    = flag.Int("max_output_dimension", 2048, "Maximum width or height of an image response.")
 	maxPrefetch           = flag.Int("max_prefetch", numCPUCores(), "Maximum number of images to prefetch before thread is available.")
 	maxProcessingDuration = flag.Duration("max_processing_duration", time.Minute, "Maximum duration we can be processing an image before assuming we crashed (0=disable).")
+	maxQueueDuration      = flag.Duration("max_queue_duration", 10*time.Second, "Maximum delay of pre-image-fetch queue before returning error (0=disable).")
 	sharpen               = flag.Bool("sharpen", false, "Sharpen after resize.")
 
 	matchPath = regexp.MustCompile(`^(/.*)=(p?)(w?)([sc])(\d{1,5})x(\d{1,5})$`)
@@ -71,12 +72,14 @@ func director(req *http.Request) (thumbnail.Options, int) {
 	}
 
 	o := thumbnail.Options{
-		Width:           width,
-		Height:          height,
-		MaxBufferPixels: *maxBufferPixels,
-		Sharpen:         *sharpen,
-		Crop:            crop,
-		FastResize:      *fastResize,
+		Width:                 width,
+		Height:                height,
+		MaxBufferPixels:       *maxBufferPixels,
+		Sharpen:               *sharpen,
+		Crop:                  crop,
+		FastResize:            *fastResize,
+		MaxQueueDuration:      *maxQueueDuration,
+		MaxProcessingDuration: *maxProcessingDuration,
 		Save: format.SaveOptions{
 			Lossless:     *lossless,
 			LossyIfPhoto: *lossyIfPhoto,

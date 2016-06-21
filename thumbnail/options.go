@@ -27,6 +27,7 @@ type Options struct {
 	Sharpen               bool
 	BlurSigma             float64
 	FastResize            bool
+	MaxQueueDuration      time.Duration
 	MaxProcessingDuration time.Duration
 	Save                  format.SaveOptions
 }
