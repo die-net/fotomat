@@ -77,7 +77,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		proxyError(w, ErrAborted, 0)
 		return
 	case <-time.After(options.MaxQueueDuration):
-		proxyError(w, nil, http.StatusRequestTimeout)
+		proxyError(w, nil, http.StatusGatewayTimeout)
 		return
 	case <-p.active:
 	}
@@ -167,6 +167,7 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 		http.StatusForbidden,
 		http.StatusNotFound,
 		http.StatusRequestTimeout,
+		http.StatusGatewayTimeout,
 		http.StatusGone:
 		err = nil
 	case 0:
