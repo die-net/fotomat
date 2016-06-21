@@ -37,7 +37,7 @@ func procCpuinfoCores() int {
 
 	scanner := bufio.NewScanner(file)
 	phys := ""
-	s := make(map[string]bool)
+	s := make(map[string]int)
 	for scanner.Scan() {
 		f := strings.SplitN(scanner.Text(), ":", 2)
 		if len(f) != 2 {
@@ -50,7 +50,13 @@ func procCpuinfoCores() int {
 			phys = value
 		case "core id":
 			if phys != "" {
-				s[phys+"-"+value] = true
+				pv := phys + "-" + value
+				s[pv]++
+				// Xen sets both ids to 0.  Return error if
+				// we have more than 2 HTs per core.
+				if s[pv] > 2 {
+					return 0
+				}
 			}
 		}
 	}
