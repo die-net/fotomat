@@ -90,6 +90,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	}
 
 	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Etag", "Expires", "Last-Modified"})
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 	if status == http.StatusNotModified || isNotModified(or.Header, header) {
 		p.active <- true // Release semaphore ASAP.
