@@ -16,6 +16,7 @@ install:
   - # Do nothing.
 
 script:
+  - rm -rf $GOPATH/{bin,pkg,src}/*
   - go get -t -v ./... github.com/mattn/goveralls
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
