@@ -6,7 +6,9 @@ Fotomat is an extremely fast image resizing proxy, enabling on-the-fly resizing 
 Documentation
 -------------
 
-See [features](https://github.com/die-net/fotomat/blob/master/doc/features.md), [building instructions](https://github.com/die-net/fotomat/blob/master/doc/building.md), and [command-line flags](https://github.com/die-net/fotomat/blob/master/doc/flags.md).
+See [features](https://github.com/die-net/fotomat/blob/master/doc/features.md), [building instructions](https://github.com/die-net/fotomat/blob/master/doc/building.md), [command-line
+flags](https://github.com/die-net/fotomat/blob/master/doc/flags.md), and
+[benchmarks](https://github.com/die-net/fotomat/blob/master/doc/benchmarks.md).
 
 There's also API detail for Fotomat's [thumbnail](https://godoc.org/github.com/die-net/fotomat/thumbnail), [format](https://godoc.org/github.com/die-net/fotomat/format), and [vips wrapper](https://godoc.org/github.com/die-net/fotomat/vips) libraries.
 
