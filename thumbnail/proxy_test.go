@@ -16,7 +16,7 @@ const (
 )
 
 func TestSuccess(t *testing.T) {
-	ps := newProxyServer()
+	ps := newProxyServer(time.Minute)
 	defer ps.close()
 
 	ps.options = Options{Save: format.SaveOptions{Lossless: true}}
@@ -27,8 +27,18 @@ func TestSuccess(t *testing.T) {
 	assert.Nil(t, ps.isSize("watermelon.jpg", format.Webp, 200, 100))
 }
 
+func TestTimeout(t *testing.T) {
+	ps := newProxyServer(time.Nanosecond)
+	defer ps.close()
+
+	ps.scheme = "http"
+	ps.host = "127.0.0.2"
+
+	assert.Equal(t, http.StatusGatewayTimeout, ps.getStatus("timeout"))
+}
+
 func TestErrors(t *testing.T) {
-	ps := newProxyServer()
+	ps := newProxyServer(time.Minute)
 	defer ps.close()
 
 	// Return StatusNotFound on a textfile that doesn't exist.
@@ -56,16 +66,21 @@ type proxyServer struct {
 	server  *httptest.Server
 	options Options
 	status  int
+	scheme  string
+	host    string
 }
 
-func newProxyServer() *proxyServer {
-	ps := &proxyServer{}
+func newProxyServer(timeout time.Duration) *proxyServer {
+	ps := &proxyServer{
+		scheme: "file",
+		host:   "localhost",
+	}
 
 	pool := NewPool(0, 1)
 
 	transport := &http.Transport{}
 	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(imageDirectory)))
-	client := &http.Client{Transport: http.RoundTripper(transport), Timeout: time.Minute}
+	client := &http.Client{Transport: http.RoundTripper(transport), Timeout: timeout}
 
 	ps.proxy = NewProxy(ps.director, pool, 2, client)
 	ps.server = httptest.NewServer(ps.proxy)
@@ -74,8 +89,8 @@ func newProxyServer() *proxyServer {
 }
 
 func (ps *proxyServer) director(req *http.Request) (Options, int) {
-	req.URL.Scheme = "file"
-	req.URL.Host = "localhost"
+	req.URL.Scheme = ps.scheme
+	req.URL.Host = ps.host
 	return ps.options, ps.status
 }
 
