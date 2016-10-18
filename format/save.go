@@ -70,7 +70,7 @@ func jpegSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 
 func pngSave(image *vips.Image, options SaveOptions) ([]byte, error) {
 	// PNG interlace is larger; don't use it.
-	return image.PngsaveBuffer(options.Compression, false)
+	return image.PngsaveBuffer(true, options.Compression, false)
 }
 
 func webpSave(image *vips.Image, options SaveOptions) ([]byte, error) {

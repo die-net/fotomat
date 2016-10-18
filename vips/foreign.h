@@ -38,8 +38,8 @@ cgo_vips_pngload_buffer(void *buf, size_t len, VipsImage **out) {
 }
 
 int
-cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int compression, int interlace) {
-    return vips_pngsave_buffer(in, buf, len, "compression", compression, "interlace", interlace, NULL);
+cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int interlace) {
+    return vips_pngsave_buffer(in, buf, len, "strip", strip, "compression", compression, "interlace", interlace, NULL);
 }
 
 int

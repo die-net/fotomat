@@ -75,11 +75,11 @@ func PngloadBuffer(buf []byte) (*Image, error) {
 	return loadError(out, e)
 }
 
-func (in *Image) PngsaveBuffer(compression int, interlace bool) ([]byte, error) {
+func (in *Image) PngsaveBuffer(strip bool, compression int, interlace bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
 
-	e := C.cgo_vips_pngsave_buffer(in.vi, &ptr, &length, C.int(compression), C.int(btoi(interlace)))
+	e := C.cgo_vips_pngsave_buffer(in.vi, &ptr, &length, C.int(btoi(strip)), C.int(compression), C.int(btoi(interlace)))
 
 	return saveError(ptr, length, e)
 }
