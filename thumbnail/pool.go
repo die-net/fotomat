@@ -28,6 +28,8 @@ func NewPool(workers, queueLen int) *Pool {
 		workers = runtime.NumCPU()
 	}
 
+	p.wg.Add(workers)
+
 	for i := 0; i < workers; i++ {
 		go p.worker()
 	}
@@ -65,8 +67,6 @@ func (p *Pool) Thumbnail(blob []byte, options Options, aborted <-chan bool) ([]b
 }
 
 func (p *Pool) worker() {
-	p.wg.Add(1)
-
 	runtime.LockOSThread()
 
 	for {
