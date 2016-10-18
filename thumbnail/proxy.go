@@ -210,6 +210,9 @@ func isTimeout(err error) bool {
 		if err, ok := err.Err.(net.Error); ok {
 			return err.Timeout()
 		}
+		if err.Err.Error() == "net/http: request canceled while waiting for connection" {
+			return true
+		}
 	}
 	return false
 }
