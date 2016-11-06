@@ -34,7 +34,8 @@ func TestTimeout(t *testing.T) {
 	ps.scheme = "http"
 	ps.host = "127.0.0.2"
 
-	assert.Equal(t, http.StatusGatewayTimeout, ps.getStatus("timeout"))
+	body, status := ps.get("timeout")
+	assert.Equal(t, http.StatusGatewayTimeout, status, string(body))
 }
 
 func TestErrors(t *testing.T) {
