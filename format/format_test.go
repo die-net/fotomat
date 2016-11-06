@@ -82,7 +82,7 @@ func TestFormatCanLoad(t *testing.T) {
 }
 
 func TestFormatOrientation(t *testing.T) {
-	for i := 1; i <= 8; i++ {
+	for i := 0; i <= 8; i++ {
 		filename := "orient" + strconv.Itoa(i) + ".jpg"
 
 		m, err := Jpeg.MetadataFile(TestdataPath + filename)
@@ -138,8 +138,7 @@ func TestSwitchToLossy(t *testing.T) {
 			// And make sure that lossless webp is larger.
 			thumb = convert(img, SaveOptions{AllowWebp: true, Lossless: true})
 			assert.Nil(t, isSize(thumb, Webp, 256, 169))
-			// TODO: https://github.com/jcupitt/libvips/issues/410
-			// assert.NotEqual(t, len(thumb), lossyLen)  // Lossless should be larger
+			assert.NotEqual(t, len(thumb), lossyLen) // Lossless should be larger
 
 			// Make sure LossyIfPhoto returns lossy.
 			thumb = convert(img, SaveOptions{Format: Webp, Lossless: true, LossyIfPhoto: true})

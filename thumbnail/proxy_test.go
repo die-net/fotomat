@@ -59,6 +59,9 @@ func TestErrors(t *testing.T) {
 	// Make sure director return status is working
 	ps.status = 403
 	assert.Equal(t, ps.getStatus("2px.png"), 403)
+
+	// Make sure NewProxy returns nil on bad input
+	assert.Nil(t, NewProxy(nil, nil, 0, nil))
 }
 
 type proxyServer struct {

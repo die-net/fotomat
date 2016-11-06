@@ -20,6 +20,28 @@ func TestOptionsMetadata(t *testing.T) {
 	assert.Equal(t, err, nil)
 }
 
+func TestOptionsValidation(t *testing.T) {
+	m := format.Metadata{Width: 640, Height: 480, Format: format.Jpeg}
+
+	_, err := Options{BlurSigma: 10}.Check(m)
+	assert.Equal(t, err, ErrBadOption)
+
+	_, err = Options{BlurSigma: -1}.Check(m)
+	assert.Equal(t, err, ErrBadOption)
+
+	_, err = Options{Width: -1}.Check(m)
+	assert.Equal(t, err, ErrTooSmall)
+
+	_, err = Options{Height: -1}.Check(m)
+	assert.Equal(t, err, ErrTooSmall)
+
+	_, err = Options{Width: 32767}.Check(m)
+	assert.Equal(t, err, ErrTooBig)
+
+	_, err = Options{Height: 32767}.Check(m)
+	assert.Equal(t, err, ErrTooBig)
+}
+
 func TestOptionsCrop(t *testing.T) {
 	m := format.Metadata{Width: 640, Height: 480, Format: format.Jpeg}
 

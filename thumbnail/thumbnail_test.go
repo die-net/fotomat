@@ -33,6 +33,9 @@ func TestValidation(t *testing.T) {
 	// Load a 2x2 pixel image.
 	assert.Nil(t, tryNew("2px.png"))
 
+	// Load a CMYK image.
+	assert.Nil(t, tryNew("cmyk.jpg"))
+
 	// Return ErrTooBig on a 34000x16 PNG image.
 	assert.Equal(t, tryNew("34000px.png"), ErrTooBig)
 
@@ -105,6 +108,12 @@ func TestCrop(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 299, false))
 	}
+
+	// Verify cropping to fit, same result size.
+	thumb, err = Thumbnail(img, Options{Width: 796, Height: 1072, Crop: true})
+	if assert.Nil(t, err) {
+		assert.Nil(t, isSize(thumb, format.Jpeg, 398, 536, false))
+	}
 }
 
 func TestBlurSharpen(t *testing.T) {
@@ -147,7 +156,7 @@ func TestAlpha(t *testing.T) {
 }
 
 func TestRotation(t *testing.T) {
-	for i := 1; i <= 8; i++ {
+	for i := 0; i <= 8; i++ {
 		// Verify that New() correctly translates dimensions.
 		img := image("orient" + strconv.Itoa(i) + ".jpg")
 
