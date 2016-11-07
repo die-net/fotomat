@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 )
@@ -30,9 +31,6 @@ func TestSuccess(t *testing.T) {
 func TestTimeout(t *testing.T) {
 	ps := newProxyServer(time.Nanosecond)
 	defer ps.close()
-
-	ps.scheme = "http"
-	ps.host = "127.0.0.2"
 
 	body, status := ps.get("timeout")
 	assert.Equal(t, http.StatusGatewayTimeout, status, string(body))
@@ -68,6 +66,7 @@ func TestErrors(t *testing.T) {
 type proxyServer struct {
 	proxy   *Proxy
 	server  *httptest.Server
+	origin  *httptest.Server
 	options Options
 	status  int
 	scheme  string
@@ -75,18 +74,21 @@ type proxyServer struct {
 }
 
 func newProxyServer(timeout time.Duration) *proxyServer {
-	ps := &proxyServer{
-		scheme: "file",
-		host:   "localhost",
+	// Static http server that serves our test images
+	origin := httptest.NewServer(http.FileServer(http.Dir(imageDirectory)))
+	url, err := url.Parse(origin.URL)
+	if err != nil {
+		panic("Bad origin URL")
 	}
 
-	pool := NewPool(0, 1)
+	ps := &proxyServer{
+		origin: origin,
+		scheme: url.Scheme,
+		host:   url.Host,
+	}
 
-	transport := &http.Transport{}
-	transport.RegisterProtocol("file", http.NewFileTransport(http.Dir(imageDirectory)))
-	client := &http.Client{Transport: http.RoundTripper(transport), Timeout: timeout}
-
-	ps.proxy = NewProxy(ps.director, pool, 2, client)
+	// Proxy http server that fetches and thumbnails images from origin
+	ps.proxy = NewProxy(ps.director, NewPool(0, 1), 2, &http.Client{Timeout: timeout})
 	ps.server = httptest.NewServer(ps.proxy)
 
 	return ps
@@ -139,6 +141,7 @@ func (ps *proxyServer) isSize(filename string, f format.Format, width, height in
 }
 
 func (ps *proxyServer) close() {
-	ps.proxy.Close()
 	ps.server.Close()
+	ps.proxy.Close()
+	ps.origin.Close()
 }
