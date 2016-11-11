@@ -16,7 +16,7 @@ const (
 	imageDirectory = "../testdata/"
 )
 
-func TestSuccess(t *testing.T) {
+func TestProxySuccess(t *testing.T) {
 	ps := newProxyServer(0, time.Minute)
 	defer ps.close()
 
@@ -28,15 +28,7 @@ func TestSuccess(t *testing.T) {
 	assert.Nil(t, ps.isSize("watermelon.jpg", format.Webp, 200, 100))
 }
 
-func TestTimeout(t *testing.T) {
-	ps := newProxyServer(time.Second, time.Nanosecond)
-	defer ps.close()
-
-	body, status := ps.get("timeout")
-	assert.Equal(t, http.StatusGatewayTimeout, status, string(body))
-}
-
-func TestErrors(t *testing.T) {
+func TestProxyErrors(t *testing.T) {
 	ps := newProxyServer(0, time.Minute)
 	defer ps.close()
 
