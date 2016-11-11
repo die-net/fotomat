@@ -17,7 +17,7 @@ const (
 )
 
 func TestSuccess(t *testing.T) {
-	ps := newProxyServer(time.Minute)
+	ps := newProxyServer(0, time.Minute)
 	defer ps.close()
 
 	ps.options = Options{Save: format.SaveOptions{Lossless: true}}
@@ -29,7 +29,7 @@ func TestSuccess(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	ps := newProxyServer(time.Nanosecond)
+	ps := newProxyServer(time.Second, time.Nanosecond)
 	defer ps.close()
 
 	body, status := ps.get("timeout")
@@ -37,7 +37,7 @@ func TestTimeout(t *testing.T) {
 }
 
 func TestErrors(t *testing.T) {
-	ps := newProxyServer(time.Minute)
+	ps := newProxyServer(0, time.Minute)
 	defer ps.close()
 
 	// Return StatusNotFound on a textfile that doesn't exist.
@@ -73,9 +73,14 @@ type proxyServer struct {
 	host    string
 }
 
-func newProxyServer(timeout time.Duration) *proxyServer {
-	// Static http server that serves our test images
-	origin := httptest.NewServer(http.FileServer(http.Dir(imageDirectory)))
+func newProxyServer(delay time.Duration, timeout time.Duration) *proxyServer {
+	// Static http server that serves our test images, with a delay.
+	fs := http.FileServer(http.Dir(imageDirectory))
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(delay)
+		fs.ServeHTTP(w, r)
+	}))
+
 	url, err := url.Parse(origin.URL)
 	if err != nil {
 		panic("Bad origin URL")
