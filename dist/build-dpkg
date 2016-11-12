@@ -24,7 +24,7 @@ dir="$(dirname $0)"
 
 (
     perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "Version: ${1}-1\n"' $dir/../cmd/fotomat/version.go
-    ldd $fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
+    ldd $fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print "*"$3"*"}' | \
       xargs dpkg -S | cut -d: -f1 | sort -u | xargs echo "Depends:" | sed 's/ /, /g;s/:,/:/'
 ) >> $dir/dpkg/fotomat/DEBIAN/control
 
