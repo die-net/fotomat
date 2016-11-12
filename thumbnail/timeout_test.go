@@ -1,6 +1,6 @@
-package thumbnail
-
 // +build go1.6
+
+package thumbnail
 
 import (
 	"github.com/stretchr/testify/assert"
