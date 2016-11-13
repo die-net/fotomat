@@ -15,6 +15,9 @@ import (
 )
 
 var (
+	// ResizeOffset is how much padding is necessary to add to
+	// (*Image).Resize() scaling calculations, in pixels.  Set to 0 as
+	// of VIPS 8.4, and 0.5 for earlier versons.
 	ResizeOffset = 0.0
 )
 
@@ -41,6 +44,8 @@ func Initialize() {
 	}
 }
 
+// LeakSet turns leak checking on or off.  You should call this very early
+// in your program.
 func LeakSet(enable bool) {
 	C.vips_leak_set(C.gboolean(btoi(enable)))
 }

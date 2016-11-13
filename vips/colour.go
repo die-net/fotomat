@@ -37,13 +37,15 @@ const (
 	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
 )
 
+// Intent is the color management system rendering intent.
 type Intent int
 
+// Various Intent values understood by VIPS.
 const (
-	IntentPerceptual Intent = C.VIPS_INTENT_PERCEPTUAL
-	IntentRelative   Intent = C.VIPS_INTENT_RELATIVE
-	IntentSaturation Intent = C.VIPS_INTENT_SATURATION
-	IntentAbsolute   Intent = C.VIPS_INTENT_ABSOLUTE
+	IntentPerceptual Intent = C.VIPS_INTENT_PERCEPTUAL // best for business graphics
+	IntentRelative   Intent = C.VIPS_INTENT_RELATIVE   // best for accurate communication with other imaging libraries
+	IntentSaturation Intent = C.VIPS_INTENT_SATURATION // best for business graphics
+	IntentAbsolute   Intent = C.VIPS_INTENT_ABSOLUTE   // best for scientific work
 )
 
 // Colourspace moves an image to a target colourspace using the best sequence of colour transform operations.

@@ -8,6 +8,8 @@ import (
 )
 
 var (
+	// ErrAborted means the operation wasn't executed because the
+	// Request.Aborted channel was closed by the caller.
 	ErrAborted = errors.New("Thumbnail request aborted")
 )
 

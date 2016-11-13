@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+// Thumbnail scales or crops a compressed image blob according to the
+// Options specified in o and returns a compressed image.
+// Should be called from a thread pool with runtime.LockOSThread() locked.
 func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	if o.MaxProcessingDuration > 0 {
 		timer := time.AfterFunc(o.MaxProcessingDuration, func() {

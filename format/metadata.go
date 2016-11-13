@@ -4,6 +4,7 @@ import (
 	"github.com/die-net/fotomat/vips"
 )
 
+// Metadata is the currently-known metadata about an Image.
 type Metadata struct {
 	Width       int
 	Height      int
@@ -12,6 +13,7 @@ type Metadata struct {
 	HasAlpha    bool
 }
 
+// MetadataBytes parses an image byte slice and returns Metadata or an error.
 func MetadataBytes(blob []byte) (Metadata, error) {
 	format := DetectFormat(blob)
 	if format == Unknown {
@@ -21,6 +23,7 @@ func MetadataBytes(blob []byte) (Metadata, error) {
 	return format.MetadataBytes(blob)
 }
 
+// MetadataBytes parses an image byte slice in known format and returns Metadata or an error.
 func (format Format) MetadataBytes(blob []byte) (Metadata, error) {
 	image, err := format.LoadBytes(blob)
 	if err != nil {
@@ -32,6 +35,7 @@ func (format Format) MetadataBytes(blob []byte) (Metadata, error) {
 	return metadataImageFormat(image, format), nil
 }
 
+// MetadataFile parses an image file in known format and returns Metadata or an error.
 func (format Format) MetadataFile(filename string) (Metadata, error) {
 	image, err := format.LoadFile(filename)
 	if err != nil {
@@ -49,6 +53,7 @@ func metadataImageFormat(image *vips.Image, format Format) Metadata {
 	return m
 }
 
+// MetadataImage returns Metadata from an Image. Format is always unset.
 func MetadataImage(image *vips.Image) Metadata {
 	o := DetectOrientation(image)
 	w, h := o.Dimensions(image.Xsize(), image.Ysize())

@@ -17,10 +17,11 @@ install:
 
 script:
   - rm -rf $GOPATH/{bin,pkg}/*
-  - go get -t -v ./... github.com/mattn/goveralls
+  - go get -t -v ./... github.com/mattn/goveralls github.com/golang/lint/golint
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
   - go vet ./...
+  - golint -set_exit_status ./...
 
 after_success:
   - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done

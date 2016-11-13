@@ -12,13 +12,16 @@ import (
 )
 
 const (
-	DefaultAccept    = "image/jpeg,image/*;q=0.6"
-	DefaultServer    = "Fotomat"
+	// DefaultAccept is the default Accept header sent on upstream requests.
+	DefaultAccept = "image/jpeg,image/*;q=0.6"
+	// DefaultServer is the default Server header sent with responses.
+	DefaultServer = "Fotomat"
+	// DefaultUserAgent is the default User-Agent header sent on upstream requests.
 	DefaultUserAgent = "Fotomat (http://fotomat.org)"
 )
 
 // Proxy represents an HTTP proxy that can optionally run its contents
-// through Thumbnail.
+// through Thumbnail. Must be created with NewProxy.
 type Proxy struct {
 	Director  func(*http.Request) (Options, int)
 	Client    *http.Client
@@ -29,6 +32,8 @@ type Proxy struct {
 	active    chan bool
 }
 
+// NewProxy creates a Proxy object, with a given Director, Pool, upper limit
+// on images held in RAM, and http.Client.
 func NewProxy(director func(*http.Request) (Options, int), pool *Pool, maxActive int, client *http.Client) *Proxy {
 	if director == nil || pool == nil || client == nil || maxActive <= 0 {
 		return nil
@@ -51,6 +56,9 @@ func NewProxy(director func(*http.Request) (Options, int), pool *Pool, maxActive
 	return p
 }
 
+// ServeHTTP serves an HTTP request for a given Proxy, using Director to
+// parse the request, fetching an image, calling pool.Thumbnail on it, and
+// returning the result.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	aborted := w.(http.CloseNotifier).CloseNotify()
 
@@ -134,6 +142,7 @@ func (p *Proxy) get(url string, header http.Header) ([]byte, http.Header, int, e
 	return orig, resp.Header, resp.StatusCode, err
 }
 
+// Close shuts down a Proxy.
 func (p *Proxy) Close() {
 	close(p.active)
 	p.pool.Close()

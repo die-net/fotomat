@@ -10,6 +10,7 @@ import (
 	"unsafe"
 )
 
+// Gifload reads a GIF file into an Image.
 func Gifload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -18,12 +19,14 @@ func Gifload(filename string) (*Image, error) {
 	return loadError(out, e)
 }
 
+// GifloadBuffer reads a GIF byte slice into an Image.
 func GifloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_gifload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return loadError(out, e)
 }
 
+// Jpegload reads and returns a JPEG file as an Image.
 func Jpegload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -32,6 +35,9 @@ func Jpegload(filename string) (*Image, error) {
 	return loadError(out, e)
 }
 
+// JpegloadShrink reads and returns a JPEG file as an Image, shrinking by an
+// integer factor of 1, 2, 4, or 8 during load.  Shrinking during read is
+// much faster than decompressing the whole image and then resizing later.
 func JpegloadShrink(filename string, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -40,18 +46,27 @@ func JpegloadShrink(filename string, shrink int) (*Image, error) {
 	return loadError(out, e)
 }
 
+// JpegloadBuffer reads and returns a JPEG byte slice as an Image.
 func JpegloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1)
 	return loadError(out, e)
 }
 
+// JpegloadBufferShrink reads and returns a JPEG byte slice as an Image,
+// shrinking by an integer factor of 1, 2, 4, or 8 during load.  Shrinking
+// during read is very much faster than decompressing the whole image and
+// then shrinking later.
 func JpegloadBufferShrink(buf []byte, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_jpegload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
 	return loadError(out, e)
 }
 
+// JpegsaveBuffer write a VIPS image to a byte slice as JPEG.
+// Strip removes all metadata from an image.
+// OptimizeCoding computes and uses optimal Huffman coding tables and attaches them.
+// Interlace write an interlaced (progressive) JPEG.
 func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
@@ -61,6 +76,7 @@ func (in *Image) JpegsaveBuffer(strip bool, q int, optimizeCoding, interlace boo
 	return saveError(ptr, length, e)
 }
 
+// Pngload reads a PNG file into an Image.
 func Pngload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -69,12 +85,17 @@ func Pngload(filename string) (*Image, error) {
 	return loadError(out, e)
 }
 
+// PngloadBuffer reads a PNG byte slice into an Image.
 func PngloadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_pngload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return loadError(out, e)
 }
 
+// PngsaveBuffer write a VIPS image to a byte slice as PNG.
+// Strip removes all metadata from an image.
+// Compression supplies the gzip level of effort to use (1 - 9).
+// Interlace writes the image with ADAM7 interlacing, which is up to 7x slower.
 func (in *Image) PngsaveBuffer(strip bool, compression int, interlace bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)
@@ -84,6 +105,7 @@ func (in *Image) PngsaveBuffer(strip bool, compression int, interlace bool) ([]b
 	return saveError(ptr, length, e)
 }
 
+// Webpload read a WebP file into an Image.
 func Webpload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -92,6 +114,9 @@ func Webpload(filename string) (*Image, error) {
 	return loadError(out, e)
 }
 
+// WebploadShrink read a WebP file into an Image, shrinking by an
+// integer factor of 1 to 1024 during load.  Shrinking during read is
+// much faster than decompressing the whole image and then resizing later.
 func WebploadShrink(filename string, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -100,18 +125,25 @@ func WebploadShrink(filename string, shrink int) (*Image, error) {
 	return loadError(out, e)
 }
 
+// WebploadBuffer read a WebP byte slice into an Image.
 func WebploadBuffer(buf []byte) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1)
 	return loadError(out, e)
 }
 
+// WebploadBufferShrink read a WebP byte slice into an Image, shrinking by an
+// integer factor of 1 to 1024 during load.  Shrinking during read is
+// much faster than decompressing the whole image and then resizing later.
 func WebploadBufferShrink(buf []byte, shrink int) (*Image, error) {
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_webpload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.int(shrink))
 	return loadError(out, e)
 }
 
+// WebpsaveBuffer writes an Image to a WebP byte slice.
+// Q specifies the compression factor for RGB channels between 0 and 100.
+// Lossless encodes the image without any loss, at a large file size.
 func (in *Image) WebpsaveBuffer(q int, lossless bool) ([]byte, error) {
 	var ptr unsafe.Pointer
 	length := C.size_t(0)

@@ -5,8 +5,10 @@ import (
 	"strconv"
 )
 
+// Orientation is the current Image orientation, as stored by a camera.
 type Orientation int
 
+// Orientation values as defined by EXIF.
 const (
 	Undefined Orientation = iota
 	TopLeft
@@ -36,6 +38,7 @@ var orientationInfo = []struct {
 	{swapXY: true, flipX: true, flipY: false, apply: rot270},
 }
 
+// DetectOrientation detects the current Image Orientation from the EXIF header.
 func DetectOrientation(image *vips.Image) Orientation {
 	o, ok := image.ImageGetAsString(vips.ExifOrientation)
 	if !ok || o == "" {
@@ -50,6 +53,7 @@ func DetectOrientation(image *vips.Image) Orientation {
 	return Orientation(orientation)
 }
 
+// Dimensions translates a virtual width and height to match the current physical Orientation.
 func (orientation Orientation) Dimensions(width, height int) (int, int) {
 	if orientationInfo[orientation].swapXY {
 		return height, width
@@ -57,6 +61,7 @@ func (orientation Orientation) Dimensions(width, height int) (int, int) {
 	return width, height
 }
 
+// Crop translates crop parameters from virtual coordinates to match the current physical Orientation.
 func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int, int, int) {
 	oi := &orientationInfo[orientation]
 
@@ -74,6 +79,8 @@ func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int,
 	return x, y, ow, oh
 }
 
+// Apply executes a set of operations to change the pixel ordering from
+// orientation to TopLeft.
 func (orientation Orientation) Apply(image *vips.Image) error {
 	oi := &orientationInfo[orientation]
 

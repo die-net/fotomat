@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	// ErrImageOp means VIPS returned an error but we couldn't get error text.
 	ErrImageOp = errors.New("Image operation error")
 )
 

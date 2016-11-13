@@ -6,21 +6,32 @@ import (
 )
 
 const (
-	DefaultQuality     = 85
+	// DefaultQuality is used when SaveOptions.Quality is unspecified.
+	DefaultQuality = 85
+	// DefaultCompression is used when SaveOptions.Compression is unspecified.
 	DefaultCompression = 6
 )
 
+// ErrInvalidSaveFormat is returned if the specified Format can't be written to.
 var ErrInvalidSaveFormat = errors.New("Invalid save format")
 
+// SaveOptions specifies how an image should be saved.
 type SaveOptions struct {
-	Format       Format
-	Quality      int
-	Compression  int
-	AllowWebp    bool
-	Lossless     bool
+	// Format is the Format that an image is saved in. If unspecified, the best output format for a given input image is selected.
+	Format Format
+	// JPEG or WebP quality for an output image (1-100).
+	Quality int
+	// Compress is the GZIP compression setting to use for PNG images (1-9).
+	Compression int
+	// AllowWebp allows automatic selection of WebP format, if reader can support it.
+	AllowWebp bool
+	// Lossless allows selection of a lossless output format.
+	Lossless bool
+	// LossyIfPhoto uses a lossy format if it detects that an image is a photo.
 	LossyIfPhoto bool
 }
 
+// Save returns an Image compressed using the given SaveOptions as a byte slice.
 func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 	if options.Quality < 1 || options.Quality > 100 {
 		options.Quality = DefaultQuality

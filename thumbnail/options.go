@@ -9,9 +9,12 @@ import (
 )
 
 var (
+	// ErrBadOption is returned when option values are out of range.
 	ErrBadOption = errors.New("Bad option specified")
-	ErrTooBig    = errors.New("Image is too wide or tall")
-	ErrTooSmall  = errors.New("Image is too small")
+	// ErrTooBig is returned when an image is too wide or tall.
+	ErrTooBig = errors.New("Image is too wide or tall")
+	// ErrTooSmall is returned when an image is too small.
+	ErrTooSmall = errors.New("Image is too small")
 )
 
 const (
@@ -19,19 +22,37 @@ const (
 	maxDimension = (1 << 15) - 2 // Avoid signed int16 overflows.
 )
 
+// Options specifies how a Thumbnail operation should modify an image.
 type Options struct {
-	Width                 int
-	Height                int
-	Crop                  bool
-	MaxBufferPixels       int
-	Sharpen               bool
-	BlurSigma             float64
-	FastResize            bool
-	MaxQueueDuration      time.Duration
+	// Width and Height are the optional maximum sizes of output image,
+	// in pixels.  If Crop is false, the original aspect ratio is
+	// preserved and the more restrictive of Width or Height are used.
+	Width  int
+	Height int
+	// Crop enables crop mode, where exact supplied Width:Height aspect
+	// ratio is preserved and excess pixels are trimmed from the sides.
+	Crop bool
+	// MaxBufferPixels specifies how large of an intermediate image
+	// buffer to allow, in pixels. RAM usage will be a few bytes per pixel.
+	MaxBufferPixels int
+	// Sharpen runs a mild sharpening pass on downsampled images.
+	Sharpen bool
+	// BlurSigma performs a gaussian blur with specified sigma.
+	BlurSigma float64
+	// FastResize reduces output image quality in some cases in favor of speed.
+	FastResize bool
+	// MaxQueueDuration limits the amount of time spent in a queue before processing starts.
+	MaxQueueDuration time.Duration
+	// MaxProcessingDuration limits the amount of time processing an
+	// image, after which it is assumed the operation has crashed and
+	// the server aborts, killing all outstanding requests.
 	MaxProcessingDuration time.Duration
-	Save                  format.SaveOptions
+	// Save specifies the format.SaveOptions to use when compressing the modified image.
+	Save format.SaveOptions
 }
 
+// Check verifies Options against Metadata and returns a modified
+// Options or an error.
 func (o Options) Check(m format.Metadata) (Options, error) {
 	// Input format must be set.
 	if m.Format == format.Unknown {
