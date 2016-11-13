@@ -10,29 +10,25 @@ go:
   - 1.7.3
 
 env:
-  - VIPS_VERSION=8.3.3 CACHE_NAME=vips-8.3.3
-  - VIPS_VERSION=8.4.4 CACHE_NAME=vips-8.4.4
-
-cache:
-  directories:
-    - /usr/local/lib
+  - VIPS_VERSION=8.3.3
+  - VIPS_VERSION=8.4.4
 
 before_install:
+  - rm -rf $GOPATH/{bin,pkg}/*
   - sudo GO_VERSION=skip VIPS_VERSION=${VIPS_VERSION} ./preinstall.sh
 
 install:
   - # Do nothing.
 
 script:
-  - rm -rf $GOPATH/pkg/*
   - go get -t -v ./...
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
   - go vet ./...
-  - golint -set_exit_status ./...
+  - [[ "$TRAVIS_GO_VERSION" > "1.6" ]] && go get github.com/golang/lint/golint && golint -set_exit_status ./...
 
 after_success:
-  - go get github.com/mattn/goveralls
   - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done
   - (echo mode:\ count; find ./ -name profile.out | xargs grep -vh mode:\ count ) > all.out
+  - go get github.com/mattn/goveralls
   - goveralls -coverprofile=all.out -service=travis-ci
