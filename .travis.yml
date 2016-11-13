@@ -16,7 +16,6 @@ matrix:
 
 before_install:
   - rm -rf $GOPATH/{bin,pkg}/*
-  - go get golang.org/x/tools/cmd/vet github.com/mattn/goveralls
   - sudo GO_VERSION=skip VIPS_VERSION=${VIPS_VERSION} ./preinstall.sh
 
 install:
@@ -26,10 +25,10 @@ script:
   - go get -t -v ./...
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
-  - go vet ./...
-  - if [ "$GOLINT" = "true" ]; then go get github.com/golang/lint/golint; golint -set_exit_status ./...; fi
+  - if [ "$GOLINT" = "true" ]; then go vet ./...; go get github.com/golang/lint/golint; golint -set_exit_status ./...; fi
 
 after_success:
   - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done
   - (echo mode:\ count; find ./ -name profile.out | xargs grep -vh mode:\ count ) > all.out
+  - go get github.com/mattn/goveralls
   - goveralls -coverprofile=all.out -service=travis-ci
