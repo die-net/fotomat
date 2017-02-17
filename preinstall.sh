@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-VIPS_VERSION=${VIPS_VERSION:-8.4.4}
-GO_VERSION=${GO_VERSION:-1.7.3}
+VIPS_VERSION=${VIPS_VERSION:-8.4.5}
+GO_VERSION=${GO_VERSION:-1.8}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
