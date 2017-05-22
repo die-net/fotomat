@@ -97,7 +97,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	}
 
-	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Etag", "Expires", "Last-Modified"})
+	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Date", "Etag", "Expires", "Last-Modified"})
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
