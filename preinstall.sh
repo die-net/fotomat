@@ -7,13 +7,17 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-VIPS_VERSION=${VIPS_VERSION:-8.4.5}
-GO_VERSION=${GO_VERSION:-1.8.1}
+VIPS_VERSION=${VIPS_VERSION:-8.4.6}
+GO_VERSION=${GO_VERSION:-1.8.3}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 export CFLAGS="${CFLAGS:--O2 -ftree-vectorize -march=native -ffast-math}"
 export CXXFLAGS="${CXXFLAGS:-$CFLAGS}"
+
+function ver {
+  printf "%03d%03d%03d%03d" $(echo "$1" | tr '.' ' ')
+}
 
 if [ "$(uname -s)" != "Linux" ]; then
   echo "Sorry, this script is only useful on Linux."
@@ -80,11 +84,12 @@ if pkg-config --exists vips && pkg-config --atleast-version=$VIPS_VERSION vips; 
 elif [ "$VIPS_VERSION" = "skip" ]; then
   echo "Skipping VIPS installation"
 else
-  echo "Compiling libvips $VIPS_VERSION from source"
+  url="https://github.com/jcupitt/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz"
+  [ $(ver "$VIPS_VERSION") -lt $(ver "8.4.6") ] && url="http://www.vips.ecs.soton.ac.uk/supported/${VIPS_VERSION%.*}/vips-${VIPS_VERSION}.tar.gz"
+  echo "Building libvips $VIPS_VERSION from source $url"
   rm -rf vips-$VIPS_VERSION || true
   mkdir vips-$VIPS_VERSION
-  curl -sS http://www.vips.ecs.soton.ac.uk/supported/${VIPS_VERSION%.*}/vips-${VIPS_VERSION}.tar.gz | \
-    tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
+  curl -sSL "$url" | tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
   cd vips-$VIPS_VERSION
   ./configure --disable-debug --disable-dependency-tracking --disable-static --without-orc --without-magick \
       --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-giflib \
@@ -109,7 +114,7 @@ else
   fi
 
   mkdir -p /usr/local/go && \
-  curl -sS https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz | \
+  curl -sSL https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz | \
       tar --strip-components=1 -C /usr/local/go -xzf -
   ln -sf ../go/bin/go /usr/local/bin/go
   echo "Installed $(go version)"
