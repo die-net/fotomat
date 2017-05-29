@@ -29,12 +29,12 @@ cgo_vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int 
 
 int
 cgo_vips_pngload(const char *filename, VipsImage **out) {
-    return vips_pngload(filename, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, NULL);
+    return vips_pngload(filename, out, NULL);
 }
 
 int
 cgo_vips_pngload_buffer(void *buf, size_t len, VipsImage **out) {
-    return vips_pngload_buffer(buf, len, out, "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED, NULL);
+    return vips_pngload_buffer(buf, len, out, NULL);
 }
 
 int
