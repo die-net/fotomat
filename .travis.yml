@@ -14,7 +14,9 @@ matrix:
   - go: 1.7.6
     env: VIPS_VERSION=8.4.6 GOLINT=true
   - go: 1.8.3
-    env: VIPS_VERSION=8.4.6 GOLINT=true
+    env: VIPS_VERSION=8.5.8 GOLINT=true
+  - go: 1.9
+    env: VIPS_VERSION=8.5.8 GOLINT=true
 
 before_install:
   - rm -rf $GOPATH/{bin,pkg}/*
