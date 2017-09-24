@@ -13,10 +13,13 @@ srcsizes=($( seq 128 64 1023 ) $( seq 1024 256 4724 ))
 
 for s in 128 256 512 1024 2048; do
     for t in 1 2 4 8 12 24; do
-        echo "Resizing to ${s}px with concurrency ${t}" 1>&2
-        for o in ${srcsizes[@]}; do
-	    [ $s -le $o ] && echo $server/rusty-${o}.jpg=s${s}x${s}
-        done | xargs -n 1 wrk --latency -c $t -t $t -d 5s | perl -x -S $0 $t
+        # Only bother with the values that we're using in bench-graph.
+	if [ $s -eq 256 -o $t -eq 8 ]; then
+            echo "Resizing to ${s}px with concurrency ${t}" 1>&2
+            for o in ${srcsizes[@]}; do
+                [ $s -le $o ] && echo $server/rusty-${o}.jpg=s${s}x${s}
+            done | xargs -n 1 wrk --latency -c $t -t $t -d 5s | perl -x -S $0 $t
+        fi
     done
 done
 
