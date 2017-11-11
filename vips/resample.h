@@ -10,11 +10,7 @@ cgo_vips_affine(VipsImage *in, VipsImage **out, double a, double b, double c, do
 
 int
 cgo_vips_resize(VipsImage *in, VipsImage **out, double xscale, double yscale) {
-#if VIPS_MAJOR_VERSION > 8 || VIPS_MINOR_VERSION >= 4
     return vips_resize(in, out, xscale, "vscale", yscale, "centre", TRUE, NULL);
-#else
-    return vips_resize(in, out, xscale, "vscale", yscale, NULL);
-#endif
 }
 
 int

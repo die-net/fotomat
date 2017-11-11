@@ -14,13 +14,6 @@ import (
 	"runtime"
 )
 
-var (
-	// ResizeOffset is how much padding is necessary to add to
-	// (*Image).Resize() scaling calculations, in pixels.  Set to 0 as
-	// of VIPS 8.4, and 0.5 for earlier versons.
-	ResizeOffset = 0.0
-)
-
 // Initialize starts up the world of VIPS. You should call this on program
 // startup before using any other VIPS operations.
 func Initialize() {
@@ -37,11 +30,6 @@ func Initialize() {
 	C.vips_concurrency_set(1)
 	C.vips_cache_set_max_mem(0)
 	C.vips_cache_set_max(0)
-
-	// Vips 8.3 sometimes produces 1px smaller images than desired without rounding help.
-	if C.VIPS_MAJOR_VERSION == 8 && C.VIPS_MINOR_VERSION < 4 {
-		ResizeOffset = 0.5
-	}
 }
 
 // LeakSet turns leak checking on or off.  You should call this very early

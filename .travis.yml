@@ -5,18 +5,14 @@ language: go
 
 matrix:
   include:
-  - go: 1.4.3
-    env: VIPS_VERSION=8.3.3 GOLINT=false
-  - go: 1.5.4
-    env: VIPS_VERSION=8.3.3 GOLINT=false
   - go: 1.6.4
-    env: VIPS_VERSION=8.4.6 GOLINT=true
+    env: VIPS_VERSION=8.4.6
   - go: 1.7.6
-    env: VIPS_VERSION=8.4.6 GOLINT=true
+    env: VIPS_VERSION=8.4.6
   - go: 1.8.5
-    env: VIPS_VERSION=8.5.9 GOLINT=true
+    env: VIPS_VERSION=8.5.9
   - go: 1.9.2
-    env: VIPS_VERSION=8.5.9 GOLINT=true
+    env: VIPS_VERSION=8.5.9
 
 before_install:
   - rm -rf $GOPATH/{bin,pkg}/*
@@ -29,7 +25,9 @@ script:
   - go get -t -v ./...
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
-  - if [ "$GOLINT" = "true" ]; then go vet ./...; go get github.com/golang/lint/golint; golint -set_exit_status ./...; fi
+  - go vet ./...
+  - go get github.com/golang/lint/golint
+  - golint -set_exit_status ./...
 
 after_success:
   - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done

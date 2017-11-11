@@ -85,7 +85,6 @@ elif [ "$VIPS_VERSION" = "skip" ]; then
   echo "Skipping VIPS installation"
 else
   url="https://github.com/jcupitt/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz"
-  [ $(ver "$VIPS_VERSION") -lt $(ver "8.4.6") ] && url="http://www.vips.ecs.soton.ac.uk/supported/${VIPS_VERSION%.*}/vips-${VIPS_VERSION}.tar.gz"
   echo "Building libvips $VIPS_VERSION from source $url"
   rm -rf vips-$VIPS_VERSION || true
   mkdir vips-$VIPS_VERSION

@@ -2,7 +2,7 @@ Building:
 ========
 
 Install [Go](http://golang.org/doc/install), git, and
-[VIPS 8.3+](http://www.vips.ecs.soton.ac.uk/index.php?title=Stable).
+[VIPS 8.4+](http://www.vips.ecs.soton.ac.uk/index.php?title=Stable).
 
 If you haven't used Go before, first create a source tree for your Go code:
 

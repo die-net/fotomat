@@ -2,13 +2,6 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-#if (VIPS_MAJOR_VERSION == 7 && VIPS_MINOR_VERSION < 41)
-#define VIPS_ANGLE_D0 VIPS_ANGLE_0
-#define VIPS_ANGLE_D90 VIPS_ANGLE_90
-#define VIPS_ANGLE_D180 VIPS_ANGLE_180
-#define VIPS_ANGLE_D270 VIPS_ANGLE_270
-#endif
-
 int
 cgo_vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format) {
     return vips_cast(in, out, format, NULL);
