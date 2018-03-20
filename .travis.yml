@@ -9,9 +9,9 @@ matrix:
     env: VIPS_VERSION=8.4.6
   - go: 1.7.6
     env: VIPS_VERSION=8.4.6
-  - go: 1.8.5
+  - go: 1.8.7
     env: VIPS_VERSION=8.5.9
-  - go: 1.9.2
+  - go: 1.9.4
     env: VIPS_VERSION=8.5.9
 
 before_install:
