@@ -2,12 +2,12 @@ Building:
 ========
 
 Install [Go](http://golang.org/doc/install), git, and
-[VIPS 8.4+](http://www.vips.ecs.soton.ac.uk/index.php?title=Stable).
+[VIPS 8.4.6+](https://github.com/jcupitt/libvips/releases).
 
 If you haven't used Go before, first create a source tree for your Go code:
 
-    mkdir -p $HOME/gocode/src
-    export GOPATH=$HOME/gocode
+    mkdir -p $HOME/go/src
+    export GOPATH=$HOME/go
 
 On OSX, you can install all of the dependencies with [Homebrew](http://brew.sh/):
 
@@ -21,7 +21,7 @@ On most Linux flavors, you can install Go and VIPS with the ```preinstall.sh``` 
 
 Then for all OSes:
 
-    go get -u github.com/die-net/fotomat
+    go get -u github.com/die-net/fotomat/...
     
 And you'll end up with the executable:```$GOPATH/bin/fotomat```
 
