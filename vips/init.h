@@ -2,7 +2,7 @@
 #include <vips/vips.h>
 #include <vips/vips7compat.h>
 
-int
+void
 cgo_vips_warning_callback(char const* log_domain, GLogLevelFlags log_level, char const* message, void* ignore) {
    // Do nothing
 }
