@@ -20,17 +20,17 @@ RUN install -D /etc/passwd /export/etc/passwd
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 RUN DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" \
-    VIPS_OPTIONS="--disable-shared --enable-static --disable-gtk-doc-html --disable-pyvips8 --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-python --without-x" \
+    VIPS_OPTIONS="--prefix=/usr --disable-gtk-doc-html --disable-pyvips8 --without-analyze --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-magick --without-ppm --without-python --without-radiance --without-tiff --without-x" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
 
 # Add the rest of our code.
 ADD . /app/src/github.com/die-net/fotomat/
 
 # Build and install Fotomat
-RUN GOPATH=/app CGO_LDFLAGS_ALLOW='-Wl,--export-dynamic' /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/...
+RUN GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/...
 
 # Test fotomat
-RUN GOPATH=/app CGO_LDFLAGS_ALLOW='-Wl,--export-dynamic' /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/...
+RUN GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/...
 
 # Install Fotomat and all of its dependencies into /export.
 RUN install -sD /app/bin/fotomat /export/app/bin/fotomat
