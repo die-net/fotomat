@@ -10,9 +10,34 @@
 # To run as an HTTP image proxy, trusting the host header:
 #   docker run dienet/fotomat:latest -listen=:3520
 
-FROM debian:jessie
+FROM debian:stretch as builder
 
-ADD . /app/src/github.com/die-net/fotomat
+# Set up an /export/ directory with a tmp/ and etc/passwd
+RUN mkdir -p -m 1777 /export/tmp
+RUN useradd -r fotomat
+RUN install -D /etc/passwd /export/etc/passwd
+
+# Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
+ADD preinstall.sh /app/src/github.com/die-net/fotomat/
+RUN DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" \
+    VIPS_OPTIONS="--disable-shared --enable-static --disable-gtk-doc-html --disable-pyvips8 --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-python --without-x" \
+    /app/src/github.com/die-net/fotomat/preinstall.sh
+
+# Add the rest of our code.
+ADD . /app/src/github.com/die-net/fotomat/
+
+# Build and install Fotomat
+RUN GOPATH=/app CGO_LDFLAGS_ALLOW='-Wl,--export-dynamic' /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/...
+
+# Test fotomat
+RUN GOPATH=/app CGO_LDFLAGS_ALLOW='-Wl,--export-dynamic' /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/...
+
+# Install Fotomat and all of its dependencies into /export.
+RUN install -sD /app/bin/fotomat /export/app/bin/fotomat
+RUN ldd /app/bin/fotomat | awk '($2=="=>"){print $3};(substr($1,1,1)=="/"){print $1}' | xargs -i{} install -D {} /export{}
+
+
+FROM scratch
 
 ENTRYPOINT ["/app/bin/fotomat"]
 
@@ -20,36 +45,9 @@ CMD ["-listen=:3520"]
 
 EXPOSE 3520
 
-RUN \
-    # Apply updates and install our dependencies
-    apt-get -q update && \
-    apt-get -y -q dist-upgrade && \
-    # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
-    DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math" VIPS_OPTIONS="--disable-gtk-doc-html --disable-pyvips8 --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-python --without-x --without-zip" \
-        /app/src/github.com/die-net/fotomat/preinstall.sh && \
+COPY --from=builder /export/ /
 
-    # Create a few directories
-    mkdir -p /app/pkg /app/bin && \
-
-    # Build, install, and test fotomat
-    GOPATH=/app /usr/local/go/bin/go get -t github.com/die-net/fotomat/... && \
-    GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/... && \
-    strip /app/bin/fotomat && \
-
-    # Add a fotomat user for it to run as, and make filesystem read-only to that user.
-    useradd -m fotomat -s /bin/bash && \
-
-    # Mark fotomat's dependencies as needed, to avoid autoremoval
-    ldd /app/bin/fotomat | awk '($2=="=>"&&substr($3,1,11)!="/usr/local/"){print $3}' | \
-        xargs dpkg -S | cut -d: -f1 | sort -u | xargs apt-get install && \
-
-    # And remove almost everything else that we installed
-    apt-get remove -y git automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev \
-       libwebp-dev libtiff5-dev libexif-dev libgif-dev libfftw3-dev libffi-dev && \
-    apt-get autoremove -y && \
-    apt-get autoclean && \
-    apt-get clean && \
-    rm -rf /usr/local/go /app/pkg /var/lib/apt/lists/* /tmp/*
-
-# Start by default as a non-root user.
 USER fotomat
+
+# Make sure the app runs at all.
+RUN ["/app/bin/fotomat", "--version"]
