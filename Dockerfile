@@ -19,8 +19,8 @@ RUN install -D /etc/passwd /export/etc/passwd
 
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
-RUN DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" \
-    VIPS_OPTIONS="--prefix=/usr --disable-gtk-doc-html --disable-pyvips8 --without-analyze --without-cfitsio --without-fftw --without-gsf --without-matio --without-openslide --without-orc --without-pangoft2 --without-magick --without-ppm --without-python --without-radiance --without-tiff --without-x" \
+RUN DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math" \
+    VIPS_OPTIONS="--prefix=/usr" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
 
 # Add the rest of our code.

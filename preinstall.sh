@@ -90,9 +90,14 @@ else
   mkdir vips-$VIPS_VERSION
   curl -sSL "$url" | tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
   cd vips-$VIPS_VERSION
-  ./configure --disable-debug --disable-dependency-tracking --disable-static --without-orc --without-magick \
+  ./configure
+      --disable-debug --disable-dependency-tracking --disable-gtk-doc-html \
+      --disable-pyvips8 --disable-static --without-analyze --without-cfitsio \
+      --without-fftw --without-gsf --without-magick --without-matio \
+      --without-openslide --without-orc --without-pangoft2 --without-ppm \
+      --without-python --without-radiance --without-tiff --without-x \
       --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-giflib \
-      --with-tiff --with-libwebp --with-png ${VIPS_OPTIONS:-}
+      --with-libwebp --with-png ${VIPS_OPTIONS:-}
   make -j $( getconf _NPROCESSORS_ONLN 2> /dev/null || echo 1 )
   make install
   cd ..
