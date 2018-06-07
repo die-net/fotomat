@@ -90,7 +90,7 @@ else
   mkdir vips-$VIPS_VERSION
   curl -sSL "$url" | tar --strip-components=1 -C vips-$VIPS_VERSION -xzf -
   cd vips-$VIPS_VERSION
-  ./configure
+  ./configure \
       --disable-debug --disable-dependency-tracking --disable-gtk-doc-html \
       --disable-pyvips8 --disable-static --without-analyze --without-cfitsio \
       --without-fftw --without-gsf --without-magick --without-matio \
