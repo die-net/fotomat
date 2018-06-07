@@ -1,10 +1,10 @@
-# Build Fotomat RPM for Debian stretch using Docker.
+# Build Fotomat RPM for Debian buster using Docker.
 #
-# Run: dist/build dpkg-stretch
+# Run: dist/build dpkg-buster
 #
 # And you'll end up with a fotomat*.dpkg in the current directory.
 
-FROM debian:stretch
+FROM debian:buster
 
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
