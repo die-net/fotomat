@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -211,17 +210,8 @@ func isTimeout(err error) bool {
 	if err == nil {
 		return false
 	}
-	switch err := err.(type) {
-	case net.Error:
+	if err, ok := err.(net.Error); ok {
 		return err.Timeout()
-	case *url.Error:
-		// Only necessary for Go < 1.6.
-		if err, ok := err.Err.(net.Error); ok {
-			return err.Timeout()
-		}
-		if err.Err.Error() == "net/http: request canceled while waiting for connection" {
-			return true
-		}
 	}
 	return false
 }

@@ -55,6 +55,14 @@ func TestProxyErrors(t *testing.T) {
 	assert.Nil(t, NewProxy(nil, nil, 0, nil))
 }
 
+func TestProxyTimeout(t *testing.T) {
+	ps := newProxyServer(time.Second, time.Nanosecond)
+	defer ps.close()
+
+	body, status := ps.get("timeout")
+	assert.Equal(t, http.StatusGatewayTimeout, status, string(body))
+}
+
 type proxyServer struct {
 	proxy   *Proxy
 	server  *httptest.Server
