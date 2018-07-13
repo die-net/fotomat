@@ -65,7 +65,7 @@ type proxyServer struct {
 	host    string
 }
 
-func newProxyServer(delay time.Duration, timeout time.Duration) *proxyServer {
+func newProxyServer(delay, timeout time.Duration) *proxyServer {
 	// Static http server that serves our test images, with a delay.
 	fs := http.FileServer(http.Dir(imageDirectory))
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

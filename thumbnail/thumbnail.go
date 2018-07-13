@@ -54,18 +54,18 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	}
 	defer image.Close()
 
-	if err := srgb(image); err != nil {
+	if err = srgb(image); err != nil {
 		return nil, err
 	}
 
-	if err := resize(image, iw, ih, o.FastResize, o.BlurSigma, o.Sharpen && shrinking); err != nil {
+	if err = resize(image, iw, ih, o.FastResize, o.BlurSigma, o.Sharpen && shrinking); err != nil {
 		return nil, err
 	}
 
 	// Make sure we generate images with 8 bits per channel.  Do this before the
 	// rotate to reduce the amount of data that needs to be copied.
 	if image.ImageGetBandFormat() != vips.BandFormatUchar {
-		if err := image.Cast(vips.BandFormatUchar); err != nil {
+		if err = image.Cast(vips.BandFormatUchar); err != nil {
 			return nil, err
 		}
 	}

@@ -29,7 +29,7 @@ func NewInterpolate(name string) *Interpolate {
 }
 
 // Close frees resources from an Interpolate.
-func (i Interpolate) Close() {
+func (i *Interpolate) Close() {
 	C.g_object_unref(C.gpointer(i.interpolate))
 	i.interpolate = nil
 }

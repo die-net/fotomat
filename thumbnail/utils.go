@@ -82,7 +82,7 @@ func minTransparency(image *vips.Image) (float64, error) {
 	}
 	defer band.Close()
 
-	if err := band.ExtractBand(band.ImageGetBands()-1, 1); err != nil {
+	if err = band.ExtractBand(band.ImageGetBands()-1, 1); err != nil {
 		return 0, err
 	}
 

@@ -62,7 +62,7 @@ func (orientation Orientation) Dimensions(width, height int) (int, int) {
 }
 
 // Crop translates crop parameters from virtual coordinates to match the current physical Orientation.
-func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int, int, int) {
+func (orientation Orientation) Crop(ow, oh, x, y, iw, ih int) (int, int, int, int) {
 	oi := &orientationInfo[orientation]
 
 	if oi.swapXY {
@@ -71,10 +71,10 @@ func (orientation Orientation) Crop(ow, oh int, x, y int, iw, ih int) (int, int,
 		iw, ih = ih, iw
 	}
 	if oi.flipX {
-		x = int(iw) - int(ow) - x
+		x = iw - ow - x
 	}
 	if oi.flipY {
-		y = int(ih) - int(oh) - y
+		y = ih - oh - y
 	}
 	return x, y, ow, oh
 }

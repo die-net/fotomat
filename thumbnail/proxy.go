@@ -117,7 +117,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	}
 
 	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
-	w.Write(thumb)
+	_, _ = w.Write(thumb)
 }
 
 func (p *Proxy) get(url string, header http.Header) ([]byte, http.Header, int, error) {
@@ -137,7 +137,7 @@ func (p *Proxy) get(url string, header http.Header) ([]byte, http.Header, int, e
 	}
 
 	orig, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	return orig, resp.Header, resp.StatusCode, err
 }
@@ -149,7 +149,7 @@ func (p *Proxy) Close() {
 	*p = Proxy{}
 }
 
-func copyHeaders(src http.Header, dest http.Header, keys []string) {
+func copyHeaders(src, dest http.Header, keys []string) {
 	for _, key := range keys {
 		if value, ok := src[key]; ok {
 			dest[key] = value
@@ -157,7 +157,7 @@ func copyHeaders(src http.Header, dest http.Header, keys []string) {
 	}
 }
 
-func isNotModified(req http.Header, resp http.Header) bool {
+func isNotModified(req, resp http.Header) bool {
 	etag := resp.Get("Etag")
 	match := req.Get("If-None-Match")
 	// TODO: Support the multi-valued form of If-None-Match.

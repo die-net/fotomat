@@ -20,7 +20,7 @@ func getRlimitMax(resource int) int {
 	return 0
 }
 
-func setRlimit(resource int, value int) {
+func setRlimit(resource, value int) {
 	rlimit := &syscall.Rlimit{Cur: uint64(value), Max: uint64(value)}
 
 	err := syscall.Setrlimit(resource, rlimit)

@@ -32,15 +32,15 @@ type Options struct {
 	// Crop enables crop mode, where exact supplied Width:Height aspect
 	// ratio is preserved and excess pixels are trimmed from the sides.
 	Crop bool
+	// Sharpen runs a mild sharpening pass on downsampled images.
+	Sharpen bool
+	// FastResize reduces output image quality in some cases in favor of speed.
+	FastResize bool
+	// BlurSigma performs a gaussian blur with specified sigma.
+	BlurSigma float64
 	// MaxBufferPixels specifies how large of an intermediate image
 	// buffer to allow, in pixels. RAM usage will be a few bytes per pixel.
 	MaxBufferPixels int
-	// Sharpen runs a mild sharpening pass on downsampled images.
-	Sharpen bool
-	// BlurSigma performs a gaussian blur with specified sigma.
-	BlurSigma float64
-	// FastResize reduces output image quality in some cases in favor of speed.
-	FastResize bool
 	// MaxQueueDuration limits the amount of time spent in a queue before processing starts.
 	MaxQueueDuration time.Duration
 	// MaxProcessingDuration limits the amount of time processing an
