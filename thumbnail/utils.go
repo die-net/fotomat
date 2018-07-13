@@ -32,10 +32,11 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 }
 
 func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize, jpeg bool) int {
-	// Jpeg shrink rounds up the number of pixels, so calculate
-	// pre-shrink based on side that matters more.  Webp rounds down.
+	// On VIPS < 8.6.4, jpeg shrink rounds up the number of pixels, so
+	// calculate pre-shrink based on side that matters more.  Webp
+	// rounds down.
 	var shrink float64
-	if trustWidth == jpeg {
+	if trustWidth == (jpeg && vips.JpegShrinkRoundsUp) {
 		shrink = float64(mw) / float64(iw)
 	} else {
 		shrink = float64(mh) / float64(ih)
