@@ -14,11 +14,6 @@ import (
 	"runtime"
 )
 
-// JpegShrinkRoundsUp will be true when running with a version of VIPS older
-// than 8.6.4, which changed JpegloadShrink to round down the number of
-// pixels, matching WebploadShrink.
-var JpegShrinkRoundsUp = false
-
 // Initialize starts up the world of VIPS. You should call this on program
 // startup before using any other VIPS operations.
 func Initialize() {
@@ -35,10 +30,6 @@ func Initialize() {
 	C.vips_concurrency_set(1)
 	C.vips_cache_set_max_mem(0)
 	C.vips_cache_set_max(0)
-
-	if C.VIPS_MAJOR_VERSION*10000+C.VIPS_MINOR_VERSION*100+C.VIPS_MICRO_VERSION < 80604 {
-		JpegShrinkRoundsUp = true
-	}
 }
 
 // LeakSet turns leak checking on or off.  You should call this very early
