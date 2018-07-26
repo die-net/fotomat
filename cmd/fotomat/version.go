@@ -8,7 +8,7 @@ import (
 
 const (
 	// FotomatVersion is updated by git-hooks/pre-commit
-	FotomatVersion = "2.8.235"
+	FotomatVersion = "2.8.236"
 )
 
 var (

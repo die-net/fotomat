@@ -79,11 +79,13 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	}
 
 	// Wait for our turn to fetch and hold the original image.
+	timeout := time.NewTimer(options.MaxQueueDuration)
+	defer timeout.Stop()
 	select {
 	case <-aborted:
 		proxyError(w, ErrAborted, 0)
 		return
-	case <-time.After(options.MaxQueueDuration):
+	case <-timeout.C:
 		proxyError(w, nil, http.StatusGatewayTimeout)
 		return
 	case <-p.active:
