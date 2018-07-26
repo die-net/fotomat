@@ -8,11 +8,15 @@ import (
 	_ "net/http/pprof" // Adds http://*/debug/pprof/ to default mux.
 	"os"
 	"runtime"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
-	listenAddr = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for incoming connections.")
-	version    = flag.Bool("version", false, "Show version and exit.")
+	debugListen = flag.String("debug_listen", "127.0.0.1:3521", "[IP]:port to listen for pprof and metrics requests. (\"\" = disable)")
+	listen      = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for image serving requests.")
+	version     = flag.Bool("version", false, "Show version and exit.")
 )
 
 func main() {
@@ -22,13 +26,25 @@ func main() {
 	runtime.GOMAXPROCS(*maxImageThreads * 2)
 
 	rlimitInit()
-
-	handleInit()
+	prometheusInit()
 
 	if *version {
 		fmt.Println("Fotomat v" + FotomatVersion)
 		os.Exit(0)
 	}
 
-	log.Fatal(http.ListenAndServe(*listenAddr, nil))
+	if *debugListen != "" {
+		http.Handle("/metrics", promhttp.Handler())
+		go func() { log.Fatal(http.ListenAndServe(*debugListen, nil)) }()
+	}
+
+	handler := handleInit()
+	srv := &http.Server{
+		Addr:         *listen,
+		Handler:      prometheusWrapHandler(handler),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  5 * time.Minute,
+	}
+	log.Fatal(srv.ListenAndServe())
 }

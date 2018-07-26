@@ -28,7 +28,7 @@ var (
 	matchPath = regexp.MustCompile(`^(/.*)=(p?)(w?)([sc])(\d{1,5})x(\d{1,5})$`)
 )
 
-func handleInit() {
+func handleInit() http.Handler {
 	pool := thumbnail.NewPool(*maxImageThreads, 1)
 
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment}
@@ -38,7 +38,7 @@ func handleInit() {
 
 	client := &http.Client{Transport: http.RoundTripper(transport), Timeout: *fetchTimeout}
 
-	http.Handle("/", thumbnail.NewProxy(director, pool, *maxPrefetch+*maxImageThreads, client))
+	return thumbnail.NewProxy(director, pool, *maxPrefetch+*maxImageThreads, client)
 }
 
 func director(req *http.Request) (thumbnail.Options, int) {
