@@ -101,7 +101,3 @@ func director(req *http.Request) (thumbnail.Options, int) {
 
 	return o, 0
 }
-
-func init() {
-	post(handleInit)
-}

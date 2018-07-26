@@ -29,6 +29,6 @@ func setRlimit(resource, value int) {
 	}
 }
 
-func init() {
-	post(func() { setRlimit(syscall.RLIMIT_NOFILE, *maxConnections) })
+func rlimitInit() {
+	setRlimit(syscall.RLIMIT_NOFILE, *maxConnections)
 }

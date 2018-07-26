@@ -2,16 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof" // Adds http://*/debug/pprof/ to default mux.
+	"os"
 	"runtime"
 )
 
 var (
 	listenAddr = flag.String("listen", "127.0.0.1:3520", "[IP]:port to listen for incoming connections.")
-
-	postFns []func()
+	version    = flag.Bool("version", false, "Show version and exit.")
 )
 
 func main() {
@@ -20,18 +21,14 @@ func main() {
 	// Allow more threads than that for networking, etc.
 	runtime.GOMAXPROCS(*maxImageThreads * 2)
 
-	postRun()
+	rlimitInit()
+
+	handleInit()
+
+	if *version {
+		fmt.Println("Fotomat v" + FotomatVersion)
+		os.Exit(0)
+	}
 
 	log.Fatal(http.ListenAndServe(*listenAddr, nil))
-}
-
-func post(fn func()) {
-	postFns = append(postFns, fn)
-}
-
-// Run everything queued with post().
-func postRun() {
-	for _, fn := range postFns {
-		fn()
-	}
 }
