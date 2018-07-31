@@ -30,7 +30,6 @@ func init() {
 	// Initialize flags with default values, enable local serving.
 	flag.Parse()
 	*localImageDirectory = "../../testdata/"
-	postRun()
 	runtime.GOMAXPROCS(2)
 
 	// Listen on an ephemeral localhost port.
@@ -42,7 +41,7 @@ func init() {
 	// Record that address.
 	localhost = listen.Addr().String()
 
-	go http.Serve(listen, nil)
+	go http.Serve(listen, handleInit())
 }
 
 func TestSuccess(t *testing.T) {
