@@ -189,7 +189,7 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 		case ErrTooBig:
 			status = http.StatusRequestEntityTooLarge
 		case ErrAborted:
-			status = 499  // Nginx error for "Client closed connection"
+			status = 499 // Nginx error for "Client closed connection"
 		default:
 			if isTimeout(err) {
 				err = nil
