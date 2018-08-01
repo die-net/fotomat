@@ -1,7 +1,7 @@
 Building:
 ========
 
-Install [Go](http://golang.org/doc/install), git, and
+Install [Go 1.8+](http://golang.org/doc/install), git, and
 [VIPS 8.4.6+](https://github.com/jcupitt/libvips/releases).
 
 If you haven't used Go before, first create a source tree for your Go code:
