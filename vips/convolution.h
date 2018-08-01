@@ -59,18 +59,26 @@ cgo_sobel(VipsImage *in, VipsImage **out) {
 
     VipsImage *sx = NULL;
     VipsImage *sy = NULL;
+    VipsImage *ax = NULL;
+    VipsImage *ay = NULL;
     VipsImage *add = NULL;
 
     int ret = -1;
     if (!vips_conv(band, &sx, x, NULL)) {
-        if (!vips_conv(band, &sy, y, NULL)) {
-            if (!vips_add(sx, sy, &add, NULL)) {
-                if (!vips_cast(add, out, VIPS_FORMAT_UCHAR, NULL)) {
-                    ret = 0;
+        if (!vips_abs(sx, &ax, NULL)) {
+            if (!vips_conv(band, &sy, y, NULL)) {
+                if (!vips_abs(sy, &ay, NULL)) {
+                    if (!vips_add(ax, ay, &add, NULL)) {
+                        if (!vips_cast(add, out, VIPS_FORMAT_UCHAR, NULL)) {
+                            ret = 0;
+                        }
+                        g_object_unref(add);
+                    }
+                    g_object_unref(ay);
                 }
-                g_object_unref(add);
+                g_object_unref(sy);
             }
-            g_object_unref(sy);
+            g_object_unref(ax);
         }
         g_object_unref(sx);
     }
