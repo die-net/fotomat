@@ -1,6 +1,7 @@
 package thumbnail
 
 import (
+	"context"
 	"fmt"
 	"github.com/die-net/fotomat/format"
 	"io/ioutil"
@@ -90,10 +91,10 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	case <-p.active:
 	}
+	defer func() { p.active <- true }()
 
-	orig, header, status, err := p.get(or.URL.String(), or.Header)
+	orig, header, status, err := p.get(ctx, or.URL.String(), or.Header)
 	if err != nil || (status != http.StatusOK && status != http.StatusNotModified) {
-		p.active <- true // Release semaphore ASAP.
 		proxyError(w, err, status)
 		return
 	}
@@ -103,14 +104,11 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 	if status == http.StatusNotModified || isNotModified(or.Header, header) {
-		p.active <- true // Release semaphore ASAP.
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
 	thumb, err := p.pool.Thumbnail(ctx, orig, options)
-	p.active <- true // Release semaphore ASAP.
-
 	if err != nil {
 		proxyError(w, err, 0)
 		return
@@ -120,11 +118,13 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	_, _ = w.Write(thumb)
 }
 
-func (p *Proxy) get(url string, header http.Header) ([]byte, http.Header, int, error) {
+func (p *Proxy) get(ctx context.Context, url string, header http.Header) ([]byte, http.Header, int, error) {
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, nil, 0, err
 	}
+
+	r = r.WithContext(ctx)
 
 	// Pass some headers on to upstream.
 	r.Header.Set("Accept", p.Accept)
