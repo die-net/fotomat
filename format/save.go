@@ -50,7 +50,7 @@ func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 			options.Format = Png
 		default:
 			options.Format = Jpeg
-                }
+		}
 	}
 
 	switch options.Format {
