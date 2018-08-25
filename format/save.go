@@ -43,15 +43,14 @@ func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 
 	// Make a decision on image format and whether we're using lossless.
 	if options.Format == Unknown {
-		if options.AllowWebp {
+		switch {
+		case options.AllowWebp:
 			options.Format = Webp
-		} else if image.HasAlpha() || useLossless(image, options) {
+		case image.HasAlpha() || useLossless(image, options):
 			options.Format = Png
-		} else {
+		default:
 			options.Format = Jpeg
-		}
-	} else if options.Format == Webp && !useLossless(image, options) {
-		options.Lossless = false
+                }
 	}
 
 	switch options.Format {
@@ -60,6 +59,7 @@ func Save(image *vips.Image, options SaveOptions) ([]byte, error) {
 	case Png:
 		return pngSave(image, options)
 	case Webp:
+		options.Lossless = useLossless(image, options)
 		return webpSave(image, options)
 	default:
 		return nil, ErrInvalidSaveFormat

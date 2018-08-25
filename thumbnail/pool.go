@@ -1,6 +1,7 @@
 package thumbnail
 
 import (
+	"context"
 	"errors"
 	"github.com/die-net/fotomat/vips"
 	"runtime"
@@ -43,7 +44,7 @@ func NewPool(workers, queueLen int) *Pool {
 type Request struct {
 	Blob       []byte
 	Options    Options
-	Aborted    <-chan bool
+	Context    context.Context
 	ResponseCh chan<- *Response
 }
 
@@ -56,10 +57,10 @@ type Response struct {
 // Thumbnail is a blocking wrapper that executes thumbnail.Thumbnail
 // requests in a pool of worker threads.  Work is skipped if aborted is
 // closed while the request is queued.
-func (p *Pool) Thumbnail(blob []byte, options Options, aborted <-chan bool) ([]byte, error) {
+func (p *Pool) Thumbnail(ctx context.Context, blob []byte, options Options) ([]byte, error) {
 	rc := make(chan *Response)
 
-	r := &Request{Blob: blob, Options: options, Aborted: aborted, ResponseCh: rc}
+	r := &Request{Blob: blob, Options: options, Context: ctx, ResponseCh: rc}
 	p.RequestCh <- r
 
 	s := <-rc
@@ -78,7 +79,7 @@ func (p *Pool) worker() {
 		}
 
 		s := &Response{}
-		if hasAborted(q.Aborted) {
+		if hasAborted(q.Context) {
 			s.Error = ErrAborted
 		} else {
 			s.Blob, s.Error = Thumbnail(q.Blob, q.Options)
@@ -99,9 +100,9 @@ func (p *Pool) Close() {
 	p.wg.Wait()
 }
 
-func hasAborted(aborted <-chan bool) bool {
+func hasAborted(ctx context.Context) bool {
 	select {
-	case <-aborted:
+	case <-ctx.Done():
 		return true
 	default:
 		return false

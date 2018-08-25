@@ -59,7 +59,7 @@ func NewProxy(director func(*http.Request) (Options, int), pool *Pool, maxActive
 // parse the request, fetching an image, calling pool.Thumbnail on it, and
 // returning the result.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
-	aborted := w.(http.CloseNotifier).CloseNotify()
+	ctx := or.Context()
 
 	w.Header().Set("Server", p.Server)
 
@@ -82,7 +82,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	timeout := time.NewTimer(options.MaxQueueDuration)
 	defer timeout.Stop()
 	select {
-	case <-aborted:
+	case <-ctx.Done():
 		proxyError(w, ErrAborted, 0)
 		return
 	case <-timeout.C:
@@ -108,8 +108,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	}
 
-	thumb, err := p.pool.Thumbnail(orig, options, aborted)
-	orig = nil       // Free up image memory ASAP.
+	thumb, err := p.pool.Thumbnail(ctx, orig, options)
 	p.active <- true // Release semaphore ASAP.
 
 	if err != nil {
