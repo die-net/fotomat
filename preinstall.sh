@@ -84,7 +84,7 @@ if pkg-config --exists vips && pkg-config --atleast-version=$VIPS_VERSION vips; 
 elif [ "$VIPS_VERSION" = "skip" ]; then
   echo "Skipping VIPS installation"
 else
-  url="https://github.com/jcupitt/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz"
+  url="https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz"
   echo "Building libvips $VIPS_VERSION from source $url"
   rm -rf vips-$VIPS_VERSION || true
   mkdir vips-$VIPS_VERSION
