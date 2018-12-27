@@ -2,5 +2,5 @@ package main
 
 const (
 	// FotomatVersion is updated by git-hooks/pre-commit
-	FotomatVersion = "2.9.251"
+	FotomatVersion = "2.9.252"
 )
