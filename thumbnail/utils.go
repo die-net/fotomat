@@ -47,7 +47,7 @@ func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize, jpeg bool) int 
 	// Unless FastResize is enabled, let the high-quality Resize() do
 	// the final at least 1.4x scaling of the image to avoid aliasing.
 	if !fastResize {
-		shrink = shrink / 1.4
+		shrink /= 1.4
 	}
 
 	// Jpeg loader can quickly shrink by 2, 4, or 8.
@@ -85,7 +85,7 @@ func minTransparency(image *vips.Image) (float64, error) {
 	}
 	defer band.Close()
 
-	if err = band.ExtractBand(band.ImageGetBands()-1, 1); err != nil {
+	if err := band.ExtractBand(band.ImageGetBands()-1, 1); err != nil {
 		return 0, err
 	}
 

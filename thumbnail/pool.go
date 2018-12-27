@@ -3,15 +3,16 @@ package thumbnail
 import (
 	"context"
 	"errors"
-	"github.com/die-net/fotomat/vips"
 	"runtime"
 	"sync"
+
+	"github.com/die-net/fotomat/vips"
 )
 
 var (
 	// ErrAborted means the operation wasn't executed because the
 	// Request.Aborted channel was closed by the caller.
-	ErrAborted = errors.New("Thumbnail request aborted")
+	ErrAborted = errors.New("thumbnail request aborted")
 )
 
 // Pool represents a Thumbnail worker pool. VIPS keeps thread-local caches,

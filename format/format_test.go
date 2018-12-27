@@ -2,12 +2,14 @@ package format
 
 import (
 	"fmt"
-	"github.com/die-net/fotomat/vips"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/die-net/fotomat/vips"
 )
 
 const (
@@ -57,10 +59,10 @@ func isSize(blob []byte, f Format, width, height int) error {
 		return err
 	}
 	if m.Width != width || m.Height != height {
-		return fmt.Errorf("Got %dx%d != want %dx%d", m.Width, m.Height, width, height)
+		return fmt.Errorf("got %dx%d != want %dx%d", m.Width, m.Height, width, height)
 	}
 	if m.Format != f {
-		return fmt.Errorf("Format %s!=%s", m.Format, f)
+		return fmt.Errorf("format %s!=%s", m.Format, f)
 	}
 	return nil
 }
@@ -156,13 +158,15 @@ func convert(blob []byte, so SaveOptions) []byte {
 	}
 	defer img.Close()
 
-	DetectOrientation(img).Apply(img)
+	if err := DetectOrientation(img).Apply(img); err != nil {
+		panic(err)
+	}
 
-	blob, err = Save(img, so)
+	thumb, err := Save(img, so)
 	if err != nil {
 		panic(err)
 	}
-	return blob
+	return thumb
 }
 
 func BenchmarkMetadataJpeg_2(b *testing.B) {

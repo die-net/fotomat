@@ -2,15 +2,16 @@ package format
 
 import (
 	"errors"
-	"github.com/die-net/fotomat/vips"
 	"net/http"
+
+	"github.com/die-net/fotomat/vips"
 )
 
 var (
 	// ErrInvalidOperation is returned for an invalid operation on this image format.
-	ErrInvalidOperation = errors.New("Invalid operation")
+	ErrInvalidOperation = errors.New("invalid operation")
 	// ErrUnknownFormat is returned when the given image is in an unknown format.
-	ErrUnknownFormat = errors.New("Unknown image format")
+	ErrUnknownFormat = errors.New("unknown image format")
 )
 
 // Format of compressed image.

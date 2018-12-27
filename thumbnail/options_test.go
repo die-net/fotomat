@@ -1,9 +1,11 @@
 package thumbnail
 
 import (
-	"github.com/die-net/fotomat/format"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/die-net/fotomat/format"
 )
 
 func TestOptionsMetadata(t *testing.T) {

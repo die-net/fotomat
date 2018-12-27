@@ -2,6 +2,7 @@ package format
 
 import (
 	"errors"
+
 	"github.com/die-net/fotomat/vips"
 )
 
@@ -13,7 +14,7 @@ const (
 )
 
 // ErrInvalidSaveFormat is returned if the specified Format can't be written to.
-var ErrInvalidSaveFormat = errors.New("Invalid save format")
+var ErrInvalidSaveFormat = errors.New("invalid save format")
 
 // SaveOptions specifies how an image should be saved.
 type SaveOptions struct {

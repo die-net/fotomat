@@ -14,7 +14,7 @@ import (
 
 var (
 	// ErrImageOp means VIPS returned an error but we couldn't get error text.
-	ErrImageOp = errors.New("Image operation error")
+	ErrImageOp = errors.New("image operation error")
 )
 
 // btoi converts from Go boolean to int with value 0 or 1.

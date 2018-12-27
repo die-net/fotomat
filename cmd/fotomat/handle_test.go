@@ -3,9 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/vips"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"net"
@@ -13,6 +10,11 @@ import (
 	"os"
 	"runtime"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/vips"
 )
 
 var localhost string
@@ -41,7 +43,7 @@ func init() {
 	// Record that address.
 	localhost = listen.Addr().String()
 
-	go http.Serve(listen, handleInit())
+	go func() { _ = http.Serve(listen, handleInit()) }()
 }
 
 func TestSuccess(t *testing.T) {
@@ -104,7 +106,7 @@ func TestParameterValidation(t *testing.T) {
 func isSize(filename string, f format.Format, width, height int) error {
 	image, code := fetch(filename)
 	if code != 200 {
-		return fmt.Errorf("HTTP error %d", code)
+		return fmt.Errorf("got HTTP error %d", code)
 	}
 
 	m, err := format.MetadataBytes(image)
@@ -112,10 +114,10 @@ func isSize(filename string, f format.Format, width, height int) error {
 		return err
 	}
 	if m.Width != width || m.Height != height {
-		return fmt.Errorf("Width %d!=%d or Height %d!=%d", m.Width, width, m.Height, height)
+		return fmt.Errorf("width %d!=%d or height %d!=%d", m.Width, width, m.Height, height)
 	}
 	if m.Format != f {
-		return fmt.Errorf("Format %s!=%s", m.Format, f)
+		return fmt.Errorf("format %s!=%s", m.Format, f)
 	}
 	return nil
 }

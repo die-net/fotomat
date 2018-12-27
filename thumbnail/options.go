@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/die-net/fotomat/format"
 	"time"
+
+	"github.com/die-net/fotomat/format"
 )
 
 var (
 	// ErrBadOption is returned when option values are out of range.
-	ErrBadOption = errors.New("Bad option specified")
+	ErrBadOption = errors.New("bad option specified")
 	// ErrTooBig is returned when an image is too wide or tall.
-	ErrTooBig = errors.New("Image is too wide or tall")
+	ErrTooBig = errors.New("image is too wide or tall")
 	// ErrTooSmall is returned when an image is too small.
-	ErrTooSmall = errors.New("Image is too small")
+	ErrTooSmall = errors.New("image is too small")
 )
 
 const (

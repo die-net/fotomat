@@ -3,12 +3,13 @@ package thumbnail
 import (
 	"context"
 	"fmt"
-	"github.com/die-net/fotomat/format"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/die-net/fotomat/format"
 )
 
 const (
@@ -198,7 +199,7 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 			}
 		}
 	default:
-		err = fmt.Errorf("Proxy received %d %s", status, http.StatusText(status))
+		err = fmt.Errorf("proxy received %d %s", status, http.StatusText(status))
 		status = http.StatusBadGateway
 	}
 

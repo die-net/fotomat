@@ -2,13 +2,15 @@ package thumbnail
 
 import (
 	"fmt"
-	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/vips"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/vips"
 )
 
 func TestMain(m *testing.M) {
@@ -405,13 +407,13 @@ func isSize(image []byte, f format.Format, width, height int, alpha bool) error 
 		return err
 	}
 	if m.Width != width || m.Height != height {
-		return fmt.Errorf("Got %dx%d != want %dx%d", m.Width, m.Height, width, height)
+		return fmt.Errorf("got %dx%d != want %dx%d", m.Width, m.Height, width, height)
 	}
 	if m.Format != f {
-		return fmt.Errorf("Format %s!=%s", m.Format, f)
+		return fmt.Errorf("format %s!=%s", m.Format, f)
 	}
 	if m.HasAlpha != alpha {
-		return fmt.Errorf("HasAlpha %t!=%t", m.HasAlpha, alpha)
+		return fmt.Errorf("hasAlpha %t!=%t", m.HasAlpha, alpha)
 	}
 	return nil
 }

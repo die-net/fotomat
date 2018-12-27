@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/thumbnail"
 	"net/http"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/thumbnail"
 )
 
 var (

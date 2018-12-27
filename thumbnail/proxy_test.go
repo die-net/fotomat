@@ -2,14 +2,16 @@ package thumbnail
 
 import (
 	"fmt"
-	"github.com/die-net/fotomat/format"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/die-net/fotomat/format"
 )
 
 const (
@@ -81,15 +83,15 @@ func newProxyServer(delay, timeout time.Duration) *proxyServer {
 		fs.ServeHTTP(w, r)
 	}))
 
-	url, err := url.Parse(origin.URL)
+	u, err := url.Parse(origin.URL)
 	if err != nil {
 		panic("Bad origin URL")
 	}
 
 	ps := &proxyServer{
 		origin: origin,
-		scheme: url.Scheme,
-		host:   url.Host,
+		scheme: u.Scheme,
+		host:   u.Host,
 	}
 
 	// Proxy http server that fetches and thumbnails images from origin
@@ -106,8 +108,8 @@ func (ps *proxyServer) director(req *http.Request) (Options, int) {
 }
 
 func (ps *proxyServer) get(filename string) ([]byte, int) {
-	url := ps.server.URL + "/" + filename
-	resp, err := http.Get(url)
+	u := ps.server.URL + "/" + filename
+	resp, err := http.Get(u)
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +131,7 @@ func (ps *proxyServer) getStatus(filename string) int {
 func (ps *proxyServer) isSize(filename string, f format.Format, width, height int) error {
 	image, code := ps.get(filename)
 	if code != 200 {
-		return fmt.Errorf("HTTP error %d: %s", code, string(image))
+		return fmt.Errorf("got HTTP error %d: %s", code, string(image))
 	}
 
 	m, err := format.MetadataBytes(image)
@@ -137,10 +139,10 @@ func (ps *proxyServer) isSize(filename string, f format.Format, width, height in
 		return err
 	}
 	if m.Width != width || m.Height != height {
-		return fmt.Errorf("Width %d!=%d or Height %d!=%d", m.Width, width, m.Height, height)
+		return fmt.Errorf("width %d!=%d or Height %d!=%d", m.Width, width, m.Height, height)
 	}
 	if m.Format != f {
-		return fmt.Errorf("Format %s!=%s", m.Format, f)
+		return fmt.Errorf("format %s!=%s", m.Format, f)
 	}
 	return nil
 }

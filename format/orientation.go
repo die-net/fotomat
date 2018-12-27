@@ -1,8 +1,9 @@
 package format
 
 import (
-	"github.com/die-net/fotomat/vips"
 	"strconv"
+
+	"github.com/die-net/fotomat/vips"
 )
 
 // Orientation is the current Image orientation, as stored by a camera.
