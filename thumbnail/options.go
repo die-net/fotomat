@@ -88,10 +88,11 @@ func (o Options) Check(m format.Metadata) (Options, error) {
 		o.Width, o.Height, _ = scaleAspect(o.Width, o.Height, m.Width, m.Height, true)
 	}
 
-	// If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG
-	// decoder can pre-scale to 1/8 original width and height.
+	// If set, limit allocated pixels to MaxBufferPixels.  Assume JPEG,
+	// Webp, Pdf, and Svg decoders can pre-scale to 1/8 original width and
+	// height.
 	scale := 1
-	if m.Format == format.Jpeg {
+	if m.Format == format.Jpeg || m.Format == format.Webp || m.Format == format.Pdf || m.Format == format.Svg {
 		scale = 8
 	}
 	if o.MaxBufferPixels > 0 && m.Width*m.Height > o.MaxBufferPixels*scale*scale {

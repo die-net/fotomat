@@ -26,6 +26,35 @@ func GifloadBuffer(buf []byte) (*Image, error) {
 	return loadError(out, e)
 }
 
+// Pdfload reads a PDF file into an Image at 72 dpi.
+func Pdfload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	cf := C.CString(filename)
+	e := C.cgo_vips_pdfload(cf, &out)
+	C.free(unsafe.Pointer(cf))
+	return loadError(out, e)
+}
+
+// PdfloadBuffer reads a PDF byte slice into an Image at 72 dpi.
+func PdfloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_pdfload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1.0)
+	return loadError(out, e)
+}
+
+// PdfloadBufferShrink reads a PDF byte slice into an Image at (72 /
+// shrink) dpi.
+func PdfloadBufferShrink(buf []byte, shrink int) (*Image, error) {
+	if shrink < 1 {
+		shrink = 1
+	}
+	scale := 1.0 / float64(shrink)
+
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_pdfload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.double(scale))
+	return loadError(out, e)
+}
+
 // Jpegload reads and returns a JPEG file as an Image.
 func Jpegload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
@@ -103,6 +132,35 @@ func (in *Image) PngsaveBuffer(strip bool, compression int, interlace bool) ([]b
 	e := C.cgo_vips_pngsave_buffer(in.vi, &ptr, &length, C.int(btoi(strip)), C.int(compression), C.int(btoi(interlace)))
 
 	return saveError(ptr, length, e)
+}
+
+// Svgload reads a PDF file into an Image at 72 dpi.
+func Svgload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	cf := C.CString(filename)
+	e := C.cgo_vips_svgload(cf, &out)
+	C.free(unsafe.Pointer(cf))
+	return loadError(out, e)
+}
+
+// SvgloadBuffer reads an SVG byte slice into an Image at 72 dpi.
+func SvgloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_svgload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, 1.0)
+	return loadError(out, e)
+}
+
+// SvgloadBufferShrink reads an SVG byte slice into an Image at (72 /
+// shrink) dpi.
+func SvgloadBufferShrink(buf []byte, shrink int) (*Image, error) {
+	if shrink < 1 {
+		shrink = 1
+	}
+	scale := 1.0 / float64(shrink)
+
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_svgload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.double(scale))
+	return loadError(out, e)
 }
 
 // Webpload read a WebP file into an Image.

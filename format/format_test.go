@@ -37,6 +37,8 @@ func TestMetadataValidation(t *testing.T) {
 	assert.Nil(t, isSize(image("2px.png"), Png, 2, 3))
 	assert.Nil(t, isSize(image("2px.gif"), Gif, 2, 3))
 	assert.Nil(t, isSize(image("2px.webp"), Webp, 2, 3))
+	assert.Nil(t, isSize(image("2px.svg"), Svg, 2, 3))
+	assert.Nil(t, isSize(image("2px.pdf"), Pdf, 2, 3))
 }
 
 func metadataError(filename string) error {

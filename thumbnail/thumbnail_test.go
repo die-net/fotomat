@@ -189,6 +189,8 @@ func TestConversion(t *testing.T) {
 		{"2px.png", format.Png, format.Png},
 		{"2px.jpg", format.Jpeg, format.Jpeg},
 		{"2px.webp", format.Webp, format.Png},
+		{"2px.pdf", format.Pdf, format.Png},
+		{"2px.svg", format.Svg, format.Png},
 	}
 	for _, f := range formatTest {
 		img := image(f.filename)
@@ -203,7 +205,8 @@ func TestConversion(t *testing.T) {
 				// If we ask for a specific format, it should return that.
 				thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, Save: format.SaveOptions{Format: of}})
 				if assert.Nil(t, err, "formats: %s -> %s", f.in, of) {
-					assert.Nil(t, isSize(thumb, of, 2, 3, false), "formats: %s -> %s", f.in, of)
+					alpha := f.in == format.Svg && of != format.Jpeg
+					assert.Nil(t, isSize(thumb, of, 2, 3, alpha), "formats: %s -> %s", f.in, of)
 				}
 			}
 		}

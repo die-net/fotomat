@@ -98,6 +98,10 @@ func load(blob []byte, f format.Format, shrink int) (*vips.Image, error) {
 			return vips.JpegloadBufferShrink(blob, shrink)
 		} else if f == format.Webp {
 			return vips.WebploadBufferShrink(blob, shrink)
+		} else if f == format.Pdf {
+			return vips.PdfloadBufferShrink(blob, shrink)
+		} else if f == format.Svg {
+			return vips.SvgloadBufferShrink(blob, shrink)
 		}
 	}
 

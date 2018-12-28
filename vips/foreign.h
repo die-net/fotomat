@@ -28,6 +28,16 @@ cgo_vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int 
 }
 
 int
+cgo_vips_pdfload(const char *filename, VipsImage **out) {
+    return vips_pdfload(filename, out, "scale", 1.0, NULL);
+}
+
+int
+cgo_vips_pdfload_buffer(void *buf, size_t len, VipsImage **out, double scale) {
+    return vips_pdfload_buffer(buf, len, out, "scale", scale, NULL);
+}
+
+int
 cgo_vips_pngload(const char *filename, VipsImage **out) {
     return vips_pngload(filename, out, NULL);
 }
@@ -40,6 +50,16 @@ cgo_vips_pngload_buffer(void *buf, size_t len, VipsImage **out) {
 int
 cgo_vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int interlace) {
     return vips_pngsave_buffer(in, buf, len, "strip", strip, "compression", compression, "interlace", interlace, NULL);
+}
+
+int
+cgo_vips_svgload(const char *filename, VipsImage **out) {
+    return vips_svgload(filename, out, "scale", 1.0, NULL);
+}
+
+int
+cgo_vips_svgload_buffer(void *buf, size_t len, VipsImage **out, double scale) {
+    return vips_svgload_buffer(buf, len, out, "scale", scale, NULL);
 }
 
 int

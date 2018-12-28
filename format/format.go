@@ -1,8 +1,8 @@
 package format
 
 import (
+	"bytes"
 	"errors"
-	"net/http"
 
 	"github.com/die-net/fotomat/vips"
 )
@@ -24,26 +24,68 @@ const (
 	Png
 	Gif
 	Webp
+	Pdf
+	Svg
 )
 
 var formatInfo = []struct {
 	mime      string
+	isFormat  func([]byte) bool
 	loadFile  func(filename string) (*vips.Image, error)
 	loadBytes func([]byte) (*vips.Image, error)
 }{
-	{mime: "application/octet-stream", loadFile: nil, loadBytes: nil},
-	{mime: "image/jpeg", loadFile: vips.Jpegload, loadBytes: vips.JpegloadBuffer},
-	{mime: "image/png", loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer},
-	{mime: "image/gif", loadFile: vips.Gifload, loadBytes: vips.GifloadBuffer},
-	{mime: "image/webp", loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer},
+	{mime: "application/octet-stream", isFormat: nil, loadFile: nil, loadBytes: nil},
+	{mime: "image/jpeg", isFormat: isJpeg, loadFile: vips.Jpegload, loadBytes: vips.JpegloadBuffer},
+	{mime: "image/png", isFormat: isPng, loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer},
+	{mime: "image/gif", isFormat: isGif, loadFile: vips.Gifload, loadBytes: vips.GifloadBuffer},
+	{mime: "image/webp", isFormat: isWebp, loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer},
+	{mime: "application/pdf", isFormat: isPdf, loadFile: vips.Pdfload, loadBytes: vips.PdfloadBuffer},
+	{mime: "image/svg+xml", isFormat: isSvg, loadFile: vips.Svgload, loadBytes: vips.SvgloadBuffer},
+}
+
+func isJpeg(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("\xFF\xD8\xFF"))
+}
+
+func isPng(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"))
+}
+
+func isGif(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("GIF87a")) || bytes.HasPrefix(blob, []byte("GIF89a"))
+}
+
+func isWebp(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("RIFF")) && len(blob) > 14 && bytes.Equal(blob[8:14], []byte("WEBPVP"))
+}
+
+func isPdf(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("%PDF-"))
+}
+
+func isSvg(blob []byte) bool {
+	// Check if the first 24 characters are ASCII.
+	for _, c := range blob[:min(24, len(blob))] {
+		if c >= 0x80 {
+			return false
+		}
+	}
+
+	// Check if "<svg" is contained in the first 1000 characters.
+	return bytes.Contains(blob[:min(1000, len(blob))], []byte("<svg"))
+}
+
+func min(x, y int) int {
+	if y < x {
+		return y
+	}
+	return y
 }
 
 // DetectFormat detects the Format of the supplied byte slice.
 func DetectFormat(blob []byte) Format {
-	mime := http.DetectContentType(blob)
-
 	for format, info := range formatInfo {
-		if info.mime == mime {
+		if info.isFormat != nil && info.isFormat(blob) {
 			return Format(format)
 		}
 	}
