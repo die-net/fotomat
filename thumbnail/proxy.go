@@ -14,7 +14,7 @@ import (
 
 const (
 	// DefaultAccept is the default Accept header sent on upstream requests.
-	DefaultAccept = "image/jpeg,image/*;q=0.6"
+	DefaultAccept = "image/jpeg,image/webp;q=0.8,image/png;q=0.4,image/svg+xml;q=0.3,image/gif;q=0.2,application/pdf;q=0.1"
 	// DefaultServer is the default Server header sent with responses.
 	DefaultServer = "Fotomat"
 	// DefaultUserAgent is the default User-Agent header sent on upstream requests.
