@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	fastResize            = flag.Bool("fast_resize", false, "Allow faster resizing, at lower image quality in some cases.")
 	fetchTimeout          = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
 	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\"=proxy instead).")
 	lossless              = flag.Bool("lossless", true, "Allow saving as PNG even without transparency.")
@@ -78,7 +77,6 @@ func director(req *http.Request) (thumbnail.Options, int) {
 		MaxBufferPixels:       *maxBufferPixels,
 		Sharpen:               *sharpen,
 		Crop:                  crop,
-		FastResize:            *fastResize,
 		MaxQueueDuration:      *maxQueueDuration,
 		MaxProcessingDuration: *maxProcessingDuration,
 		Save: format.SaveOptions{

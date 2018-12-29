@@ -235,7 +235,7 @@ func testScalingFormat(t *testing.T, f format.Format) {
 	// Try scaling to some difficult sizes and make sure we get the expected size back.
 	// We have different code paths for different image formats, so we try for each.
 	for _, size := range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256} {
-		thumb, err := Thumbnail(blob, Options{Width: size, Height: size, FastResize: true, Save: format.SaveOptions{Format: f}})
+		thumb, err := Thumbnail(blob, Options{Width: size, Height: size, Save: format.SaveOptions{Format: f}})
 		if assert.Nil(t, err) {
 			h := (169*size + 255) / 256
 			if h < 1 {

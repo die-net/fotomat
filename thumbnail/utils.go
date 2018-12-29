@@ -31,23 +31,17 @@ func scaleAspect(ow, oh, rw, rh int, within bool) (int, int, bool) {
 	return rw, rh, trustWidth
 }
 
-func preShrinkFactor(mw, mh, iw, ih int, trustWidth, fastResize, jpeg bool) int {
+func preShrinkFactor(mw, mh, iw, ih int, trustWidth bool, jpeg bool) int {
 	// JPEG shrink on VIPS >= 8.6.4 and WebP shrink both round down the
 	// number of pixels.  Round our shrink factor down by a pixel to
 	// make sure we are never left with too few.
 	var shrink float64
 	if trustWidth {
-		shrink = float64(mw) / float64(iw)
+		shrink = float64(mw) / (float64(iw) * fastResizeLimit)
 		shrink -= (shrink - 1) / float64(iw)
 	} else {
-		shrink = float64(mh) / float64(ih)
+		shrink = float64(mh) / (float64(ih) * fastResizeLimit)
 		shrink -= (shrink - 1) / float64(ih)
-	}
-
-	// Unless FastResize is enabled, let the high-quality Resize() do
-	// the final at least 1.4x scaling of the image to avoid aliasing.
-	if !fastResize {
-		shrink /= 1.4
 	}
 
 	// Jpeg loader can quickly shrink by 2, 4, or 8.

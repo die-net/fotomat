@@ -35,8 +35,6 @@ type Options struct {
 	Crop bool
 	// Sharpen runs a mild sharpening pass on downsampled images.
 	Sharpen bool
-	// FastResize reduces output image quality in some cases in favor of speed.
-	FastResize bool
 	// BlurSigma performs a gaussian blur with specified sigma.
 	BlurSigma float64
 	// MaxBufferPixels specifies how large of an intermediate image

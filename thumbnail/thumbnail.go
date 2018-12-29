@@ -9,6 +9,10 @@ import (
 	"github.com/die-net/fotomat/vips"
 )
 
+const (
+        fastResizeLimit = 1.4 // Do the last 1.4x image resize at high-quality
+)
+
 // Thumbnail scales or crops a compressed image blob according to the
 // Options specified in o and returns a compressed image.
 // Should be called from a thread pool with runtime.LockOSThread() locked.
@@ -48,7 +52,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 
 	// Figure out the jpeg/webp shrink factor and load image.
 	// Jpeg shrink rounds up the number of pixels.
-	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, o.FastResize, m.Format == format.Jpeg)
+	psf := preShrinkFactor(m.Width, m.Height, iw, ih, trustWidth, m.Format == format.Jpeg)
 	image, err := load(blob, m.Format, psf)
 	if err != nil {
 		return nil, err
@@ -59,7 +63,7 @@ func Thumbnail(blob []byte, o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := resize(image, iw, ih, o.FastResize, o.BlurSigma, o.Sharpen && shrinking); err != nil {
+	if err := resize(image, iw, ih, o.BlurSigma, o.Sharpen && shrinking); err != nil {
 		return nil, err
 	}
 
@@ -127,7 +131,7 @@ func srgb(image *vips.Image) error {
 	return nil
 }
 
-func resize(image *vips.Image, iw, ih int, fastResize bool, blurSigma float64, sharpen bool) error {
+func resize(image *vips.Image, iw, ih int, blurSigma float64, sharpen bool) error {
 	m := format.MetadataImage(image)
 
 	// Interpolation of RGB values with an alpha channel isn't safe
@@ -140,20 +144,17 @@ func resize(image *vips.Image, iw, ih int, fastResize bool, blurSigma float64, s
 		}
 	}
 
-	// A box filter will quickly get us within 2x of the final size, at some quality cost.
-	if fastResize {
-		// Shrink factors can be passed independently here, which
-		// may not be sane since Resize()'s blur and sharpening
-		// steps expect a normal aspect ratio.
-		wshrink := math.Floor(float64(m.Width) / float64(iw))
-		hshrink := math.Floor(float64(m.Height) / float64(ih))
-		if wshrink >= 2 || hshrink >= 2 {
-			// Shrink rounds down the number of pixels.
-			if err := image.Shrink(wshrink, hshrink); err != nil {
-				return err
-			}
-			m = format.MetadataImage(image)
+	// Shrink is a a box filter will quickly cut the image size by
+	// integer multiples, at some quality cost.
+	wshrink := float64(m.Width)/(float64(iw)*fastResizeLimit)
+	hshrink := float64(m.Height)/(float64(ih)*fastResizeLimit)
+	shrink := math.Floor(math.Min(wshrink, hshrink))
+	if shrink >= 2 {
+		// Shrink rounds down the number of pixels.
+		if err := image.Shrink(shrink, shrink); err != nil {
+			return err
 		}
+		m = format.MetadataImage(image)
 	}
 
 	// If necessary, do a high-quality resize to scale to final size.
