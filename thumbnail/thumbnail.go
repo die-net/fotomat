@@ -10,7 +10,7 @@ import (
 )
 
 const (
-        fastResizeLimit = 1.4 // Do the last 1.4x image resize at high-quality
+	fastResizeLimit = 1.4 // Do the last 1.4x image resize at high-quality
 )
 
 // Thumbnail scales or crops a compressed image blob according to the
@@ -146,8 +146,8 @@ func resize(image *vips.Image, iw, ih int, blurSigma float64, sharpen bool) erro
 
 	// Shrink is a a box filter will quickly cut the image size by
 	// integer multiples, at some quality cost.
-	wshrink := float64(m.Width)/(float64(iw)*fastResizeLimit)
-	hshrink := float64(m.Height)/(float64(ih)*fastResizeLimit)
+	wshrink := float64(m.Width) / (float64(iw) * fastResizeLimit)
+	hshrink := float64(m.Height) / (float64(ih) * fastResizeLimit)
 	shrink := math.Floor(math.Min(wshrink, hshrink))
 	if shrink >= 2 {
 		// Shrink rounds down the number of pixels.
