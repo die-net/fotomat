@@ -26,7 +26,7 @@ images in the shortest time and at the smallest file size possible.
 
 %install
 install -d -m 755 $RPM_BUILD_ROOT/usr/sbin/
-install -s -m 755 /app/bin/fotomat $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 /app/bin/fotomat $RPM_BUILD_ROOT/usr/sbin/
 
 %files
 /usr/sbin/fotomat

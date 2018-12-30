@@ -8,55 +8,65 @@ cd $( dirname $0 )/..
 version=$( perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "${1}-1"' cmd/fotomat/version.go )
 
 build() {
-    local tag="$1"
+    local base="$1"
+    local format=""
     local path=""
     local final=""
 
-    if [ ! -f Dockerfile.$tag ]; then
-        echo "Dockerfile.$tag doesn't exist!"
+    local repo="${base%%:*}"
+    local tag="${base#*:}"
+
+    if [ "$repo" = "" -o "$tag" = "" -o "$tag" = "$repo" ]; then
+	echo "Base must be formatted as repo:tag"
+	exit 1
+    fi
+
+    case $repo in
+    debian|mint|ubuntu)
+        format="dpkg"
+        path="app/src/github.com/die-net/fotomat/dist/dpkg/fotomat.deb"
+        final="fotomat-${version}.${tag}.amd64.deb"
+        ;;
+    centos|fedora|rhel|sl)
+        path="root/rpmbuild/RPMS/*/fotomat*.rpm"
+        format="rpm"
+        ;;
+    *)
+        echo "Don't understand how to parse base $base"
+	exit 1
+	;;
+    esac
+
+    if [ ! -f Dockerfile.$format ]; then
+        echo "Dockerfile.$format doesn't exist!"
         return
     fi
 
-    case "$tag" in
-    dpkg-*)
-        path="app/src/github.com/die-net/fotomat/dist/dpkg/fotomat.deb"
-        final="fotomat-${version}.${tag/dpkg-/}.amd64.deb"
-        ;;
-    rpm-*)
-        path="root/rpmbuild/RPMS/*/fotomat*.rpm"
-        ;;
-    *)
-        echo "Don't understand how to parse tag $tag"
-        exit 1
-        ;;
-    esac
-
     local slashes=$(( 0 + $( echo "$path" | tr -cd / | wc -c ) ))
 
-    docker build -f Dockerfile.$tag -t dienet/fotomat:$tag .
-    docker rm fotomat-$tag || true
-    docker run --name fotomat-$tag dienet/fotomat:$tag /bin/true
-    docker export fotomat-$tag | tar --strip-components=$slashes -xvf - "$path" || true
-    docker rm fotomat-$tag
-    docker rmi dienet/fotomat:$tag
+    docker build --pull -f Dockerfile.$format --build-arg BASE=$base -t dienet/fotomat:$repo$tag .
+    docker rm fotomat-$repo$tag || true
+    docker run --name fotomat-$repo$tag dienet/fotomat:$repo$tag /bin/true
+    docker export fotomat-$repo$tag | tar --strip-components=$slashes -xvf - "$path" || true
+    docker rm fotomat-$repo$tag
+    docker rmi dienet/fotomat:$repo$tag
     if [ ! -z "$final" ]; then
         mv "$( basename "$path" )" "$final"
     fi
 }
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <tag> [<tag> ...]    - Build one or more package tags via Docker"
-    echo "       $0 all                  - Build all available tags"
+    echo "Usage: $0 <base> [<base> ...]  - Build one or more packages from the given base image via Docker"
+    echo "       $0 all                  - Build all known base images"
     exit 1
 fi
 
 if [ "$1" = "all" ]; then
-    ls -1 Dockerfile.dpkg-* Dockerfile.rpm-* | while read file; do
-        tag=${file/Dockerfile./}
-        build "$tag"
+    for base in debian:buster debian:stretch debian:jessie centos:7 centos:6; do
+        build "$base"
     done
 else 
-    for tag in "$@"; do
-        build "$tag"
+    for base in "$@"; do
+        build "$base"
     done    
 fi

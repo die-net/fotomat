@@ -46,28 +46,28 @@ case "$release" in
 debian-8|ubuntu-1[456].*|mint-17.*)
   # Debian 8, Ubuntu 14-16, Mint 17
   apt-get -q update
-  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev
+  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev
   ;;
 debian-9|debian-unknown|ubuntu-1[789].*)
   # Debian 9 or sid, Ubuntu 17-19
   apt-get -q update
-  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev
+  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev libmount-dev libzstd-dev
   ;;
 centos-7*|rhel-7*)
   # RHEL/CentOS/SL 7
   yum -y install epel-release
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel librsvg2-dev libpoppler-glib-devel
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel librsvg2-devel poppler-glib-devel libselinux-devel libmount-devel bzip2-devel
   ;;
 fedora-2[1-3])
   # Fedora 21-23
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel librsvg2-dev libpoppler-glib-devel
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel librsvg2-devel poppler-glib-devel
   ;;
 "Red Hat Enterprise Linux release 6."*|"CentOS release 6."*|"Scientific Linux release 6."*)
   # RHEL/CentOS/SL 6
   yum -y install epel-release
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel librsvg2-dev libpoppler-glib-devel
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel
   ;;
 *)
   echo "Sorry, I don't yet know how to install on $release ($(uname -a))."
@@ -95,9 +95,10 @@ else
       --disable-pyvips8 --disable-static --without-analyze --without-cfitsio \
       --without-fftw --without-gsf --without-magick --without-matio \
       --without-openslide --without-orc --without-pangoft2 --without-ppm \
-      --without-python --without-radiance --without-tiff --without-x \
+      --without-radiance --without-x \
       --with-OpenEXR --with-jpeg --with-lcms --with-libexif --with-giflib \
-      --with-libwebp --with-png --with-poppler --with-rsvg ${VIPS_OPTIONS:-}
+      --with-libwebp --with-png --with-poppler --with-rsvg --with-tiff \
+      ${VIPS_OPTIONS:-}
   make -j $( getconf _NPROCESSORS_ONLN 2> /dev/null || echo 1 )
   make install
   cd ..
@@ -117,9 +118,10 @@ else
     exit 1
   fi
 
+  url="https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz"
+  echo "Installing Go from ${url}"
   mkdir -p /usr/local/go && \
-  curl -sSL https://storage.googleapis.com/golang/go${GO_VERSION}.${arch}.tar.gz | \
-      tar --strip-components=1 -C /usr/local/go -xzf -
+  curl -sSL $url | tar --strip-components=1 -C /usr/local/go -xzf -
   ln -sf ../go/bin/go /usr/local/bin/go
   echo "Installed $(go version)"
 fi

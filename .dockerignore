@@ -2,5 +2,5 @@
 .gitignore
 fotomat
 *~
-*.rpm
-*.dpkg
+fotomat-*.rpm
+fotomat-*.dpkg

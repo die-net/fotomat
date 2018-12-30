@@ -1,10 +1,11 @@
-# Build Fotomat RPM for CentOS 6 using Docker.
+# Build Fotomat RPM for CentOS/RHEL based distros using Docker.
 #
-# Run: dist/build rpm-centos6
+# Run: dist/build rpm-centos:6
 #
 # And you'll end up with a fotomat*.rpm in the current directory.
 
-FROM centos:6
+ARG BASE
+FROM $BASE
 
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
@@ -20,7 +21,7 @@ ADD . /app/src/github.com/die-net/fotomat/
 
 # Build and install Fotomat
 RUN PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app CGO_LDFLAGS_ALLOW="-Wl,--export-dynamic" \
-    /usr/local/go/bin/go get -tags vips_static -t github.com/die-net/fotomat/...
+    /usr/local/go/bin/go get -ldflags="-s -w" -tags vips_static -t github.com/die-net/fotomat/...
 
 # Test fotomat
 RUN PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app CGO_LDFLAGS_ALLOW="-Wl,--export-dynamic" \
