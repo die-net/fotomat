@@ -53,17 +53,17 @@ debian-9|debian-unknown|ubuntu-1[789].*|mint-1[89].*)
   apt-get -q update
   apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev libmount-dev libzstd-dev
   ;;
-centos-7*|rhel-7*)
-  # RHEL/CentOS/SL 7
-  yum -y install epel-release
+amzn-*|centos-7*|ol-7*|rhel-7*|scientific-7*)
+  # RHEL/CentOS/SL 7/Amazon Linux 2/Oracle Linux 7
   yum -y update
   yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel librsvg2-devel poppler-glib-devel libselinux-devel libmount-devel bzip2-devel
   ;;
-fedora-2[1-3])
-  # Fedora 21-23
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel librsvg2-devel poppler-glib-devel
+fedora-2[6-9])
+  # Fedora 26-29
+  yum -y update
+  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel librsvg2-devel poppler-glib-devel libselinux-devel libmount-devel jasper-libs
   ;;
-"Red Hat Enterprise Linux release 6."*|"CentOS release 6."*|"Scientific Linux release 6."*)
+"CentOS release 6."*|"Red Hat Enterprise Linux release 6."*|"Scientific Linux release 6."*)
   # RHEL/CentOS/SL 6
   yum -y install epel-release
   yum -y update
