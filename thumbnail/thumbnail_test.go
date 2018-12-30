@@ -35,8 +35,14 @@ func TestValidation(t *testing.T) {
 	// Load a 2x2 pixel image.
 	assert.Nil(t, tryNew("2px.png"))
 
-	// Load a CMYK image.
+	// Load a CMYK JPEG.
 	assert.Nil(t, tryNew("cmyk.jpg"))
+
+	// Load a CMYK ZIP TIFF.
+	assert.Nil(t, tryNew("cmyk.tiff"))
+
+	// Load a big-endian CIELAB LZW TIFF.
+	assert.Nil(t, tryNew("cielab.tiff"))
 
 	// Return ErrTooBig on a 34000x16 PNG image.
 	assert.Equal(t, tryNew("34000px.png"), ErrTooBig)
@@ -188,8 +194,11 @@ func TestConversion(t *testing.T) {
 		{"2px.gif", format.Gif, format.Png},
 		{"2px.png", format.Png, format.Png},
 		{"2px.jpg", format.Jpeg, format.Jpeg},
+		{"cmyk.jpg", format.Jpeg, format.Jpeg},
 		{"2px.webp", format.Webp, format.Png},
 		{"2px.tiff", format.Tiff, format.Png},
+		{"cmyk.tiff", format.Tiff, format.Png},
+		{"cielab.tiff", format.Tiff, format.Png},
 		{"2px.pdf", format.Pdf, format.Png},
 		{"2px.svg", format.Svg, format.Png},
 	}
@@ -209,6 +218,13 @@ func TestConversion(t *testing.T) {
 					alpha := f.in == format.Svg && of != format.Jpeg
 					assert.Nil(t, isSize(thumb, of, 2, 3, alpha), "formats: %s -> %s", f.in, of)
 				}
+			}
+
+			// If we ask for lossless, it should match the outLossless format.
+			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, Save: format.SaveOptions{Lossless: true}})
+			if assert.Nil(t, err, "lossless: %s", f.in) {
+				alpha := f.in == format.Svg
+				assert.Nil(t, isSize(thumb, f.outLossless, 2, 3, alpha), "lossless: %s", f.in)
 			}
 		}
 
