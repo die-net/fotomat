@@ -22,12 +22,12 @@ build() {
     fi
 
     case $repo in
-    debian|mint|ubuntu)
+    debian|ubuntu)
         format="dpkg"
         path="app/src/github.com/die-net/fotomat/dist/dpkg/fotomat.deb"
         final="fotomat-${version}.${tag}.amd64.deb"
         ;;
-    centos|fedora|rhel|sl)
+    amazonlinux|centos|fedora|oraclelinux|rhel|sl)
         path="root/rpmbuild/RPMS/*/fotomat*.rpm"
         format="rpm"
         ;;
