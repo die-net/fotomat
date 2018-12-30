@@ -63,6 +63,16 @@ cgo_vips_svgload_buffer(void *buf, size_t len, VipsImage **out, double scale) {
 }
 
 int
+cgo_vips_tiffload(const char *filename, VipsImage **out) {
+    return vips_tiffload(filename, out, "scale", 1.0, NULL);
+}
+
+int
+cgo_vips_tiffload_buffer(void *buf, size_t len, VipsImage **out) {
+    return vips_tiffload_buffer(buf, len, out, NULL);
+}
+
+int
 cgo_vips_webpload(const char *filename, VipsImage **out, int shrink) {
     return vips_webpload(filename, out, "shrink", shrink, NULL);
 }

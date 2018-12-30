@@ -189,6 +189,7 @@ func TestConversion(t *testing.T) {
 		{"2px.png", format.Png, format.Png},
 		{"2px.jpg", format.Jpeg, format.Jpeg},
 		{"2px.webp", format.Webp, format.Png},
+		{"2px.tiff", format.Tiff, format.Png},
 		{"2px.pdf", format.Pdf, format.Png},
 		{"2px.svg", format.Svg, format.Png},
 	}

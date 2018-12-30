@@ -134,7 +134,7 @@ func (in *Image) PngsaveBuffer(strip bool, compression int, interlace bool) ([]b
 	return saveError(ptr, length, e)
 }
 
-// Svgload reads a PDF file into an Image at 72 dpi.
+// Svgload reads an SVG file into an Image at 72 dpi.
 func Svgload(filename string) (*Image, error) {
 	var out *C.struct__VipsImage
 	cf := C.CString(filename)
@@ -160,6 +160,22 @@ func SvgloadBufferShrink(buf []byte, shrink int) (*Image, error) {
 
 	var out *C.struct__VipsImage
 	e := C.cgo_vips_svgload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out, C.double(scale))
+	return loadError(out, e)
+}
+
+// Tiffload reads a TIFF file into an Image.
+func Tiffload(filename string) (*Image, error) {
+	var out *C.struct__VipsImage
+	cf := C.CString(filename)
+	e := C.cgo_vips_tiffload(cf, &out)
+	C.free(unsafe.Pointer(cf))
+	return loadError(out, e)
+}
+
+// TiffloadBuffer reads a TIFF byte slice into an Image.
+func TiffloadBuffer(buf []byte) (*Image, error) {
+	var out *C.struct__VipsImage
+	e := C.cgo_vips_tiffload_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), &out)
 	return loadError(out, e)
 }
 

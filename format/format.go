@@ -24,6 +24,7 @@ const (
 	Png
 	Gif
 	Webp
+	Tiff
 	Pdf
 	Svg
 )
@@ -39,6 +40,7 @@ var formatInfo = []struct {
 	{mime: "image/png", isFormat: isPng, loadFile: vips.Pngload, loadBytes: vips.PngloadBuffer},
 	{mime: "image/gif", isFormat: isGif, loadFile: vips.Gifload, loadBytes: vips.GifloadBuffer},
 	{mime: "image/webp", isFormat: isWebp, loadFile: vips.Webpload, loadBytes: vips.WebploadBuffer},
+	{mime: "image/tiff", isFormat: isTiff, loadFile: vips.Tiffload, loadBytes: vips.TiffloadBuffer},
 	{mime: "application/pdf", isFormat: isPdf, loadFile: vips.Pdfload, loadBytes: vips.PdfloadBuffer},
 	{mime: "image/svg+xml", isFormat: isSvg, loadFile: vips.Svgload, loadBytes: vips.SvgloadBuffer},
 }
@@ -57,6 +59,10 @@ func isGif(blob []byte) bool {
 
 func isWebp(blob []byte) bool {
 	return bytes.HasPrefix(blob, []byte("RIFF")) && len(blob) > 14 && bytes.Equal(blob[8:14], []byte("WEBPVP"))
+}
+
+func isTiff(blob []byte) bool {
+	return bytes.HasPrefix(blob, []byte("\x49\x49\x2A\x00")) || bytes.HasPrefix(blob, []byte("\x4D\x4D\x00\x2A"))
 }
 
 func isPdf(blob []byte) bool {
