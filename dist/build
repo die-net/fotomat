@@ -37,17 +37,21 @@ build() {
 	;;
     esac
 
-    if [ ! -f Dockerfile.$format ]; then
-        echo "Dockerfile.$format doesn't exist!"
+    if [ ! -f Dockerfile-$format ]; then
+        echo "Dockerfile-$format doesn't exist!"
         return
     fi
 
     local slashes=$(( 0 + $( echo "$path" | tr -cd / | wc -c ) ))
 
-    docker build --pull -f Dockerfile.$format --build-arg BASE=$base -t dienet/fotomat:$repo$tag .
+    # BSD tar doesn't require and can't handle the --wildcards flag.
+    local wildcards=""
+    [[ "$(tar --version)" = bsd* ]] || wildcards="--wildcards"
+
+    docker build --pull -f Dockerfile-$format --build-arg BASE=$base -t dienet/fotomat:$repo$tag .
     docker rm fotomat-$repo$tag || true
     docker run --name fotomat-$repo$tag dienet/fotomat:$repo$tag /bin/true
-    docker export fotomat-$repo$tag | tar --strip-components=$slashes -xvf - "$path" || true
+    docker export fotomat-$repo$tag | tar $wildcards --strip-components=$slashes -xvf - "$path" || true
     docker rm fotomat-$repo$tag
     docker rmi dienet/fotomat:$repo$tag
     if [ ! -z "$final" ]; then

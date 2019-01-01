@@ -1,6 +1,6 @@
 # Build Fotomat RPM for CentOS/RHEL based distros using Docker.
 #
-# Run: dist/build rpm-centos:6
+# Run: dist/build centos:6
 #
 # And you'll end up with a fotomat*.rpm in the current directory.
 

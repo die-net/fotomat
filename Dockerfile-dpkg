@@ -1,6 +1,6 @@
 # Build Fotomat dpkg for Debian or Ubuntu using Docker
 #
-# Run: dist/build dpkg-debian:buster
+# Run: dist/build debian:buster
 #
 # And you'll end up with a fotomat*.dpkg in the current directory.
 
