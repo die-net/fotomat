@@ -279,21 +279,6 @@ func TestBadOptions(t *testing.T) {
 	}
 }
 
-func TestOptionsJson(t *testing.T) {
-	o := Options{Width: 400, Height: 300, BlurSigma: 0.5, Save: format.SaveOptions{Format: format.Webp, Lossless: true}}
-
-	j, err := o.ToJSON()
-	assert.Nil(t, err)
-
-	v, err := OptionsFromJSON(j)
-	if assert.Nil(t, err) {
-		assert.Equal(t, o, v)
-	}
-
-	_, err = OptionsFromJSON([]byte(""))
-	assert.Error(t, err)
-}
-
 func BenchmarkThumbnailJpeg_16(b *testing.B) {
 	benchThumbnail(b, format.Jpeg, Options{Width: 16, Height: 16})
 }
