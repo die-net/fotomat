@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -11,54 +12,58 @@ import (
 // available.  If that doesn't work, return Go's count of virtual cores that
 // we can be scheduled on.
 func numCPUCores() int {
-	cpus := runtime.NumCPU()
-
-	cores := procCpuinfoCores()
-	if cores > 0 && cores <= cpus {
-		return cores
+	ht := hyperthreadsPerCore()
+	switch {
+	case ht > 0:
+		// Valid value: We are on Linux and /proc/cpuinfo was available.
+	case runtime.GOARCH == "amd64":
+		ht = 2 // Assume amd64 has 2 virtual cores per physical core.
+	default:
+		ht = 1 // Otherwise, assume no hyperthreading.
 	}
 
-	// Assume non-Linux amd64 has 2 virtual cores per physical core.
-	if runtime.GOARCH == "amd64" {
-		cpus = (cpus + 1) / 2
-	}
-
-	return cpus
+	// runtime.NumCPU() uses sched_getaffinity to get the number of CPUs
+	// we are allowed to be scheduled on.  Divide that by hyperthreads
+	// per core and round up.
+	return (runtime.NumCPU() + ht - 1) / ht
 }
 
-// On Linux x86, count unique physical id + core id pairs, which should give
-// total non-Hyperthreaded cores available.  Return 0 on error.
-func procCpuinfoCores() int {
+// On Linux x86, return count of hyperthreads per CPU core or 0 on error.
+func hyperthreadsPerCore() int {
 	file, err := os.Open("/proc/cpuinfo")
 	if err != nil {
 		return 0
 	}
 	defer file.Close()
 
+	// Parse cpuinfo looking for the highest "siblings" and "cpu cores"
+	// values.
+	siblings := 0
+	cores := 0
 	scanner := bufio.NewScanner(file)
-	phys := ""
-	s := make(map[string]int)
 	for scanner.Scan() {
 		f := strings.SplitN(scanner.Text(), ":", 2)
 		if len(f) != 2 {
 			continue
 		}
 
-		value := strings.TrimSpace(f[1])
+		value, _ := strconv.Atoi(strings.TrimSpace(f[1]))
 		switch strings.TrimSpace(f[0]) {
-		case "physical id":
-			phys = value
-		case "core id":
-			if phys != "" {
-				pv := phys + "-" + value
-				s[pv]++
-				// Xen sets both ids to 0.  Return error if
-				// we have more than 2 HTs per core.
-				if s[pv] > 2 {
-					return 0
-				}
+		case "siblings":
+			if value > siblings {
+				siblings = value
+			}
+		case "cpu cores":
+			if value > cores {
+				cores = value
 			}
 		}
 	}
-	return len(s)
+
+	// If both values seem reasonable, return ratio.
+	if cores > 0 && siblings >= cores {
+		return siblings / cores
+	}
+
+	return 0
 }
