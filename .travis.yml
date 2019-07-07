@@ -4,15 +4,15 @@ language: go
 matrix:
   include:
   - go: 1.8.7
-    env: VIPS_VERSION=8.7.2 GOLINT=false
+    env: VIPS_VERSION=8.7.4 GOLINT=false
   - go: 1.9.7
-    env: VIPS_VERSION=8.7.2 GOLINT=false
+    env: VIPS_VERSION=8.7.4 GOLINT=false
   - go: 1.10.8
-    env: VIPS_VERSION=8.7.2 GOLINT=true
+    env: VIPS_VERSION=8.7.4 GOLINT=true
   - go: 1.11.11
-    env: VIPS_VERSION=8.8.0 GOLINT=true
+    env: VIPS_VERSION=8.7.4 GOLINT=true
   - go: 1.12.6
-    env: VIPS_VERSION=8.8.0 GOLINT=true
+    env: VIPS_VERSION=8.7.4 GOLINT=true
 
 before_install:
   - rm -rf $GOPATH/{bin,pkg}/*
