@@ -1,6 +1,4 @@
-sudo: required
-dist: trusty
-
+dist: xenial
 language: go
 
 matrix:
@@ -9,10 +7,12 @@ matrix:
     env: VIPS_VERSION=8.7.2 GOLINT=false
   - go: 1.9.7
     env: VIPS_VERSION=8.7.2 GOLINT=false
-  - go: 1.10.7
+  - go: 1.10.8
     env: VIPS_VERSION=8.7.2 GOLINT=true
-  - go: 1.11.4
-    env: VIPS_VERSION=8.7.2 GOLINT=true
+  - go: 1.11.11
+    env: VIPS_VERSION=8.8.0 GOLINT=true
+  - go: 1.12.6
+    env: VIPS_VERSION=8.8.0 GOLINT=true
 
 before_install:
   - rm -rf $GOPATH/{bin,pkg}/*
@@ -25,7 +25,7 @@ script:
   - go get -t -v ./...
   - go test -v -short -race ./...
   - diff -u <(echo -n) <(gofmt -d -s .)
-  - if [ "$GOLINT" = "true" ]; then go vet ./...; go get github.com/golang/lint/golint; golint -set_exit_status ./...; fi
+  - if [ "$GOLINT" = "true" ]; then go get github.com/golang/lint/golint; golint -set_exit_status ./...; fi
 
 after_success:
   - for dir in ./format ./thumbnail ./cmd/fotomat; do go test -short -cover -covermode=count -coverprofile=$dir/profile.out $dir; done
