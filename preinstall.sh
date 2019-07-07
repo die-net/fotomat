@@ -48,8 +48,8 @@ debian-8|ubuntu-1[456].*|mint-17.*)
   apt-get -q update
   apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev
   ;;
-debian-9|debian-unknown|ubuntu-1[789].*|mint-1[89].*)
-  # Debian 9 or sid, Ubuntu 17-19, Mint 18-19
+debian-9|debian-10|debian-unknown|ubuntu-1[789].*|mint-1[89].*)
+  # Debian 9, 10, or sid, Ubuntu 17-19, Mint 18-19
   apt-get -q update
   apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev libmount-dev libzstd-dev
   ;;
