@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/thumbnail"
+	"github.com/die-net/fotomat/v2/format"
+	"github.com/die-net/fotomat/v2/thumbnail"
 )
 
 var (

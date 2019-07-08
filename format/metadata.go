@@ -1,7 +1,7 @@
 package format
 
 import (
-	"github.com/die-net/fotomat/vips"
+	"github.com/die-net/fotomat/v2/vips"
 )
 
 // Metadata is the currently-known metadata about an Image.

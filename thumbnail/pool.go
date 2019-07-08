@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/die-net/fotomat/vips"
+	"github.com/die-net/fotomat/v2/vips"
 )
 
 var (

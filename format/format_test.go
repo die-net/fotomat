@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/die-net/fotomat/vips"
+	"github.com/die-net/fotomat/v2/vips"
 )
 
 const (

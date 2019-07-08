@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/v2/format"
 )
 
 func TestOptionsMetadata(t *testing.T) {

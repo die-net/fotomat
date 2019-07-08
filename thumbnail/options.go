@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/v2/format"
 )
 
 var (

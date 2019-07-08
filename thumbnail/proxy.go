@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/die-net/fotomat/format"
+	"github.com/die-net/fotomat/v2/format"
 )
 
 const (

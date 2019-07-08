@@ -3,8 +3,6 @@ language: go
 
 matrix:
   include:
-  - go: 1.8.7
-    env: VIPS_VERSION=8.7.4 GOLINT=false
   - go: 1.9.7
     env: VIPS_VERSION=8.7.4 GOLINT=false
   - go: 1.10.8

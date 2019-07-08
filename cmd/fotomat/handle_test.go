@@ -13,8 +13,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/die-net/fotomat/format"
-	"github.com/die-net/fotomat/vips"
+	"github.com/die-net/fotomat/v2/format"
+	"github.com/die-net/fotomat/v2/vips"
 )
 
 var localhost string
