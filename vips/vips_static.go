@@ -1,6 +1,6 @@
 // Add appropriate flags for linking VIPS statically into Fotomat if the
 // "-tags vips_static" build flag is used.  Configure VIPS with:
-// CFLAGS="-fPIC" CXXFLAGS="-fPIC" LDFLAGS="-lstdc++"
+// CFLAGS="-fPIE" CXXFLAGS="-fPIE" LDFLAGS="-lstdc++"
 
 // +build vips_static
 

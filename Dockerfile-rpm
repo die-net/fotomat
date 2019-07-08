@@ -10,7 +10,9 @@ FROM $BASE
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 
-RUN CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIC" LDFLAGS="-lstdc++" VIPS_OPTIONS="--disable-shared --enable-static" \
+RUN CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIE" \
+    LDFLAGS="-lstdc++" \
+    VIPS_OPTIONS="--disable-shared --enable-static" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
 
 # Add a tool for building RPMs.

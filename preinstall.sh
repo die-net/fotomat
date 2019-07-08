@@ -12,7 +12,7 @@ GO_VERSION=${GO_VERSION:-1.12.6}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-export CFLAGS="${CFLAGS:--O2 -ftree-vectorize -march=native -ffast-math}"
+export CFLAGS="${CFLAGS:--O2 -ftree-vectorize -msse2 -ffast-math -fPIC}"
 export CXXFLAGS="${CXXFLAGS:-$CFLAGS}"
 
 function ver {
@@ -46,28 +46,28 @@ case "$release" in
 debian-8|ubuntu-1[456].*|mint-17.*)
   # Debian 8, Ubuntu 14-16, Mint 17
   apt-get -q update
-  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng12-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev
+  apt-get install -y -q --no-install-recommends automake build-essential ca-certificates curl git libexif-dev libexpat1-dev libffi-dev libfftw3-dev libgif-dev libglib2.0-dev libjpeg-dev liblcms2-dev libpng12-dev libpoppler-glib-dev librsvg2-dev libselinux1-dev libtiff5-dev libwebp-dev libxml2-dev tar
   ;;
 debian-9|debian-10|debian-unknown|ubuntu-1[789].*|mint-1[89].*)
   # Debian 9, 10, or sid, Ubuntu 17-19, Mint 18-19
   apt-get -q update
-  apt-get install -y -q --no-install-recommends ca-certificates git curl tar automake build-essential libglib2.0-dev libjpeg-dev libpng-dev libwebp-dev libgif-dev liblcms2-dev libtiff5-dev libxml2-dev libexif-dev libexpat1-dev libfftw3-dev libffi-dev librsvg2-dev libpoppler-glib-dev libselinux1-dev libmount-dev libzstd-dev
+  apt-get install -y -q --no-install-recommends automake build-essential ca-certificates curl git libexif-dev libexpat1-dev libffi-dev libfftw3-dev libgif-dev libglib2.0-dev libjpeg-dev liblcms2-dev libmount-dev libpng-dev libpoppler-glib-dev librsvg2-dev libselinux1-dev libtiff5-dev libwebp-dev libxml2-dev libzstd-dev tar
   ;;
 amzn-*|centos-7*|ol-7*|rhel-7*|scientific-7*)
   # RHEL/CentOS/SL 7/Amazon Linux 2/Oracle Linux 7
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel librsvg2-devel poppler-glib-devel libselinux-devel libmount-devel bzip2-devel
+  yum install -y automake bzip2-devel curl expat-devel findutils gcc gcc-c++ giflib-devel git glib2-devel jbigkit-devel lcms2-devel libexif-devel libffi-devel libjpeg-turbo-devel libmount-devel libpng-devel librsvg2-devel libselinux-devel libtiff-devel libwebp-devel libxml2-devel make poppler-glib-devel tar
   ;;
 fedora-2[6-9])
   # Fedora 26-29
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel libffi-devel jbigkit-devel fftw3-devel fontconfig-devel libtool-ltdl-devel librsvg2-devel poppler-glib-devel libselinux-devel libmount-devel jasper-libs
+  yum install -y automake curl expat-devel fftw3-devel findutils fontconfig-devel gcc gcc-c++ giflib-devel git glib2-devel jasper-libs jbigkit-devel lcms2-devel libexif-devel libffi-devel libjpeg-turbo-devel libmount-devel libpng-devel librsvg2-devel libselinux-devel libtiff-devel libtool-ltdl-devel libwebp-devel libxml2-devel make poppler-glib-devel tar
   ;;
 "CentOS release 6."*|"Red Hat Enterprise Linux release 6."*|"Scientific Linux release 6."*)
   # RHEL/CentOS/SL 6
   yum -y install epel-release
   yum -y update
-  yum install -y curl tar findutils git automake make gcc gcc-c++ glib2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel giflib-devel lcms2-devel libxml2-devel expat-devel
+  yum install -y automake curl expat-devel findutils gcc gcc-c++ giflib-devel git glib2-devel lcms2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel libxml2-devel make tar
   ;;
 *)
   echo "Sorry, I don't yet know how to install on $release ($(uname -a))."
