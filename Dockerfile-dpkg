@@ -7,15 +7,17 @@
 ARG BASE
 FROM $BASE
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get dist-upgrade -y -q --no-install-recommends && \
+    apt-get install -y -q --no-install-recommends fakeroot
+
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
-RUN DEBIAN_FRONTEND=noninteractive \
-    CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIE" \
+RUN CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIE" \
     VIPS_OPTIONS="--disable-shared --enable-static" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
-
-# Add dpkg build tool.
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends fakeroot
 
 # Add the rest of our code.
 ADD . /app/src/github.com/die-net/fotomat/

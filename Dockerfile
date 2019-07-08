@@ -12,14 +12,18 @@
 
 FROM debian:buster as builder
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get dist-upgrade -y -q --no-install-recommends
+
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
-RUN DEBIAN_FRONTEND=noninteractive \
-    VIPS_OPTIONS="--prefix=/usr" \
+RUN VIPS_OPTIONS="--prefix=/usr" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
 
 # Install busybox.
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends busybox
+RUN apt-get install -y -q --no-install-recommends busybox
 
 # Add the rest of our code.
 ADD . /app/src/github.com/die-net/fotomat/

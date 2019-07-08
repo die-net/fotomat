@@ -7,6 +7,10 @@
 ARG BASE
 FROM $BASE
 
+# Update packages and add a tool for building RPMs.
+RUN yum -y update && \
+    yum -y install rpm-build
+
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
 
@@ -14,9 +18,6 @@ RUN CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIE" \
     LDFLAGS="-lstdc++" \
     VIPS_OPTIONS="--disable-shared --enable-static" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
-
-# Add a tool for building RPMs.
-RUN yum -y install rpm-build
 
 # Add the rest of our code.
 ADD . /app/src/github.com/die-net/fotomat/
