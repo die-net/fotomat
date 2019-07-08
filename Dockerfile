@@ -10,13 +10,16 @@
 # To run as an HTTP image proxy, trusting the host header:
 #   docker run dienet/fotomat:latest -listen=:3520
 
-FROM debian:stretch as builder
+FROM debian:buster as builder
 
 # Apt-get our dependencies, download, build, and install VIPS, and download and install Go.
 ADD preinstall.sh /app/src/github.com/die-net/fotomat/
-RUN DEBIAN_FRONTEND=noninteractive CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math" \
+RUN DEBIAN_FRONTEND=noninteractive \
     VIPS_OPTIONS="--prefix=/usr" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
+
+# Install busybox.
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends busybox
 
 # Add the rest of our code.
 ADD . /app/src/github.com/die-net/fotomat/
@@ -42,14 +45,19 @@ RUN cp -a --parents \
     /etc/ssl/certs/ca-certificates.crt \
     /export/
 
-# Install busybox and all of its dependencies into /export.
-RUN apt-get install -y -q --no-install-recommends busybox
-RUN install -sD /bin/busybox /export/bin/busybox
-RUN ldd /bin/busybox | awk '($2=="=>"){print $3};(substr($1,1,1)=="/"){print $1}' | xargs -i{} install -D {} /export{}
-
-# Install Fotomat and all of its dependencies into /export.
-RUN install -sD /app/bin/fotomat /export/app/bin/fotomat
-RUN ldd /app/bin/fotomat | awk '($2=="=>"){print $3};(substr($1,1,1)=="/"){print $1}' | xargs -i{} install -D {} /export{}
+# Copy busybox, Fotomat, DNS libraries, and all of their dependencies into /export.
+RUN for file in \
+        /bin/busybox \
+        /app/bin/fotomat \
+        /lib/x86_64-linux-gnu/libnss_files.so.2 \
+        /lib/x86_64-linux-gnu/libnss_dns.so.2 \
+        /lib/x86_64-linux-gnu/libnss_compat.so.2; do \
+        echo $file; \
+        ldd $file; \
+    done | \
+    awk '($2=="=>"){print $3};(substr($1,1,1)=="/"){print $1}' | \
+    sort -u | \
+    xargs -I{} install -D {} /export{}
 
 
 FROM scratch
