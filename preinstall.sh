@@ -63,12 +63,6 @@ fedora-2[6-9])
   yum -y update
   yum install -y automake curl expat-devel fftw3-devel findutils fontconfig-devel gcc gcc-c++ giflib-devel git glib2-devel jasper-libs jbigkit-devel lcms2-devel libexif-devel libffi-devel libjpeg-turbo-devel libmount-devel libpng-devel librsvg2-devel libselinux-devel libtiff-devel libtool-ltdl-devel libwebp-devel libxml2-devel make poppler-glib-devel tar
   ;;
-"CentOS release 6."*|"Red Hat Enterprise Linux release 6."*|"Scientific Linux release 6."*)
-  # RHEL/CentOS/SL 6
-  yum -y install epel-release
-  yum -y update
-  yum install -y automake curl expat-devel findutils gcc gcc-c++ giflib-devel git glib2-devel lcms2-devel libexif-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel libxml2-devel make tar
-  ;;
 *)
   echo "Sorry, I don't yet know how to install on $release ($(uname -a))."
   exit 1
