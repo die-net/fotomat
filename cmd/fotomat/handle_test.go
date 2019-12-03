@@ -20,15 +20,6 @@ import (
 var localhost string
 
 func TestMain(m *testing.M) {
-	vips.Initialize()
-	vips.LeakSet(true)
-	r := m.Run()
-	vips.ThreadShutdown()
-	vips.Shutdown()
-	os.Exit(r)
-}
-
-func init() {
 	// Initialize flags with default values, enable local serving.
 	flag.Parse()
 	*localImageDirectory = "../../testdata/"
@@ -44,6 +35,13 @@ func init() {
 	localhost = listen.Addr().String()
 
 	go func() { _ = http.Serve(listen, handleInit()) }()
+
+	vips.Initialize()
+	vips.LeakSet(true)
+	r := m.Run()
+	vips.ThreadShutdown()
+	vips.Shutdown()
+	os.Exit(r)
 }
 
 func TestSuccess(t *testing.T) {
