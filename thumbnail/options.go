@@ -46,13 +46,16 @@ type Options struct {
 	MaxProcessingDuration time.Duration
 	// Save specifies the format.SaveOptions to use when compressing the modified image.
 	Save format.SaveOptions
+	// Optional input formats
+	AllowPdf  bool
+	AllowSvg  bool
+	AllowTiff bool
 }
 
 // Check verifies Options against Metadata and returns a modified
 // Options or an error.
 func (o Options) Check(m format.Metadata) (Options, error) {
-	// Input format must be set.
-	if m.Format == format.Unknown {
+	if !o.allowedFormat(m) {
 		return Options{}, format.ErrUnknownFormat
 	}
 
@@ -100,4 +103,26 @@ func (o Options) Check(m format.Metadata) (Options, error) {
 	}
 
 	return o, nil
+}
+
+func (o Options) allowedFormat(m format.Metadata) bool {
+	switch m.Format {
+	case format.Unknown:
+		// Input format must be set.
+		return false
+	case format.Pdf:
+		if !o.AllowPdf {
+			return false
+		}
+	case format.Svg:
+		if !o.AllowSvg {
+			return false
+		}
+	case format.Tiff:
+		if !o.AllowTiff {
+			return false
+		}
+	}
+
+	return true
 }

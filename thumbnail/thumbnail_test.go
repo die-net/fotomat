@@ -58,7 +58,7 @@ func TestValidation(t *testing.T) {
 }
 
 func tryNew(filename string) error {
-	_, err := Thumbnail(image(filename), Options{Width: 200, Height: 200})
+	_, err := Thumbnail(image(filename), Options{Width: 200, Height: 200, AllowPdf: true, AllowSvg: true, AllowTiff: true})
 	return err
 }
 
@@ -213,7 +213,7 @@ func TestConversion(t *testing.T) {
 
 			for _, of := range []format.Format{format.Png, format.Jpeg, format.Webp} {
 				// If we ask for a specific format, it should return that.
-				thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, Save: format.SaveOptions{Format: of}})
+				thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, AllowPdf: true, AllowSvg: true, AllowTiff: true, Save: format.SaveOptions{Format: of}})
 				if assert.Nil(t, err, "formats: %s -> %s", f.in, of) {
 					alpha := f.in == format.Svg && of != format.Jpeg
 					assert.Nil(t, isSize(thumb, of, 2, 3, alpha), "formats: %s -> %s", f.in, of)
@@ -221,7 +221,7 @@ func TestConversion(t *testing.T) {
 			}
 
 			// If we ask for lossless, it should match the outLossless format.
-			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, Save: format.SaveOptions{Lossless: true}})
+			thumb, err := Thumbnail(img, Options{Width: 1024, Height: 1024, AllowPdf: true, AllowSvg: true, AllowTiff: true, Save: format.SaveOptions{Lossless: true}})
 			if assert.Nil(t, err, "lossless: %s", f.in) {
 				alpha := f.in == format.Svg
 				assert.Nil(t, isSize(thumb, f.outLossless, 2, 3, alpha), "lossless: %s", f.in)

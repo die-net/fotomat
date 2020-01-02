@@ -1,7 +1,7 @@
 package thumbnail
 
 import (
-	"fmt"
+	"log"
 	"math"
 	"time"
 
@@ -19,7 +19,7 @@ const (
 func Thumbnail(blob []byte, o Options) ([]byte, error) {
 	if o.MaxProcessingDuration > 0 {
 		timer := time.AfterFunc(o.MaxProcessingDuration, func() {
-			panic(fmt.Sprintf("Thumbnail took longer than %v", o.MaxProcessingDuration))
+			log.Fatalf("Thumbnail took longer than %v", o.MaxProcessingDuration)
 		})
 		defer timer.Stop()
 	}

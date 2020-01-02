@@ -12,6 +12,9 @@ import (
 )
 
 var (
+	allowPdf              = flag.Bool("allow_pdf", false, "Allow PDF as an input format")
+	allowSvg              = flag.Bool("allow_svg", false, "Allow SVG as an input format")
+	allowTiff             = flag.Bool("allow_tiff", false, "Allow TIFF as an input format")
 	fetchTimeout          = flag.Duration("fetch_timeout", 30*time.Second, "How long to wait to receive original image from source (0=disable).")
 	localImageDirectory   = flag.String("local_image_directory", "", "Enable local image serving from this path (\"\"=proxy instead).")
 	lossless              = flag.Bool("lossless", true, "Allow saving as PNG even without transparency.")
@@ -79,6 +82,9 @@ func director(req *http.Request) (thumbnail.Options, int) {
 		Crop:                  crop,
 		MaxQueueDuration:      *maxQueueDuration,
 		MaxProcessingDuration: *maxProcessingDuration,
+		AllowPdf:              *allowPdf,
+		AllowSvg:              *allowSvg,
+		AllowTiff:             *allowTiff,
 		Save: format.SaveOptions{
 			Lossless:     *lossless,
 			LossyIfPhoto: *lossyIfPhoto,
