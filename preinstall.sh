@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-VIPS_VERSION=${VIPS_VERSION:-8.7.4}
-GO_VERSION=${GO_VERSION:-1.12.6}
+VIPS_VERSION=${VIPS_VERSION:-8.10.5}
+GO_VERSION=${GO_VERSION:-1.16.2}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -48,8 +48,8 @@ debian-8|ubuntu-1[456].*|mint-17.*)
   apt-get -q update
   apt-get install -y -q --no-install-recommends automake build-essential ca-certificates curl git libexif-dev libexpat1-dev libffi-dev libfftw3-dev libgif-dev libglib2.0-dev libjpeg-dev liblcms2-dev libpng12-dev libpoppler-glib-dev librsvg2-dev libselinux1-dev libtiff5-dev libwebp-dev libxml2-dev tar
   ;;
-debian-9|debian-10|debian-unknown|ubuntu-1[789].*|mint-1[89].*)
-  # Debian 9, 10, or sid, Ubuntu 17-19, Mint 18-19
+debian-9|debian-10|debian-unknown|ubuntu-1[789].*|ubuntu-2[0-9].*|mint-1[89].*|mint-2[0-9].*)
+  # Debian 9, 10, or sid, Ubuntu 17-, Mint 18-
   apt-get -q update
   apt-get install -y -q --no-install-recommends automake build-essential ca-certificates curl git libexif-dev libexpat1-dev libffi-dev libfftw3-dev libgif-dev libglib2.0-dev libjpeg-dev liblcms2-dev libmount-dev libpng-dev libpoppler-glib-dev librsvg2-dev libselinux1-dev libtiff5-dev libwebp-dev libxml2-dev libzstd-dev tar
   ;;
