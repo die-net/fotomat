@@ -26,13 +26,15 @@ RUN VIPS_OPTIONS="--prefix=/usr" \
 RUN apt-get install -y -q --no-install-recommends busybox
 
 # Add the rest of our code.
-ADD . /app/src/github.com/die-net/fotomat/
+COPY . /app/src/github.com/die-net/fotomat/
+
+WORKDIR /app/src/github.com/die-net/fotomat/
 
 # Build and install Fotomat
-RUN GOPATH=/app /usr/local/go/bin/go get -ldflags="-s -w" -t github.com/die-net/fotomat/...
+RUN GOPATH=/app /usr/local/go/bin/go install -ldflags="-s -w" ./...
 
 # Test fotomat
-RUN GOPATH=/app /usr/local/go/bin/go test -v github.com/die-net/fotomat/...
+RUN GOPATH=/app /usr/local/go/bin/go test -v ./...
 
 # Set up an /export/ directory with the very basics of a system
 RUN mkdir -m 0755 -p /export/etc /export/home /export/bin /export/usr/bin /export/sbin /export/usr/sbin && \

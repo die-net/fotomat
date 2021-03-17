@@ -20,17 +20,19 @@ RUN CFLAGS="-O2 -ftree-vectorize -msse2 -ffast-math -fPIE" \
     /app/src/github.com/die-net/fotomat/preinstall.sh
 
 # Add the rest of our code.
-ADD . /app/src/github.com/die-net/fotomat/
+COPY . /app/src/github.com/die-net/fotomat/
+
+WORKDIR /app/src/github.com/die-net/fotomat/
 
 # Build and install Fotomat
 RUN PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app CGO_LDFLAGS_ALLOW="-Wl,--export-dynamic" \
-    /usr/local/go/bin/go get -ldflags="-s -w" -tags vips_static -t github.com/die-net/fotomat/...
+    /usr/local/go/bin/go install -ldflags="-s -w" -tags vips_static ./...
 
 # Test fotomat
 RUN PKG_CONFIG_PATH=/usr/local/lib/pkgconfig GOPATH=/app CGO_LDFLAGS_ALLOW="-Wl,--export-dynamic" \
-    /usr/local/go/bin/go test -tags vips_static -v github.com/die-net/fotomat/...
+    /usr/local/go/bin/go test -tags vips_static -v ./...
 
 # Update specfile version and use it to build binary RPM.
-RUN perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "$1\n"' /app/src/github.com/die-net/fotomat/cmd/fotomat/version.go | \
-    xargs -i{} perl -p -i~ -e 's/(^Version:\s+)\d+\.\d+\.\d+/${1}{}/' /app/src/github.com/die-net/fotomat/dist/rpm/fotomat.spec
-RUN rpmbuild -bb /app/src/github.com/die-net/fotomat/dist/rpm/fotomat.spec
+RUN perl -ne '/FotomatVersion.*\b(\d+\.\d+\.\d+)/ and print "$1\n"' cmd/fotomat/version.go | \
+    xargs -i{} perl -p -i~ -e 's/(^Version:\s+)\d+\.\d+\.\d+/${1}{}/' dist/rpm/fotomat.spec
+RUN rpmbuild -bb dist/rpm/fotomat.spec
