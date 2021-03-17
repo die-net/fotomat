@@ -22,7 +22,7 @@ build() {
     fi
 
     case $repo in
-    debian|ubuntu)
+    debian|ubuntu|mint)
         format="dpkg"
         path="app/src/github.com/die-net/fotomat/dist/dpkg/fotomat.deb"
         final="fotomat-${version}.${tag}.amd64.deb"
@@ -66,7 +66,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ "$1" = "all" ]; then
-    for base in debian:buster debian:stretch debian:jessie centos:7; do
+    for base in debian:buster debian:stretch centos:7; do
         build "$base"
     done
 else 
