@@ -9,11 +9,9 @@ import (
 	"github.com/die-net/fotomat/v2/vips"
 )
 
-var (
-	// ErrAborted means the operation wasn't executed because the
-	// Request.Aborted channel was closed by the caller.
-	ErrAborted = errors.New("thumbnail request aborted")
-)
+// ErrAborted means the operation wasn't executed because the
+// Request.Aborted channel was closed by the caller.
+var ErrAborted = errors.New("thumbnail request aborted")
 
 // Pool represents a Thumbnail worker pool. VIPS keeps thread-local caches,
 // which we retain control over through a combination of a pool of worker

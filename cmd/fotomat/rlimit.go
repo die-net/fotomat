@@ -6,9 +6,7 @@ import (
 	"syscall"
 )
 
-var (
-	maxConnections = flag.Int("max_connections", getRlimitMax(syscall.RLIMIT_NOFILE), "The maximum number of incoming connections allowed.")
-)
+var maxConnections = flag.Int("max_connections", getRlimitMax(syscall.RLIMIT_NOFILE), "The maximum number of incoming connections allowed.")
 
 func getRlimitMax(resource int) int {
 	var rlimit syscall.Rlimit

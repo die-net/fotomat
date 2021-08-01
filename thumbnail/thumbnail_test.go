@@ -186,7 +186,7 @@ func TestRotation(t *testing.T) {
 }
 
 func TestConversion(t *testing.T) {
-	var formatTest = []struct {
+	formatTest := []struct {
 		filename    string
 		in          format.Format
 		outLossless format.Format

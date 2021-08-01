@@ -122,6 +122,7 @@ func (o Options) allowedFormat(m format.Metadata) bool {
 		if !o.AllowTiff {
 			return false
 		}
+	default:
 	}
 
 	return true

@@ -34,7 +34,9 @@ func hyperthreadsPerCore() int {
 	if err != nil {
 		return 0
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
 	// Parse cpuinfo looking for the highest "siblings" and "cpu cores"
 	// values.

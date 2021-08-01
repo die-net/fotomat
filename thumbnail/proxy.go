@@ -2,6 +2,7 @@ package thumbnail
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -183,20 +184,18 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 		http.StatusGone:
 		err = nil
 	case 0:
-		switch err {
-		case format.ErrUnknownFormat, ErrTooSmall:
+		switch {
+		case errors.Is(err, format.ErrUnknownFormat), errors.Is(err, ErrTooSmall):
 			status = http.StatusUnsupportedMediaType
-		case ErrTooBig:
+		case errors.Is(err, ErrTooBig):
 			status = http.StatusRequestEntityTooLarge
-		case ErrAborted, context.Canceled:
+		case errors.Is(err, ErrAborted), errors.Is(err, context.Canceled):
 			status = 499 // Nginx error for "Client closed connection"
+		case isTimeout(err):
+			err = nil
+			status = http.StatusGatewayTimeout
 		default:
-			if isTimeout(err) {
-				err = nil
-				status = http.StatusGatewayTimeout
-			} else {
-				status = http.StatusInternalServerError
-			}
+			status = http.StatusInternalServerError
 		}
 	default:
 		err = fmt.Errorf("proxy received %d %s", status, http.StatusText(status))
@@ -214,8 +213,9 @@ func isTimeout(err error) bool {
 	if err == nil {
 		return false
 	}
-	if err, ok := err.(net.Error); ok {
-		return err.Timeout()
+	var ne net.Error
+	if errors.As(err, &ne) {
+		return ne.Timeout()
 	}
 	return false
 }

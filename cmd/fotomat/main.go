@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	_ "net/http/pprof" // Adds http://*/debug/pprof/ to default mux.
+	_ "net/http/pprof" //nolint:gosec // TODO: Move this to its own port.
 	"os"
 	"runtime"
 	"time"

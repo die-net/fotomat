@@ -23,7 +23,7 @@ linters:
     - exhaustive
     - exportloopref
     - gocritic
-    - goerr113
+    # - goerr113
     - gofumpt
     - goimports
     - goprintffuncname
@@ -34,7 +34,7 @@ linters:
     - makezero
     - misspell
     - nakedret
-    - noctx
+    # - noctx
     - nolintlint
     - prealloc
     - predeclared
@@ -87,6 +87,9 @@ linters-settings:
       - unnamedResult
       - filepathJoin
       - tooManyResultsChecker
+      # Broken with cgo
+      - dupSubExpr
+      - dupImport
     settings:
       captLocal:
         paramsOnly: false
