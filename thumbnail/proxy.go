@@ -65,6 +65,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 	ctx := or.Context()
 
 	w.Header().Set("Server", p.Server)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
 
 	if or.Method != "GET" && or.Method != "HEAD" {
 		proxyError(w, nil, http.StatusMethodNotAllowed)
@@ -101,21 +103,20 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 		return
 	}
 
-	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Date", "Etag", "Expires", "Last-Modified"})
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("X-XSS-Protection", "1; mode=block")
-
 	if status == http.StatusNotModified || isNotModified(or.Header, header) {
+		copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Date", "Etag", "Expires", "Last-Modified"})
 		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
 	thumb, err := p.pool.Thumbnail(ctx, orig, options)
 	if err != nil {
+		// Don't copy Cache-Control, etc when returning errors.
 		proxyError(w, err, 0)
 		return
 	}
 
+	copyHeaders(header, w.Header(), []string{"Age", "Cache-Control", "Date", "Etag", "Expires", "Last-Modified"})
 	w.Header().Set("Content-Length", strconv.Itoa(len(thumb)))
 	_, _ = w.Write(thumb)
 }

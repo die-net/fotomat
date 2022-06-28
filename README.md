@@ -1,4 +1,4 @@
-Fotomat [![Build Status](https://github.com/die-net/fotomat/actions/workflows/go-test.yml/badge.svg)](https://github.com/die-net/fotomat/actions/workflows/go-test.yml) [![Coverage Status](https://coveralls.io/repos/github/die-net/fotomat/badge.svg?branch=master)](https://coveralls.io/github/die-net/fotomat?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/die-net/fotomat)](https://goreportcard.com/report/github.com/die-net/fotomat)
+Fotomat [![Build Status](https://github.com/die-net/fotomat/actions/workflows/go-test.yml/badge.svg)](https://github.com/die-net/fotomat/actions/workflows/go-test.yml) [![Coverage Status](https://coveralls.io/repos/github/die-net/fotomat/badge.svg?branch=main)](https://coveralls.io/github/die-net/fotomat?branch=main) [![Go Report Card](https://goreportcard.com/badge/github.com/die-net/fotomat)](https://goreportcard.com/report/github.com/die-net/fotomat)
 =======
 
 Fotomat is an extremely fast image resizing proxy, enabling on-the-fly resizing and cropping of JPEG, PNG, GIF, and WebP images. Written in [Go](https://golang.org/doc/) and using the fast and flexible [VIPS](http://www.vips.ecs.soton.ac.uk/index.php?title=Libvips) image library, it aims to deliver beautiful images in the shortest time and at the smallest file size possible.
@@ -6,9 +6,9 @@ Fotomat is an extremely fast image resizing proxy, enabling on-the-fly resizing 
 Documentation
 -------------
 
-See [features](https://github.com/die-net/fotomat/blob/master/doc/features.md), [building instructions](https://github.com/die-net/fotomat/blob/master/doc/building.md), [command-line
-flags](https://github.com/die-net/fotomat/blob/master/doc/flags.md), and
-[benchmarks](https://github.com/die-net/fotomat/blob/master/doc/benchmarks.md).
+See [features](https://github.com/die-net/fotomat/blob/main/doc/features.md), [building instructions](https://github.com/die-net/fotomat/blob/main/doc/building.md), [command-line
+flags](https://github.com/die-net/fotomat/blob/main/doc/flags.md), and
+[benchmarks](https://github.com/die-net/fotomat/blob/main/doc/benchmarks.md).
 
 There's also API detail for Fotomat's [thumbnail](https://godoc.org/github.com/die-net/fotomat/thumbnail), [format](https://godoc.org/github.com/die-net/fotomat/format), and [vips wrapper](https://godoc.org/github.com/die-net/fotomat/vips) libraries.
 

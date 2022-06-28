@@ -80,6 +80,7 @@ func newProxyServer(delay, timeout time.Duration) *proxyServer {
 	fs := http.FileServer(http.Dir(imageDirectory))
 	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(delay)
+		w.Header().Set("Cache-Control", "max-age=1234")
 		fs.ServeHTTP(w, r)
 	}))
 
@@ -118,6 +119,14 @@ func (ps *proxyServer) get(filename string) ([]byte, int) {
 	resp.Body.Close()
 	if err != nil {
 		panic(err)
+	}
+
+	if resp.StatusCode == 200 || resp.StatusCode == 304 {
+		if resp.Header.Get("Cache-Control") == "" {
+			panic("Cache-control header missing from response")
+		}
+	} else if resp.Header.Get("Cache-Control") != "" {
+		panic("Cache-control shouldn't be included in error response")
 	}
 
 	return body, resp.StatusCode
