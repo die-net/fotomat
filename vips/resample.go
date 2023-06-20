@@ -36,8 +36,10 @@ func (i *Interpolate) Close() {
 
 // Affine performs this affine transform on the input image using the
 // supplied interpolate:
-//   X = a * (x + idx ) + b * (y + idy ) + odx
-//   Y = c * (x + idx ) + d * (y + idy ) + doy
+//
+//	X = a * (x + idx ) + b * (y + idy ) + odx
+//	Y = c * (x + idx ) + d * (y + idy ) + doy
+//
 // x and y are the coordinates in input image. X and Y are the coordinates
 // in output image.  (0,0) is the upper left corner.
 func (in *Image) Affine(a, b, c, d float64, interpolate *Interpolate) error {

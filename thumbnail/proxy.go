@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -122,7 +122,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, or *http.Request) {
 }
 
 func (p *Proxy) get(ctx context.Context, url string, header http.Header) ([]byte, http.Header, int, error) {
-	r, err := http.NewRequest("GET", url, nil)
+	r, err := http.NewRequest("GET", url, http.NoBody)
 	if err != nil {
 		return nil, nil, 0, err
 	}
@@ -139,7 +139,7 @@ func (p *Proxy) get(ctx context.Context, url string, header http.Header) ([]byte
 		return nil, nil, 0, err
 	}
 
-	orig, err := ioutil.ReadAll(resp.Body)
+	orig, err := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
 
 	return orig, resp.Header, resp.StatusCode, err
@@ -204,7 +204,7 @@ func proxyError(w http.ResponseWriter, err error, status int) {
 	}
 
 	if err == nil {
-		err = fmt.Errorf(http.StatusText(status))
+		err = errors.New(http.StatusText(status))
 	}
 
 	http.Error(w, err.Error(), status)

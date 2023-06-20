@@ -2,7 +2,6 @@ package thumbnail
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -424,7 +423,7 @@ func isSize(image []byte, f format.Format, width, height int, alpha bool) error 
 }
 
 func image(filename string) []byte {
-	bytes, err := ioutil.ReadFile("../testdata/" + filename)
+	bytes, err := os.ReadFile("../testdata/" + filename)
 	if err != nil {
 		panic(err)
 	}

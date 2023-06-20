@@ -2,6 +2,7 @@
 // "-tags vips_static" build flag is used.  Configure VIPS with:
 // CFLAGS="-fPIE" CXXFLAGS="-fPIE" LDFLAGS="-lstdc++"
 
+//go:build vips_static
 // +build vips_static
 
 package vips

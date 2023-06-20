@@ -2,7 +2,6 @@ package format
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -48,7 +47,7 @@ func metadataError(filename string) error {
 }
 
 func image(filename string) []byte {
-	bytes, err := ioutil.ReadFile(TestdataPath + filename)
+	bytes, err := os.ReadFile(TestdataPath + filename)
 	if err != nil {
 		panic(err)
 	}

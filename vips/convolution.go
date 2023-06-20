@@ -16,7 +16,7 @@ func (in *Image) Gaussblur(sigma float64) error {
 
 // PhotoMetric takes a histogram of a Sobel edge detect of our image.
 // Returns the highest number of histogram values in a row that are more
-// than the maximum value * threshhold.  With a threshold of 0.01, more than
+// than the maximum value * threshold.  With a threshold of 0.01, more than
 // 16 indicates a photo.
 func (in *Image) PhotoMetric(threshold float64) (int, error) {
 	var out C.int

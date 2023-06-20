@@ -34,8 +34,16 @@ func main() {
 	}
 
 	if *debugListen != "" {
-		http.Handle("/metrics", promhttp.Handler())
-		go func() { log.Fatal(http.ListenAndServe(*debugListen, nil)) }()
+		go func() {
+			ps := &http.Server{
+				Addr:         *debugListen,
+				Handler:      promhttp.Handler(),
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 10 * time.Second,
+				IdleTimeout:  5 * time.Minute,
+			}
+			log.Fatal(ps.ListenAndServe())
+		}()
 	}
 
 	handler := handleInit()

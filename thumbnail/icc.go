@@ -43,7 +43,7 @@ var (
 func init() {
 	d := path.Join(os.TempDir(), "fotomat_temp-"+strconv.Itoa(os.Getuid()), "icc")
 
-	if err := os.MkdirAll(d, 0700); err != nil {
+	if err := os.MkdirAll(d, 0o700); err != nil {
 		log.Fatalln("Can't create directory", d, err)
 	}
 
