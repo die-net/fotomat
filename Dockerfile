@@ -10,7 +10,7 @@
 # To run as an HTTP image proxy, trusting the host header:
 #   docker run dienet/fotomat:latest -listen=:3520
 
-FROM debian:buster as builder
+FROM debian:bullseye as builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
