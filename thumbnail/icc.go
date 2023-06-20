@@ -43,21 +43,37 @@ var (
 func init() {
 	d := path.Join(os.TempDir(), "fotomat_temp-"+strconv.Itoa(os.Getuid()), "icc")
 
-	if err := os.RemoveAll(d); err != nil {
-		log.Fatalln("Can't remove directory", d, err)
-	}
-
 	if err := os.MkdirAll(d, 0700); err != nil {
 		log.Fatalln("Can't create directory", d, err)
 	}
 
 	sRgbFile = path.Join(d, "sRGB_IEC61966-2-1_black_scaled.icc")
-	if err := ioutil.WriteFile(sRgbFile, []byte(sRGBIEC6196621BlackScaled), 0400); err != nil {
+	if err := atomicWriteFile(sRgbFile, []byte(sRGBIEC6196621BlackScaled)); err != nil {
 		log.Fatalln("Can't create file", sRgbFile, err)
 	}
 
 	cmykFile = path.Join(d, "USWebCoatedSWOP.icc")
-	if err := ioutil.WriteFile(cmykFile, []byte(usWebCoatedSWOP), 0400); err != nil {
+	if err := atomicWriteFile(cmykFile, []byte(usWebCoatedSWOP)); err != nil {
 		log.Fatalln("Can't create file", cmykFile, err)
 	}
+}
+
+func atomicWriteFile(file string, data []byte) error {
+	dir, filename := path.Split(file)
+	f, err := ioutil.TempFile(dir, filename+".tmp.*")
+	if err != nil {
+		return err
+	}
+
+	tmp := f.Name()
+
+	_, err = f.Write(data)
+	if err1 := f.Close(); err1 != nil && err == nil {
+		err = err1
+	}
+	if err != nil {
+		return err
+	}
+
+	return os.Rename(tmp, file)
 }
