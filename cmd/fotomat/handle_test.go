@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -34,7 +35,13 @@ func TestMain(m *testing.M) {
 	// Record that address.
 	localhost = listen.Addr().String()
 
-	go func() { _ = http.Serve(listen, handleInit()) }()
+	go func() {
+		srv := &http.Server{
+			Handler:     handleInit(),
+			ReadTimeout: 10 * time.Second,
+		}
+		_ = srv.Serve(listen)
+	}()
 
 	vips.Initialize()
 	vips.LeakSet(true)
@@ -133,7 +140,7 @@ func fetch(filename string) ([]byte, int) {
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}

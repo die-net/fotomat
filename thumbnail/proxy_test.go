@@ -2,7 +2,7 @@ package thumbnail
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -115,7 +115,7 @@ func (ps *proxyServer) get(filename string) ([]byte, int) {
 		panic(err)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		panic(err)
