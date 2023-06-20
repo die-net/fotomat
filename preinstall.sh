@@ -7,8 +7,8 @@ set -euo pipefail
 
 # Usage: sudo ./preinstall.sh
 
-VIPS_VERSION=${VIPS_VERSION:-8.10.6}
-GO_VERSION=${GO_VERSION:-1.17.11}
+VIPS_VERSION=${VIPS_VERSION:-8.13.3}
+GO_VERSION=${GO_VERSION:-1.20.5}
 
 export PATH="/usr/local/bin:/usr/bin:/bin:${PATH:-}"
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
@@ -106,8 +106,8 @@ if type go 2>/dev/null; then
 elif [ "$GO_VERSION" = "skip" ]; then
   echo "Skipping Go installation"
 else
-  arch="$( uname -sm | tr '[A-Z ]' '[a-z-]' | sed 's/i[3-6]86/386/;s/x86_64/amd64/' )"
-  if [ "$arch" != "linux-386" -a "$arch" != "linux-amd64" ]; then
+  arch="$( uname -sm | tr '[A-Z ]' '[a-z-]' | sed 's/i[3-6]86/386/;s/x86_64/amd64/;s/aarch64/arm64/' )"
+  if [ "$arch" != "linux-386" -a "$arch" != "linux-amd64" -a "$arch" != "linux-arm64" ]; then
     echo "Sorry, I don't know how to install Go for $arch"
     exit 1
   fi
